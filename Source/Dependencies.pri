@@ -8,5 +8,5 @@
 
 
 
-#INCLUDEPATH += $${PWD}/../vcpkg/installed/x64-windows/include
-#DEPENDPATH += $${PWD}/../vcpkg/installed/x64-windows/include
+INCLUDEPATH += $${PWD}/../vcpkg/installed/x64-windows/include
+DEPENDPATH += $${PWD}/../vcpkg/installed/x64-windows/include
