@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Vulkan/vulkan.hpp>
+#include <Vulkan/vulkan.h>
 #include <QFile>
 
 #include <iostream>

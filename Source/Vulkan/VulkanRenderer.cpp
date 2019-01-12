@@ -11,9 +11,7 @@ VulkanRenderer::VulkanRenderer()
 
 VulkanRenderer::~VulkanRenderer()
 {
-	
-	
-	
+
 	
 	vkDestroyInstance(this->m_vkInstance, VK_NULL_HANDLE);
 }
@@ -33,7 +31,7 @@ void VulkanRenderer::initVkLayers()
 	 * by returning a VK_INCOMPLETE status and will update the
 	 * the count parameter.
 	 * The count parameter will be updated with the number of
-	 * entries loaded into the data pointer - in case the number
+	 * entries loaded into the data pointer - in case the number	
 	 * of layers went down or is smaller than the size given.
 	 */
 	VkResult res;
