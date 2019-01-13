@@ -1,25 +1,26 @@
 #pragma once
 
-#include <Vulkan/vulkan.h>
-#include <QFile>
-
-#include <iostream>
+#include <QVulkanWindow>
+#include <QVulkanFunctions>
 
 // This code is used from the qt vulkan examples
 
-class VulkanRenderer
+class VulkanRenderer : public QVulkanWindowRenderer
 {
+
 public:
-    VulkanRenderer();
-	~VulkanRenderer();
+	VulkanRenderer(QVulkanWindow *w);
 
+	void initResources() override;
+	void initSwapChainResources() override;
+	void releaseSwapChainResources() override;
+	void releaseResources() override;
+	void startNextFrame() override;
 
 private:
-	void initVkLayers();
-	void initVkInstance();
-
-private:
-	VkInstance m_vkInstance;
+	QVulkanWindow *m_window;
+	QVulkanDeviceFunctions *m_devFuncs;
+	float m_green = 0;
 
 };
 
