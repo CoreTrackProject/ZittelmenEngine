@@ -31,10 +31,11 @@ void VulkanRenderer::releaseResources()
 
 void VulkanRenderer::startNextFrame()
 {
+	
 	m_green += 0.005f;
 	if (m_green > 1.0f)
 		m_green = 0.0f;
-
+	
 	VkClearColorValue clearColor = { { 0.0f, m_green, 0.0f, 1.0f } };
 	VkClearDepthStencilValue clearDS = { 1.0f, 0 };
 	VkClearValue clearValues[2];
@@ -47,11 +48,13 @@ void VulkanRenderer::startNextFrame()
 	rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	rpBeginInfo.renderPass = m_window->defaultRenderPass();
 	rpBeginInfo.framebuffer = m_window->currentFramebuffer();
+
 	const QSize sz = m_window->swapChainImageSize();
 	rpBeginInfo.renderArea.extent.width = sz.width();
 	rpBeginInfo.renderArea.extent.height = sz.height();
 	rpBeginInfo.clearValueCount = 2;
 	rpBeginInfo.pClearValues = clearValues;
+
 	VkCommandBuffer cmdBuf = m_window->currentCommandBuffer();
 	m_devFuncs->vkCmdBeginRenderPass(cmdBuf, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 

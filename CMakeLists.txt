@@ -11,8 +11,7 @@ file(GLOB_RECURSE zittelmenengine_SRCS
 find_package(Vulkan)
 
 # Find the QtWidgets library
-find_package(Qt5Widgets CONFIG REQUIRED)
-find_package(Qt5Core REQUIRED)
+find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets 3DCore 3DExtras 3DRender 3DInput)
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
 
@@ -23,5 +22,9 @@ target_link_libraries(
     ZittelmenEngine 
     Qt5::Widgets
     Qt5::WinMain
+	Qt5::3DCore
+    Qt5::3DExtras
+    Qt5::3DRender
+    Qt5::3DInput
     Vulkan::Vulkan
 )

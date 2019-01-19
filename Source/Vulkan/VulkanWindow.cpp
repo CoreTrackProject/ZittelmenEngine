@@ -5,7 +5,7 @@
 
 VulkanWindow::VulkanWindow()
 {
-	this->setSurfaceType(VulkanSurface);
+	this->setSurfaceType(QSurface::VulkanSurface);
 }
 
 QVulkanWindowRenderer *VulkanWindow::createRenderer()
