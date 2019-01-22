@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.9)
 
+set (CMAKE_CXX_STANDARD 11)
+
 project(ZittelmenEngine VERSION 1.0.1 DESCRIPTION "Vulkan graphics engine")
 
 file(GLOB_RECURSE zittelmenengine_SRCS
     "Source/*.h"
     "Source/*.cpp"
+    "Source/*.hpp"
 )
 
 # Find Vulkan  SDK
