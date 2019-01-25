@@ -2,6 +2,7 @@
 
 #include "VulkanInstance.h"
 #include "VulkanDebug.h"
+#include "VulkanDevice.h"
 
 /*
 	Top class from where the whole Vulkan api get controlled
@@ -16,7 +17,9 @@ public:
 private:
 	bool enableValidation = false;
 
-	VulkanInstance *m_instance = nullptr;
-	VulkanDebug *m_vulkanDebug = nullptr;
+	VulkanInstance *instance   = nullptr;
+	VulkanDebug *vulkanDebug   = nullptr;
+	VulkanDevice *vulkanDevice = nullptr;
+
 
 };

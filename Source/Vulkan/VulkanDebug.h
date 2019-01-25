@@ -17,6 +17,6 @@ private:
 	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
 	PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = VK_NULL_HANDLE;
 
-	VkInstance *m_instance = VK_NULL_HANDLE;
+	VkInstance *instance = VK_NULL_HANDLE;
 
 };

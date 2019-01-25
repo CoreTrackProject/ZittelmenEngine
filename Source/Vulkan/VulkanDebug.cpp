@@ -22,15 +22,15 @@ namespace debug {
 
 VulkanDebug::VulkanDebug(VkInstance *instance)
 {
-	this->m_instance = instance;
+	this->instance = instance;
 	this->init_vulkanDebug();
 }
 
 void VulkanDebug::init_vulkanDebug()
 {
 
-	CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->m_instance,   "vkCreateDebugReportCallbackEXT"));
-	DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->m_instance, "vkDestroyDebugReportCallbackEXT"));
+	CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance,   "vkCreateDebugReportCallbackEXT"));
+	DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(*this->instance, "vkDestroyDebugReportCallbackEXT"));
 
 
 	VkDebugReportCallbackCreateInfoEXT createInfo = {};
@@ -38,10 +38,10 @@ void VulkanDebug::init_vulkanDebug()
 	createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)debug::debugReportCallbackEXT;
 	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT;
 
-	VkResult res = CreateDebugReportCallback(*this->m_instance, &createInfo, nullptr, &debug::msgCallback);
+	VkResult res = CreateDebugReportCallback(*this->instance, &createInfo, nullptr, &debug::msgCallback);
 }
 
 void VulkanDebug::destroy_vulkanDebug()
 {
-	DestroyDebugReportCallback(*this->m_instance, debug::msgCallback, nullptr);
+	DestroyDebugReportCallback(*this->instance, debug::msgCallback, nullptr);
 }

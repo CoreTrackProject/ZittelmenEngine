@@ -4,22 +4,25 @@
 VulkanBase::VulkanBase()
 {
 	this->enableValidation = true;
-
-	this->m_instance = new VulkanInstance(this->enableValidation);
+	this->instance = new VulkanInstance(this->enableValidation);
 
 	if (this->enableValidation) {
-		this->m_vulkanDebug = new VulkanDebug(this->m_instance->getInstance());
+		this->vulkanDebug = new VulkanDebug(this->instance->getInstance());
 	}
 
+	this->vulkanDevice = new VulkanDevice(this->instance->getInstance());
 }
 
 VulkanBase::~VulkanBase()
 {
-	delete this->m_instance;
+
+	delete this->vulkanDevice;
 
 	if (this->enableValidation) {
-		delete this->m_vulkanDebug;
+		delete this->vulkanDebug;
 	}
+
+	delete this->instance;
 
 
 }
