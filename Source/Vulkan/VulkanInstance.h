@@ -12,6 +12,8 @@ public:
 	VulkanInstance(bool enableValidation);
 	~VulkanInstance();
 
+	VkInstance* getInstance();
+
 private:
 	void init_vkInstance(bool enableValidation);
 	void destroy_vkInstance();

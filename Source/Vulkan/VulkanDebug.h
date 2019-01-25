@@ -2,17 +2,21 @@
 
 #include <vulkan/vulkan.h>
 
+
 class VulkanDebug
 {
 
 public:
-	VulkanDebug();
+	VulkanDebug(VkInstance *instance);
 	
 private:
 	void init_vulkanDebug();
+	void destroy_vulkanDebug();
 
 private:
-	VkDebugReportFlagsEXT flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
+	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
+	PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = VK_NULL_HANDLE;
 
-	PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallbackEXT;
+	VkInstance *m_instance = VK_NULL_HANDLE;
+
 };

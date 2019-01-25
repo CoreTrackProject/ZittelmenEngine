@@ -12,6 +12,11 @@ VulkanInstance::~VulkanInstance()
 	this->destroy_vkInstance();
 }
 
+VkInstance * VulkanInstance::getInstance()
+{
+	return &this->m_vkInstance;
+}
+
 void VulkanInstance::init_vkInstance(bool enableValidation)
 {
 	VkApplicationInfo appInfo = {};
