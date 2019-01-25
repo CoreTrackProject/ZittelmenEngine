@@ -13,6 +13,13 @@ namespace debug {
 		const char*                                 pMessage,
 		void*                                       pUserData)
 	{
+		
+		qDebug() << "=========================BEGIN VULKAN MESSAGE=========================";
+		
+		qDebug() << "Layer prefix" << pLayerPrefix;
+		qDebug() << "Message:"     << pMessage;
+
+		qDebug() << "========================= END VULKAN MESSAGE =========================";
 
 		return VK_FALSE;
 	}

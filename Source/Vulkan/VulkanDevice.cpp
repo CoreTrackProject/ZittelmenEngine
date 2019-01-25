@@ -4,9 +4,13 @@
 VulkanDevice::VulkanDevice(VkInstance* instance)
 {
 	this->instance = instance;
-
 	this->init_vulkanDevice();
 	this->init_logicalDevice();
+}
+
+VkDevice* VulkanDevice::getLogicalDevice()
+{
+	return &this->device;
 }
 
 void VulkanDevice::init_vulkanDevice()
@@ -20,9 +24,6 @@ void VulkanDevice::init_vulkanDevice()
 	VkResult res = vkEnumeratePhysicalDevices(*this->instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
 
 	// Get information for each device
-	//physicalDevCollection(tmpPhysicalDevCollection.size());
-
-	
 	for (int i = 0; i < tmpPhysicalDevCollection.size(); i++) {
 		
 		VkResult res;
@@ -33,6 +34,10 @@ void VulkanDevice::init_vulkanDevice()
 		vkGetPhysicalDeviceFeatures(tmpPhysicalDevCollection[i], &info.deviceFeatures);
 		vkGetPhysicalDeviceMemoryProperties(tmpPhysicalDevCollection[i], &info.deviceMemoryProperties);
 
+		// Device extension information
+		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, nullptr);
+		info.deviceExtensionCollection.resize(info.deviceExtensionCount);
+		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, info.deviceExtensionCollection.data());
 
 		// Device queue family information
 		vkGetPhysicalDeviceQueueFamilyProperties(tmpPhysicalDevCollection[i], &info.queueFamilyCount, nullptr);
@@ -40,13 +45,20 @@ void VulkanDevice::init_vulkanDevice()
 		vkGetPhysicalDeviceQueueFamilyProperties(tmpPhysicalDevCollection[i], &info.queueFamilyCount, info.queueFamilyPropertyCollection.data());
 
 
-		// Device extensions
-		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, nullptr);
-		info.deviceExtensionCollection.resize(info.deviceExtensionCount);
-		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, info.deviceExtensionCollection.data());
+		// Get queue family indexes which support graphics, compute and transfer
+		for (int a = 0; a < info.queueFamilyPropertyCollection.size(); a++) {
+			if ((info.queueFamilyPropertyCollection[a].queueCount > 0) && (info.queueFamilyPropertyCollection[a].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT)) {
+				info.queueFamilyIndexes.graphics = a;
+			}
+			if ((info.queueFamilyPropertyCollection[a].queueCount > 0) && (info.queueFamilyPropertyCollection[a].queueFlags & VkQueueFlagBits::VK_QUEUE_COMPUTE_BIT)) {
+				info.queueFamilyIndexes.compute = a;
+			}
+			if ((info.queueFamilyPropertyCollection[a].queueCount > 0) && (info.queueFamilyPropertyCollection[a].queueFlags & VkQueueFlagBits::VK_QUEUE_TRANSFER_BIT)) {
+				info.queueFamilyIndexes.transfer = a;
+			}
+		}
 
 		this->physicalDevCollection.insert(std::make_pair(tmpPhysicalDevCollection[i], info));
-
 	}
 
 
@@ -55,14 +67,111 @@ void VulkanDevice::init_vulkanDevice()
 
 void VulkanDevice::destroy_vulkanDevice()
 {
-
+	vkDestroyDevice(this->device, NULL);
 }
 
-//TODO
 void VulkanDevice::init_logicalDevice()
 {
-	// Get logical device from the first physical device
+	// Goal: create logical device from the first physical device
+
+	// 1. Get first physical device
+	// 2. Get queue types from queue family
+	//	- Graphics queue
+	//	- Compute queue
+	//	- Transfer queue
+
+	// TODO:
+	// Create new VkDeviceQueueCreateInfo 
+	// if queueFamilyIndex is different with 
+	// VK_QUEUE_COMPUTE_BIT and VK_QUEUE_TRANSFER_BIT
 
 
+	VkPhysicalDevice dev = this->physicalDevCollection.begin()->first;
+	DeviceInfo devInfo = this->getDeviceInfo(dev);
 
+	const float queuePriority = 0.0f;
+	std::vector<VkDeviceQueueCreateInfo> queueCreateInfoCollection;
+
+	VkDeviceQueueCreateInfo graphicsQueueCreateInfo = {};
+	graphicsQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	graphicsQueueCreateInfo.pQueuePriorities = &queuePriority;
+	graphicsQueueCreateInfo.queueFamilyIndex = devInfo.queueFamilyIndexes.graphics;
+	graphicsQueueCreateInfo.queueCount = 1;
+	queueCreateInfoCollection.push_back(graphicsQueueCreateInfo);
+
+	if (devInfo.queueFamilyIndexes.graphics != devInfo.queueFamilyIndexes.compute) {
+		VkDeviceQueueCreateInfo computeQueueCreateInfo = {};
+		computeQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		computeQueueCreateInfo.pQueuePriorities = &queuePriority;
+		computeQueueCreateInfo.queueFamilyIndex = devInfo.queueFamilyIndexes.compute;
+		computeQueueCreateInfo.queueCount = 1;
+		queueCreateInfoCollection.push_back(computeQueueCreateInfo);
+	}
+
+	if (devInfo.queueFamilyIndexes.graphics != devInfo.queueFamilyIndexes.transfer) {
+		VkDeviceQueueCreateInfo transferQueueCreateInfo = {};
+		transferQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		transferQueueCreateInfo.pQueuePriorities = &queuePriority;
+		transferQueueCreateInfo.queueFamilyIndex = devInfo.queueFamilyIndexes.transfer;
+		transferQueueCreateInfo.queueCount = 1;
+		queueCreateInfoCollection.push_back(transferQueueCreateInfo);
+	}
+
+
+	VkPhysicalDeviceFeatures enabledFeatures = {};
+	VkDeviceCreateInfo devCreateInfo = {};
+	devCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	devCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoCollection.size());;
+	devCreateInfo.pQueueCreateInfos = queueCreateInfoCollection.data();
+	devCreateInfo.pEnabledFeatures = &enabledFeatures;
+
+
+	std::vector<const char*> deviceExtensions;
+
+	if (this->isDevExtensionSupported(dev, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
+		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+	}
+
+	if (this->isDevExtensionSupported(dev, VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
+		deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+	}
+
+	if (deviceExtensions.size() > 0)
+	{
+		devCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
+		devCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+	}
+
+	VkResult res = vkCreateDevice(dev, &devCreateInfo, nullptr, &this->device);
+}
+
+uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQueueFlags flag)
+{
+	DeviceInfo info = this->physicalDevCollection.find(physicalDev)->second;
+
+	for (int i = 0; i < info.queueFamilyCount; i++) {
+		if ((info.queueFamilyPropertyCollection[i].queueCount > 0) && (info.queueFamilyPropertyCollection[i].queueFlags & flag)) {
+			return i;
+		}
+	}
+
+	return -1;
+}
+
+bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice device, std::string extensionName)
+{
+	auto tmpCollection = this->getDeviceInfo(device).deviceExtensionCollection;
+	
+	for (VkExtensionProperties props : tmpCollection) {
+		if (extensionName == props.extensionName) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+DeviceInfo VulkanDevice::getDeviceInfo(VkPhysicalDevice device)
+{
+	return this->physicalDevCollection.find(device)->second;
 }
