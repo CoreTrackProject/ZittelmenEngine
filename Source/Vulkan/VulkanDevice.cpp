@@ -5,12 +5,18 @@ VulkanDevice::VulkanDevice(VkInstance* instance)
 {
 	this->instance = instance;
 	this->init_vulkanDevice();
-	this->init_logicalDevice();
+
+	//Select first device
+	VkPhysicalDevice dev = this->physicalDevCollection.begin()->first;
+	
+	this->init_logicalDevice(dev);
+	this->init_deviceQueue(dev);
+
 }
 
 VkDevice* VulkanDevice::getLogicalDevice()
 {
-	return &this->device;
+	return &this->logicalDevice;
 }
 
 void VulkanDevice::init_vulkanDevice()
@@ -67,10 +73,11 @@ void VulkanDevice::init_vulkanDevice()
 
 void VulkanDevice::destroy_vulkanDevice()
 {
-	vkDestroyDevice(this->device, NULL);
+	vkDestroyDevice(this->logicalDevice, NULL);
+	
 }
 
-void VulkanDevice::init_logicalDevice()
+void VulkanDevice::init_logicalDevice(VkPhysicalDevice physicalDevice)
 {
 	// Goal: create logical device from the first physical device
 
@@ -85,10 +92,8 @@ void VulkanDevice::init_logicalDevice()
 	// if queueFamilyIndex is different with 
 	// VK_QUEUE_COMPUTE_BIT and VK_QUEUE_TRANSFER_BIT
 
-
-	VkPhysicalDevice dev = this->physicalDevCollection.begin()->first;
-	DeviceInfo devInfo = this->getDeviceInfo(dev);
-
+	DeviceInfo devInfo = this->getDeviceInfo(physicalDevice);
+	
 	const float queuePriority = 0.0f;
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfoCollection;
 
@@ -128,11 +133,11 @@ void VulkanDevice::init_logicalDevice()
 
 	std::vector<const char*> deviceExtensions;
 
-	if (this->isDevExtensionSupported(dev, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
+	if (this->isDevExtensionSupported(physicalDevice, VK_KHR_SWAPCHAIN_EXTENSION_NAME)) {
 		deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 	}
 
-	if (this->isDevExtensionSupported(dev, VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
+	if (this->isDevExtensionSupported(physicalDevice, VK_EXT_DEBUG_MARKER_EXTENSION_NAME)) {
 		deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 	}
 
@@ -142,7 +147,13 @@ void VulkanDevice::init_logicalDevice()
 		devCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 	}
 
-	VkResult res = vkCreateDevice(dev, &devCreateInfo, nullptr, &this->device);
+	VkResult res = vkCreateDevice(physicalDevice, &devCreateInfo, nullptr, &this->logicalDevice);
+}
+
+void VulkanDevice::init_deviceQueue(VkPhysicalDevice logicalDevice)
+{
+	DeviceInfo devInfo = this->getDeviceInfo(logicalDevice);
+	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.graphics, 0, &this->queue);
 }
 
 uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQueueFlags flag)
@@ -158,9 +169,9 @@ uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQ
 	return -1;
 }
 
-bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice device, std::string extensionName)
+bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice logicalDevice, std::string extensionName)
 {
-	auto tmpCollection = this->getDeviceInfo(device).deviceExtensionCollection;
+	auto tmpCollection = this->getDeviceInfo(logicalDevice).deviceExtensionCollection;
 	
 	for (VkExtensionProperties props : tmpCollection) {
 		if (extensionName == props.extensionName) {
@@ -171,7 +182,7 @@ bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice device, std::string 
 	return false;
 }
 
-DeviceInfo VulkanDevice::getDeviceInfo(VkPhysicalDevice device)
+DeviceInfo VulkanDevice::getDeviceInfo(VkPhysicalDevice logicalDevice)
 {
-	return this->physicalDevCollection.find(device)->second;
+	return this->physicalDevCollection.find(logicalDevice)->second;
 }

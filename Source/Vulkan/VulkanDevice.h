@@ -37,18 +37,19 @@ public:
 private:
 	void init_vulkanDevice();
 	void destroy_vulkanDevice();
-
-	void init_logicalDevice();
+	void init_logicalDevice(VkPhysicalDevice logicalDevice);
+	void init_deviceQueue(VkPhysicalDevice logicalDevice);
 
 	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQueueFlags flag);
 
-	bool isDevExtensionSupported(VkPhysicalDevice device, std::string extensionName);
-	DeviceInfo getDeviceInfo(VkPhysicalDevice device);
+	bool isDevExtensionSupported(VkPhysicalDevice logicalDevice, std::string extensionName);
+	DeviceInfo getDeviceInfo(VkPhysicalDevice logicalDevice);
 
 private:
 	uint32_t physicalDevCount = 0;
 	std::map<VkPhysicalDevice, DeviceInfo> physicalDevCollection;
 	VkInstance* instance = VK_NULL_HANDLE;
-	VkDevice device = VK_NULL_HANDLE;
+	VkDevice logicalDevice = VK_NULL_HANDLE;
+	VkQueue queue = VK_NULL_HANDLE;
 
 };
