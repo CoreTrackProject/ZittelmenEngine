@@ -17,7 +17,7 @@ ZittelmenEngine::ZittelmenEngine()
 	//this->m_vulkanWindow->setVulkanInstance(&this->m_vulkanInstance);
 
 	// Qt3d renderer
-	this->renderer = new Qt3DWindow();
+	//this->renderer = new Qt3DWindow();
 
 	this->m_vulkanBase = new VulkanBase();
 
@@ -26,18 +26,6 @@ ZittelmenEngine::ZittelmenEngine()
 ZittelmenEngine::~ZittelmenEngine()
 {
 	delete this->m_vulkanBase;
-}
-
-
-
-Qt3DWindow* ZittelmenEngine::getQt3DWindow()
-{
-	return this->renderer;
-}
-
-VulkanWindow* ZittelmenEngine::getVulkanWindow()
-{
-	return this->m_vulkanWindow;
 }
 
 void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)

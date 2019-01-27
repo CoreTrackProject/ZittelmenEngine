@@ -5,11 +5,11 @@
 
 // This code is used from the qt vulkan examples
 
-class VulkanRenderer : public QVulkanWindowRenderer
+class VulkanRendererQt : public QVulkanWindowRenderer
 {
 
 public:
-	VulkanRenderer(QVulkanWindow *w);
+	VulkanRendererQt(QVulkanWindow *w);
 
 	void initResources() override;
 	void initSwapChainResources() override;

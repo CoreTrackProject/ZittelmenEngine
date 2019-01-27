@@ -1,35 +1,35 @@
-#include "VulkanRenderer.h"
+#include "VulkanRendererQt.h"
 
 
-VulkanRenderer::VulkanRenderer(QVulkanWindow *w) : m_window(w)
+VulkanRendererQt::VulkanRendererQt(QVulkanWindow *w) : m_window(w)
 {
 
 }
 
-void VulkanRenderer::initResources()
+void VulkanRendererQt::initResources()
 {
 	qDebug("initResources");
 	m_devFuncs = m_window->vulkanInstance()->deviceFunctions(m_window->device());
 }
 
 
-void VulkanRenderer::initSwapChainResources()
+void VulkanRendererQt::initSwapChainResources()
 {
 	qDebug("initSwapChainResources");
 }
 
-void VulkanRenderer::releaseSwapChainResources()
+void VulkanRendererQt::releaseSwapChainResources()
 {
 	qDebug("releaseSwapChainResources");
 }
 
-void VulkanRenderer::releaseResources()
+void VulkanRendererQt::releaseResources()
 {
 	qDebug("releaseResources");
 }
 
 
-void VulkanRenderer::startNextFrame()
+void VulkanRendererQt::startNextFrame()
 {
 	
 	m_green += 0.005f;

@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include "VulkanRenderer.h"
+#include "VulkanRendererQt.h"
 #include <QVulkanWindow>
 
 // This code is used from the qt vulkan examples
