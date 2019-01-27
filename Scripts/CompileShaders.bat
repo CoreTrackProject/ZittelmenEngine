@@ -2,7 +2,7 @@
 
 setlocal
 
-SET PATH=%PATH%;"..\..\vcpkg\installed\x64-windows\tools\"
+SET PATH=%PATH%;"D:\vcpkg\installed\x64-windows\tools\"
 
 cd ..\Source\Vulkan\Shaders\
 

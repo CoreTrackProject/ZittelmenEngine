@@ -9,18 +9,18 @@ VulkanBase::VulkanBase()
 VulkanBase::~VulkanBase()
 {
 
-	delete this->swapchain;
-
-	delete this->window;
+	if (this->targetRenderWindow != nullptr) {
+		delete this->graphicsPipeline;
+		delete this->shader;
+		delete this->swapchain;
+		delete this->window;
+	}
 
 	delete this->vulkanDevice;
-
 	if (this->enableValidation) {
 		delete this->vulkanDebug;
 	}
-
 	delete this->instance;
-
 
 }
 
@@ -47,7 +47,19 @@ void VulkanBase::init()
 		VkDevice* tmpLogicalDev  = this->vulkanDevice->getLogicalDevice();
 		DeviceInfo* tmpDevInfo   = this->vulkanDevice->getPhysicalDeviceInfo(tmpDev);
 		VkSurfaceKHR* tmpSurface = this->window->getSurface();
+
 		this->swapchain = new VulkanSwapchain(tmpDev, tmpLogicalDev, tmpDevInfo, tmpSurface);
+
+		this->shader = new VulkanShader(tmpLogicalDev);
+
+		this->graphicsPipeline = new VulkanGraphicsPipeline(
+			tmpLogicalDev,
+			this->shader->getVertexShaderModule(),
+			this->shader->getFragmentShaderModule(),
+			this->swapchain->getSwapchainExtent2D(),
+			this->swapchain->getSwapchainImageFormat(),
+			this->swapchain->getImageCollection()
+		);
 
 	}
 }

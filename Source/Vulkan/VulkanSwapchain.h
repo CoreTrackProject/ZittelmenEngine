@@ -6,6 +6,11 @@
 
 #include "VulkanDevice.h"
 
+struct Image {
+	VkImage image;
+	VkImageView imageView;
+};
+
 class VulkanSwapchain
 {
 	struct SwapChainSupportDetails {
@@ -14,16 +19,15 @@ class VulkanSwapchain
 		std::vector<VkPresentModeKHR> presentModes;
 	} details;
 	
-	struct Image {
-		VkImage image;
-		VkImageView imageView;
-	} image;
+	Image image;
 
 public:
 	VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface);
 	~VulkanSwapchain();
 
-
+	VkExtent2D* getSwapchainExtent2D();
+	VkSurfaceFormatKHR* getSwapchainImageFormat();
+	std::vector<Image>* getImageCollection();
 
 private:
 	void init_Swapchain();
@@ -33,6 +37,7 @@ private:
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	
 
 private:
 	VkSurfaceKHR *surface = VK_NULL_HANDLE;

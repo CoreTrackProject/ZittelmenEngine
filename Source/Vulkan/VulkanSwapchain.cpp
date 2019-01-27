@@ -23,6 +23,16 @@ VulkanSwapchain::~VulkanSwapchain()
 
 }
 
+VkExtent2D* VulkanSwapchain::getSwapchainExtent2D()
+{
+	return &this->selectedExtent;
+}
+
+VkSurfaceFormatKHR* VulkanSwapchain::getSwapchainImageFormat()
+{
+	return &this->selectedSurfaceFormat;
+}
+
 void VulkanSwapchain::init_Swapchain()
 {
 	this->querySwapChainRelatedInfo();
@@ -210,5 +220,10 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & ca
 
 		return actualExtent;
 	}
+}
+
+std::vector<Image>* VulkanSwapchain::getImageCollection()
+{
+	return &this->imageCollection;
 }
 
