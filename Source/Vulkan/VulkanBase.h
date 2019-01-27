@@ -3,6 +3,8 @@
 #include "VulkanInstance.h"
 #include "VulkanDebug.h"
 #include "VulkanDevice.h"
+#include "VulkanWindow.h"
+#include "VulkanSwapchain.h"
 
 /*
 	Top class from where the whole Vulkan api get controlled
@@ -14,6 +16,11 @@ public:
 	VulkanBase();
 	~VulkanBase();
 
+
+	void setTargetRenderSurface(QWidget *hwnd);
+	void init();
+	
+
 private:
 	bool enableValidation = false;
 
@@ -21,5 +28,7 @@ private:
 	VulkanDebug *vulkanDebug   = nullptr;
 	VulkanDevice *vulkanDevice = nullptr;
 
-
+	QWidget *targetRenderWindow = nullptr;
+	VulkanWindow *window	   = nullptr;
+	VulkanSwapchain *swapchain = nullptr;
 };

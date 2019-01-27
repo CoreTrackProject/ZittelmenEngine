@@ -28,12 +28,25 @@ ZittelmenEngine::~ZittelmenEngine()
 	delete this->m_vulkanBase;
 }
 
-VulkanWindow* ZittelmenEngine::getVulkanWindow()
-{
-	return  this->m_vulkanWindow;
-}
+
 
 Qt3DWindow* ZittelmenEngine::getQt3DWindow()
 {
 	return this->renderer;
+}
+
+VulkanWindow* ZittelmenEngine::getVulkanWindow()
+{
+	return this->m_vulkanWindow;
+}
+
+void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
+{
+	this->targetRenderSurface = targetRenderSurface;
+	this->m_vulkanBase->setTargetRenderSurface(targetRenderSurface);
+}
+
+void ZittelmenEngine::initVulkanRenderer()
+{
+	this->m_vulkanBase->init();
 }

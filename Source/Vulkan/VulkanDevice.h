@@ -13,7 +13,7 @@ struct DeviceInfo {
 	uint32_t queueFamilyCount;
 	std::vector<VkQueueFamilyProperties> queueFamilyPropertyCollection;
 
-	struct QueueFamilyIndexes{
+	struct QueueFamilyIndexes {
 		uint32_t graphics;
 		uint32_t compute;
 		uint32_t transfer;
@@ -22,7 +22,6 @@ struct DeviceInfo {
 
 	uint32_t deviceExtensionCount;
 	std::vector<VkExtensionProperties> deviceExtensionCollection;
-
 
 };
 
@@ -33,17 +32,21 @@ public:
 
 public:
 	VkDevice* getLogicalDevice();
-
+	VkPhysicalDevice* getPhysicalDevice();
+	DeviceInfo* getPhysicalDeviceInfo(VkPhysicalDevice *physicalDevice);
+	
 private:
 	void init_vulkanDevice();
 	void destroy_vulkanDevice();
-	void init_logicalDevice(VkPhysicalDevice logicalDevice);
-	void init_deviceQueue(VkPhysicalDevice logicalDevice);
+	void init_logicalDevice(VkPhysicalDevice* logicalDevice);
+	void init_deviceQueue(VkPhysicalDevice* logicalDevice);
 
-	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQueueFlags flag);
+	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice* physicalDev, VkQueueFlags flag);
 
-	bool isDevExtensionSupported(VkPhysicalDevice logicalDevice, std::string extensionName);
-	DeviceInfo getDeviceInfo(VkPhysicalDevice logicalDevice);
+	bool isDevExtensionSupported(VkPhysicalDevice* logicalDevice, std::string extensionName);
+
+	bool isSwapchainSupported(VkPhysicalDevice* logicalDevice);
+
 
 private:
 	uint32_t physicalDevCount = 0;

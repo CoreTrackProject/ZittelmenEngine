@@ -2,6 +2,7 @@
 
 #include <QVulkanInstance>
 #include <QLoggingCategory>
+#include <QWidget>
 #include <iostream>
 
 #include "Vulkan/VulkanWindow.h"
@@ -17,15 +18,23 @@ class ZittelmenEngine
 public:
     ZittelmenEngine();
 	~ZittelmenEngine();
-	VulkanWindow* getVulkanWindow();
+
+
+	// OLD
 	Qt3DWindow* getQt3DWindow();
 
 
+	VulkanWindow* getVulkanWindow();
+	void setTargetRenderSurface(QWidget *targetRenderSurface);
+	void initVulkanRenderer();
+
 private:
-	VulkanWindow *m_vulkanWindow;
+	// I am a Velociraptor
 	QVulkanInstance m_vulkanInstance;
 	Qt3DWindow *renderer;
 
-	VulkanBase *m_vulkanBase = nullptr;
 
+	VulkanBase *m_vulkanBase     = nullptr;
+	QWidget *targetRenderSurface = nullptr;
+	VulkanWindow *m_vulkanWindow = nullptr;
 };
