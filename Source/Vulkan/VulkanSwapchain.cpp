@@ -8,20 +8,28 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevi
 	this->deviceInfo    = deviceInfo;
 
 	this->init_Swapchain();
+	this->init_Imageviews();
 }
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+
+	for (Image image : this->imageCollection) {
+		vkDestroyImageView(*this->logicalDevice, image.imageView, nullptr);
+		//vkDestroyImage(*this->logicalDevice, image.image, nullptr);
+	}
+
 	vkDestroySwapchainKHR(*this->logicalDevice, this->swapChain, nullptr);
+
 }
 
 void VulkanSwapchain::init_Swapchain()
 {
 	this->querySwapChainRelatedInfo();
 
-	VkSurfaceFormatKHR surfaceFormat = this->chooseSwapSurfaceFormat(this->details.formats);
-	VkPresentModeKHR presentMode     = this->chooseSwapPresentMode(this->details.presentModes);
-	VkExtent2D extent				 = this->chooseSwapExtent(this->details.capabilities);
+	this->selectedSurfaceFormat  = this->chooseSwapSurfaceFormat(this->details.formats);
+	this->selectedPresentMode    = this->chooseSwapPresentMode(this->details.presentModes);
+	this->selectedExtent    	 = this->chooseSwapExtent(this->details.capabilities);
 
 	uint32_t imageCount = this->details.capabilities.minImageCount + 1;
 	if (this->details.capabilities.maxImageCount > 0 && imageCount > this->details.capabilities.maxImageCount) {
@@ -33,9 +41,9 @@ void VulkanSwapchain::init_Swapchain()
 	createInfo.surface = *this->surface;
 
 	createInfo.minImageCount = imageCount;
-	createInfo.imageFormat = surfaceFormat.format;
-	createInfo.imageColorSpace = surfaceFormat.colorSpace;
-	createInfo.imageExtent = extent;
+	createInfo.imageFormat = this->selectedSurfaceFormat.format;
+	createInfo.imageColorSpace = this->selectedSurfaceFormat.colorSpace;
+	createInfo.imageExtent = this->selectedExtent;
 
 	/* 
 		Link: https://vulkan-tutorial.com/Drawing_a_triangle/Presentation/Swap_chain
@@ -75,7 +83,7 @@ void VulkanSwapchain::init_Swapchain()
 
 	createInfo.preTransform   = this->details.capabilities.currentTransform;
 	createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-	createInfo.presentMode = presentMode;
+	createInfo.presentMode = this->selectedPresentMode;
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
@@ -111,6 +119,51 @@ void VulkanSwapchain::querySwapChainRelatedInfo()
 		}
 		
 	} 
+}
+
+void VulkanSwapchain::init_Imageviews()
+{
+
+	{
+		uint32_t swapchainImageCount = 0;
+		VkResult res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
+		this->imageCollection.resize(swapchainImageCount);
+
+		std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
+		res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
+
+		for (VkImage tmpImage : tmpImageBuffer) {
+
+			Image image;
+			image.image = tmpImage;
+
+			VkImageViewCreateInfo imageViewCreateInfo = {};
+			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			imageViewCreateInfo.pNext							= NULL;
+			imageViewCreateInfo.flags							= 0;
+			imageViewCreateInfo.image							= image.image;
+			imageViewCreateInfo.viewType						= VK_IMAGE_VIEW_TYPE_2D;
+			imageViewCreateInfo.format							= this->selectedSurfaceFormat.format;
+			imageViewCreateInfo.components.r					= VK_COMPONENT_SWIZZLE_R;
+			imageViewCreateInfo.components.g					= VK_COMPONENT_SWIZZLE_G;
+			imageViewCreateInfo.components.b					= VK_COMPONENT_SWIZZLE_B;
+			imageViewCreateInfo.components.a					= VK_COMPONENT_SWIZZLE_A;
+			imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+			imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
+			imageViewCreateInfo.subresourceRange.levelCount     = 1;
+			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+			imageViewCreateInfo.subresourceRange.layerCount     = 1;
+
+			VkImageView view;
+			res = vkCreateImageView(*this->logicalDevice, &imageViewCreateInfo, NULL, &view);
+			image.imageView = view;
+
+
+			this->imageCollection.push_back(image);
+		}
+	}
+
+
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
