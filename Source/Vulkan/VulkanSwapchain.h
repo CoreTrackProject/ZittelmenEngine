@@ -19,7 +19,6 @@ class VulkanSwapchain
 		std::vector<VkPresentModeKHR> presentModes;
 	} details;
 	
-	Image image;
 
 public:
 	VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface);
@@ -51,6 +50,7 @@ private:
 	VkPresentModeKHR selectedPresentMode;
 	VkExtent2D selectedExtent;
 
+	Image image;
 	std::vector<Image> imageCollection;
 	
 };
