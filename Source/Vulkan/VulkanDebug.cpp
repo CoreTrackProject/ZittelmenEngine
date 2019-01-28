@@ -4,7 +4,7 @@ namespace debug {
 	VkDebugReportCallbackEXT msgCallback;
 
 	VKAPI_ATTR VkBool32 VKAPI_CALL debugReportCallbackEXT(
-		VkDebugReportFlagsEXT                       flags,
+		VkDebugReportFlagsEXT                       msgFlags,
 		VkDebugReportObjectTypeEXT                  objectType,
 		uint64_t                                    object,
 		size_t                                      location,
@@ -14,12 +14,24 @@ namespace debug {
 		void*                                       pUserData)
 	{
 		
-		qDebug() << "=========================BEGIN VULKAN MESSAGE=========================";
-		
-		qDebug() << "Layer prefix" << pLayerPrefix;
-		qDebug() << "Message:"     << pMessage;
 
-		qDebug() << "========================= END VULKAN MESSAGE =========================";
+		if (msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+			std::cout << "ERROR: " << std::endl;
+		}
+		else if (msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+			std::cout << "WARNING: " << std::endl;
+		}
+		else if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+			std::cout << "PERFORMANCE WARNING: " << std::endl;
+		}
+		else if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
+			std::cout << "INFO: " << std::endl;
+		}
+		else if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
+			std::cout << "DEBUG: " << std::endl;
+		}
+		std::cout << "[" << pLayerPrefix << "] Code " << messageCode << " : " << pMessage;
+
 
 		return VK_FALSE;
 	}
@@ -43,7 +55,7 @@ void VulkanDebug::init_vulkanDebug()
 	VkDebugReportCallbackCreateInfoEXT createInfo = {};
 	createInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
 	createInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT)debug::debugReportCallbackEXT;
-	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT | VK_DEBUG_REPORT_INFORMATION_BIT_EXT;
+	createInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 
 	VkResult res = CreateDebugReportCallback(*this->instance, &createInfo, nullptr, &debug::msgCallback);
 }

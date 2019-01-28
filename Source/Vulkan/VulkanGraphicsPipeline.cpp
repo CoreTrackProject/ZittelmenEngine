@@ -15,7 +15,7 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice* logicalDevice, VkShader
 	this->init_framebuffer();
 }
 
-VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
+VulkanGraphicsPipeline::~VulkanGraphicsPipeline() 
 {
 	for (auto framebuffer : this->swapchainFramebufferCollection) {
 		vkDestroyFramebuffer(*this->logicalDevice, framebuffer, nullptr);
@@ -25,6 +25,22 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 	vkDestroyPipelineLayout(*this->logicalDevice, this->pipelineLayout, nullptr);
 	vkDestroyRenderPass(*this->logicalDevice, this->renderPass, nullptr);
 }
+
+std::vector<VkFramebuffer>* VulkanGraphicsPipeline::getFramebufferCollection()
+{
+	return &this->swapchainFramebufferCollection;
+}
+
+VkRenderPass* VulkanGraphicsPipeline::getRenderPass()
+{
+	return &this->renderPass;
+}
+
+VkPipeline* VulkanGraphicsPipeline::getGraphicsPipeline()
+{
+	return &this->graphicsPipeline;
+}
+
 
 void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 {

@@ -51,7 +51,7 @@ private:
 private:
 	uint32_t physicalDevCount = 0;
 	std::map<VkPhysicalDevice, DeviceInfo> physicalDevCollection;
-	VkInstance* instance = VK_NULL_HANDLE;
+	VkInstance* instance = nullptr;
 	VkDevice logicalDevice = VK_NULL_HANDLE;
 	VkQueue queue = VK_NULL_HANDLE;
 

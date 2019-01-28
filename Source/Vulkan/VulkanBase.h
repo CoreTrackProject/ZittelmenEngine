@@ -7,6 +7,7 @@
 #include "VulkanSwapchain.h"
 #include "VulkanShader.h"
 #include "VulkanGraphicsPipeline.h"
+#include "VulkanCommand.h"
 
 /*
 	Top class from where the whole Vulkan api get controlled
@@ -35,4 +36,5 @@ private:
 	VulkanSwapchain* swapchain  = nullptr;
 	VulkanShader* shader	    = nullptr;
 	VulkanGraphicsPipeline* graphicsPipeline = nullptr;
+	VulkanCommand* command		= nullptr;
 };

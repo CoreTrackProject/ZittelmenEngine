@@ -10,6 +10,7 @@ VulkanBase::~VulkanBase()
 {
 
 	if (this->targetRenderWindow != nullptr) {
+		delete this->command;
 		delete this->graphicsPipeline;
 		delete this->shader;
 		delete this->swapchain;
@@ -20,8 +21,8 @@ VulkanBase::~VulkanBase()
 	if (this->enableValidation) {
 		delete this->vulkanDebug;
 	}
-	delete this->instance;
 
+	delete this->instance;
 }
 
 void VulkanBase::setTargetRenderSurface(QWidget* target)
@@ -31,6 +32,7 @@ void VulkanBase::setTargetRenderSurface(QWidget* target)
 
 void VulkanBase::init()
 {
+
 	this->enableValidation = true;
 	this->instance = new VulkanInstance(this->enableValidation);
 
@@ -59,6 +61,15 @@ void VulkanBase::init()
 			this->swapchain->getSwapchainExtent2D(),
 			this->swapchain->getSwapchainImageFormat(),
 			this->swapchain->getImageCollection()
+		);
+
+		this->command = new VulkanCommand(
+			tmpLogicalDev, 
+			tmpDevInfo,
+			this->graphicsPipeline->getFramebufferCollection(), 
+			this->graphicsPipeline->getRenderPass(),
+			this->swapchain->getSwapchainExtent2D(),
+			this->graphicsPipeline->getGraphicsPipeline()
 		);
 
 	}
