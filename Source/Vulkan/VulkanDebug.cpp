@@ -45,6 +45,27 @@ VulkanDebug::VulkanDebug(VkInstance *instance)
 	this->init_vulkanDebug();
 }
 
+std::vector<const char*> VulkanDebug::addStandardValidationLayerCollection(std::vector<const char*> layerCollection)
+{
+	if (layerCollection.empty() ||
+		std::find(layerCollection.begin(), layerCollection.end(), "VK_LAYER_LUNARG_standard_validation") == layerCollection.end())
+	{
+		layerCollection.push_back("VK_LAYER_LUNARG_standard_validation");
+	}
+	
+	return layerCollection;
+}
+
+std::vector<const char*> VulkanDebug::addInstanceDebugExtensionCollection(std::vector<const char*> extensionCollection)
+{
+	if (extensionCollection.empty() || 
+		std::find(extensionCollection.begin(), extensionCollection.end(), VK_EXT_DEBUG_UTILS_EXTENSION_NAME) == extensionCollection.end())
+	{
+		extensionCollection.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+	}
+	return extensionCollection;
+}
+
 void VulkanDebug::init_vulkanDebug()
 {
 

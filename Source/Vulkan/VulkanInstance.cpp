@@ -23,7 +23,7 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	appInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.pApplicationName = "CoreTrack";
 	appInfo.pEngineName = "Zittelmen Engine";
-	appInfo.apiVersion = VK_API_VERSION_1_0;
+	appInfo.apiVersion = VK_API_VERSION_1_1;
 
 	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
 
@@ -54,7 +54,8 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	{
 		if (enableValidation)
 		{
-			instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+			//instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+			VulkanDebug::addInstanceDebugExtensionCollection(instanceExtensions);
 		}
 
 		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
@@ -65,13 +66,8 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	{
 
 		// On desktop the LunarG loaders exposes a meta layer that contains all layers
-		int32_t validationLayerCount = 1;
-		const char *validationLayerNames[] = {
-			"VK_LAYER_LUNARG_standard_validation"
-		};
-
-		instanceCreateInfo.enabledLayerCount = validationLayerCount;
-		instanceCreateInfo.ppEnabledLayerNames = validationLayerNames;
+		instanceCreateInfo.enabledLayerCount = VulkanDebug::addStandardValidationLayerCollection(std::vector<const char*>()).size();
+		instanceCreateInfo.ppEnabledLayerNames = VulkanDebug::addStandardValidationLayerCollection(std::vector<const char*>()).data();
 	}
 
 	VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &this->m_vkInstance);

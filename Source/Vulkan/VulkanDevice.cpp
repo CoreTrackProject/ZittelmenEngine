@@ -134,7 +134,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice* physicalDevice)
 	devCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoCollection.size());;
 	devCreateInfo.pQueueCreateInfos = queueCreateInfoCollection.data();
 	devCreateInfo.pEnabledFeatures = &enabledFeatures;
-
+	
 
 	std::vector<const char*> deviceExtensions;
 

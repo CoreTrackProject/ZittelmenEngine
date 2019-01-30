@@ -4,6 +4,8 @@
 #include <iostream>
 
 #include <QDebug>
+#include <vector>
+#include <algorithm>
 
 class VulkanDebug
 {
@@ -11,6 +13,9 @@ class VulkanDebug
 public:
 	VulkanDebug(VkInstance *instance);
 	
+	static std::vector<const char*> addStandardValidationLayerCollection(std::vector<const char*> layerCollection);
+	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> extensionCollection);
+
 private:
 	void init_vulkanDebug();
 	void destroy_vulkanDebug();
