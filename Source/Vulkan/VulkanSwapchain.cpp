@@ -64,21 +64,21 @@ void VulkanSwapchain::init_Swapchain()
 	// Get queue family which supports presenting
 	{
 
-		uint32_t presentIdx = 0; // Queuefamily index which supports presenting
+		
 		{
 			VkBool32 supprtPresent = VK_FALSE;
 			for (uint32_t i = 0; i < this->deviceInfo->queueFamilyCount; i++) {
 				vkGetPhysicalDeviceSurfaceSupportKHR(*this->device, i, *this->surface, &supprtPresent);
 				if (supprtPresent == VK_TRUE) {
-					presentIdx = i;
+					this->queueFamilyPresentIdx = i;
 					break;
 				}
 			}
 		}
 
-		uint32_t queueFamilyIndices[] = { this->deviceInfo->queueFamilyIndexes.graphics, presentIdx };
+		uint32_t queueFamilyIndices[] = { this->deviceInfo->queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
 
-		if (this->deviceInfo->queueFamilyIndexes.graphics != presentIdx) {
+		if (this->deviceInfo->queueFamilyIndexes.graphics != this->queueFamilyPresentIdx) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -225,5 +225,15 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & ca
 std::vector<Image>* VulkanSwapchain::getImageCollection()
 {
 	return &this->imageCollection;
+}
+
+VkSwapchainKHR &VulkanSwapchain::getSwapchain()
+{
+	return this->swapChain;
+}
+
+uint32_t &VulkanSwapchain::getQueueFamilyPresentIdx()
+{
+	return this->queueFamilyPresentIdx;
 }
 

@@ -27,6 +27,8 @@ public:
 	VkExtent2D* getSwapchainExtent2D();
 	VkSurfaceFormatKHR* getSwapchainImageFormat();
 	std::vector<Image>* getImageCollection();
+	VkSwapchainKHR &getSwapchain();
+	uint32_t &getQueueFamilyPresentIdx();
 
 private:
 	void init_Swapchain();
@@ -44,7 +46,7 @@ private:
 	VkDevice* logicalDevice = VK_NULL_HANDLE;
 	DeviceInfo* deviceInfo = nullptr;
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-
+	uint32_t queueFamilyPresentIdx = 0;// Queuefamily index which supports presenting
 
 	VkSurfaceFormatKHR selectedSurfaceFormat;
 	VkPresentModeKHR selectedPresentMode;

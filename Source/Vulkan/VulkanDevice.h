@@ -35,6 +35,8 @@ public:
 	VkPhysicalDevice* getPhysicalDevice();
 	DeviceInfo* getPhysicalDeviceInfo(VkPhysicalDevice *physicalDevice);
 	
+	VkQueue &getGraphicsQueue();
+
 private:
 	void init_vulkanDevice();
 	void destroy_vulkanDevice();
@@ -53,6 +55,6 @@ private:
 	std::map<VkPhysicalDevice, DeviceInfo> physicalDevCollection;
 	VkInstance* instance = nullptr;
 	VkDevice logicalDevice = VK_NULL_HANDLE;
-	VkQueue queue = VK_NULL_HANDLE;
-
+	
+	VkQueue graphicsQueue = VK_NULL_HANDLE;
 };

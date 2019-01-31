@@ -9,11 +9,13 @@ public:
 	VulkanCommand(VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline);
 	~VulkanCommand();
 
+	std::vector<VkCommandBuffer> &getCommandBufferCollection();
+
+private:
 	void init_commandPool();
 	void init_commandBuffer();
 
 private:
-	
 	DeviceInfo &deviceInfo;
 	VkDevice &logicalDevice;
 	VkRenderPass &renderpass;

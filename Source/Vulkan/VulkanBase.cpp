@@ -8,6 +8,8 @@ VulkanBase::VulkanBase()
 
 VulkanBase::~VulkanBase()
 {
+	vkDestroySemaphore(*this->vulkanDevice->getLogicalDevice(), renderFinishedSemaphore, nullptr);
+	vkDestroySemaphore(*this->vulkanDevice->getLogicalDevice(), imageAvailableSemaphore, nullptr);
 
 	if (this->targetRenderWindow != nullptr) {
 		delete this->command;
@@ -72,5 +74,70 @@ void VulkanBase::init()
 			*this->graphicsPipeline->getGraphicsPipeline()
 		);
 
+		this->init_semaphore();
+		
 	}
+}
+
+void VulkanBase::init_semaphore()
+{
+	VkSemaphoreCreateInfo semaphoreInfo = {};
+	semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	if (vkCreateSemaphore(*this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &imageAvailableSemaphore) != VK_SUCCESS ||
+		vkCreateSemaphore(*this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &renderFinishedSemaphore) != VK_SUCCESS) {
+
+		throw std::runtime_error("failed to create semaphores!");
+	}
+
+}
+
+void VulkanBase::renderLoop()
+{
+	uint32_t imageIndex = 0;
+	vkAcquireNextImageKHR(
+		*this->vulkanDevice->getLogicalDevice(), 
+		this->swapchain->getSwapchain(), 
+		std::numeric_limits<uint64_t>::max(), 
+		imageAvailableSemaphore, 
+		VK_NULL_HANDLE, 
+		&imageIndex);
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+	VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	submitInfo.waitSemaphoreCount = 1;
+	submitInfo.pWaitSemaphores = waitSemaphores;
+	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &this->command->getCommandBufferCollection()[imageIndex];
+
+	VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+	submitInfo.signalSemaphoreCount = 1;
+	submitInfo.pSignalSemaphores = signalSemaphores;
+
+	// TODO: has to be improved -> move to vulkan swapchain
+	vkGetDeviceQueue(*this->vulkanDevice->getLogicalDevice(), this->swapchain->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
+	
+	if (vkQueueSubmit(this->vulkanDevice->getGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+		throw std::runtime_error("failed to submit draw command buffer!");
+	}
+
+
+	VkPresentInfoKHR presentInfo = {};
+	presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	presentInfo.waitSemaphoreCount = 1;
+	presentInfo.pWaitSemaphores = signalSemaphores;
+
+
+	VkSwapchainKHR swapChains[] = { this->swapchain->getSwapchain() };
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = swapChains;
+	presentInfo.pImageIndices = &imageIndex;
+	presentInfo.pResults = nullptr; // Optional
+
+	VkResult res = vkQueuePresentKHR(this->presentQueue, &presentInfo);
+
 }

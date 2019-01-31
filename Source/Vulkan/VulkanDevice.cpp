@@ -158,7 +158,8 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice* physicalDevice)
 void VulkanDevice::init_deviceQueue(VkPhysicalDevice* logicalDevice)
 {
 	DeviceInfo* devInfo = this->getPhysicalDeviceInfo(logicalDevice);
-	vkGetDeviceQueue(this->logicalDevice, devInfo->queueFamilyIndexes.graphics, 0, &this->queue);
+	vkGetDeviceQueue(this->logicalDevice, devInfo->queueFamilyIndexes.graphics, 0, &this->graphicsQueue);
+	
 }
 
 uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice* physicalDev, VkQueueFlags flag)
@@ -193,4 +194,9 @@ bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice* logicalDevice)
 DeviceInfo* VulkanDevice::getPhysicalDeviceInfo(VkPhysicalDevice* physicalDevice)
 {
 	return &this->physicalDevCollection.find(*physicalDevice)->second;
+}
+
+VkQueue &VulkanDevice::getGraphicsQueue()
+{
+	return this->graphicsQueue;
 }

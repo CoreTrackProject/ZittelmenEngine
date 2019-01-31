@@ -4,16 +4,6 @@
 VulkanCommand::VulkanCommand(VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline)
 	: logicalDevice(logicalDevice), deviceInfo(deviceInfo), frameBufferCollection(frameBufferCollection), renderpass(renderpass), swapchainExtent(swapchainExtent), graphicsPipeline(graphicsPipeline)
 {
-	
-	/*
-	this->logicalDevice = logicalDevice;
-	this->deviceInfo = deviceInfo;
-	this->frameBufferCollection = frameBufferCollection;
-	this->renderpass = renderpass;
-	this->swapchainExtent = swapchainExtent;
-	this->graphicsPipeline = graphicsPipeline;
-	*/
-
 
 	this->init_commandPool();
 	this->init_commandBuffer();
@@ -21,6 +11,11 @@ VulkanCommand::VulkanCommand(VkDevice &logicalDevice, DeviceInfo &deviceInfo, st
 
 VulkanCommand::~VulkanCommand() {
 	vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
+}
+
+std::vector<VkCommandBuffer>& VulkanCommand::getCommandBufferCollection()
+{
+	return this->commandBufferCollection;
 }
 
 void VulkanCommand::init_commandPool()
@@ -77,7 +72,10 @@ void VulkanCommand::init_commandBuffer()
 		vkCmdDraw(this->commandBufferCollection[idx], 3, 1, 0, 0);
 		vkCmdEndRenderPass(this->commandBufferCollection[idx]);
 
-		res = vkEndCommandBuffer(this->commandBufferCollection[idx]);
+		//res = vkEndCommandBuffer(this->commandBufferCollection[idx]);
+		if (vkEndCommandBuffer(this->commandBufferCollection[idx]) != VK_SUCCESS) {
+			throw std::runtime_error("failed to record command buffer!");
+		}
 
 		idx++;
 	}

@@ -1,5 +1,8 @@
 #pragma once
 
+#define NOMINMAX
+#include <algorithm>
+
 #include "VulkanInstance.h"
 #include "VulkanDebug.h"
 #include "VulkanDevice.h"
@@ -22,6 +25,10 @@ public:
 
 	void setTargetRenderSurface(QWidget *hwnd);
 	void init();
+
+	void init_semaphore();
+
+	void renderLoop();
 	
 
 private:
@@ -37,4 +44,9 @@ private:
 	VulkanShader* shader	    = nullptr;
 	VulkanGraphicsPipeline* graphicsPipeline = nullptr;
 	VulkanCommand* command		= nullptr;
+
+	VkQueue presentQueue = VK_NULL_HANDLE;
+
+	VkSemaphore imageAvailableSemaphore;
+	VkSemaphore renderFinishedSemaphore;
 };
