@@ -64,12 +64,12 @@ void VulkanBase::init()
 		);
 
 		this->command = new VulkanCommand(
-			tmpLogicalDev, 
-			tmpDevInfo,
-			this->graphicsPipeline->getFramebufferCollection(), 
-			this->graphicsPipeline->getRenderPass(),
-			this->swapchain->getSwapchainExtent2D(),
-			this->graphicsPipeline->getGraphicsPipeline()
+			*tmpLogicalDev, 
+			*tmpDevInfo,
+			*this->graphicsPipeline->getFramebufferCollection(),
+			*this->graphicsPipeline->getRenderPass(),
+			*this->swapchain->getSwapchainExtent2D(),
+			*this->graphicsPipeline->getGraphicsPipeline()
 		);
 
 	}

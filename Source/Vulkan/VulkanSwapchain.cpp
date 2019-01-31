@@ -137,7 +137,7 @@ void VulkanSwapchain::init_Imageviews()
 	{
 		uint32_t swapchainImageCount = 0;
 		VkResult res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
-		this->imageCollection.resize(swapchainImageCount);
+		//this->imageCollection.resize(swapchainImageCount);
 
 		std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
 		res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());

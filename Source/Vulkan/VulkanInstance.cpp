@@ -20,57 +20,55 @@ VkInstance * VulkanInstance::getInstance()
 void VulkanInstance::init_vkInstance(bool enableValidation)
 {
 	VkApplicationInfo appInfo = {};
-	appInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pApplicationName = "CoreTrack";
-	appInfo.pEngineName = "Zittelmen Engine";
-	appInfo.apiVersion = VK_API_VERSION_1_1;
-
-	std::vector<const char*> instanceExtensions = { VK_KHR_SURFACE_EXTENSION_NAME };
-
-	VkInstanceCreateInfo createInfo = {};
-	createInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	createInfo.enabledLayerCount = 0;
-
-#if defined(_WIN32)
-	instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
-#elif defined(_DIRECT2DISPLAY)
-	instanceExtensions.push_back(VK_KHR_DISPLAY_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_WAYLAND_KHR)
-	instanceExtensions.push_back(VK_KHR_WAYLAND_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_XCB_KHR)
-	instanceExtensions.push_back(VK_KHR_XCB_SURFACE_EXTENSION_NAME);
-#elif defined(VK_USE_PLATFORM_MACOS_MVK)
-	instanceExtensions.push_back(VK_MVK_MACOS_SURFACE_EXTENSION_NAME);
-#endif
-
-
+	appInfo.sType			   = VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	appInfo.pNext = NULL;
+	appInfo.pApplicationName   = "CoreTrack";
+	appInfo.applicationVersion = 1;
+	appInfo.pEngineName		   = "Zittelmen Engine";
+	appInfo.engineVersion      = 1;
+	appInfo.apiVersion		   = VK_API_VERSION_1_1;
+	
+	
 	VkInstanceCreateInfo instanceCreateInfo = {};
 	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instanceCreateInfo.flags = 0;
 	instanceCreateInfo.pNext = NULL;
 	instanceCreateInfo.pApplicationInfo = &appInfo;
+
+	std::vector<const char*> instanceExtensions;
+	instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);
+	instanceExtensions.push_back(VK_KHR_WIN32_SURFACE_EXTENSION_NAME);
 
 
 	if (instanceExtensions.size() > 0)
 	{
 		if (enableValidation)
 		{
-			//instanceExtensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 			VulkanDebug::addInstanceDebugExtensionCollection(instanceExtensions);
 		}
 
-		instanceCreateInfo.enabledExtensionCount = (uint32_t)instanceExtensions.size();
+		instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 	}
 
+
+	std::vector<char const *> validationLayers =
+		VulkanDebug::addInstanceDebugLayerCollection(std::vector<char const *>());
+
 	if (enableValidation)
 	{
-
 		// On desktop the LunarG loaders exposes a meta layer that contains all layers
-		instanceCreateInfo.enabledLayerCount = VulkanDebug::addStandardValidationLayerCollection(std::vector<const char*>()).size();
-		instanceCreateInfo.ppEnabledLayerNames = VulkanDebug::addStandardValidationLayerCollection(std::vector<const char*>()).data();
+		instanceCreateInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
+		instanceCreateInfo.ppEnabledLayerNames = validationLayers.data();
+
+	} else {
+		instanceCreateInfo.enabledLayerCount = 0;
+		instanceCreateInfo.ppEnabledLayerNames = nullptr;
 	}
 
-	VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &this->m_vkInstance);
+
+
+	VkResult res = vkCreateInstance(&instanceCreateInfo, NULL, &this->m_vkInstance);
 
 }
 

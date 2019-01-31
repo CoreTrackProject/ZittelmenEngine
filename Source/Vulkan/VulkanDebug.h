@@ -12,18 +12,24 @@ class VulkanDebug
 
 public:
 	VulkanDebug(VkInstance *instance);
-	
-	static std::vector<const char*> addStandardValidationLayerCollection(std::vector<const char*> layerCollection);
-	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> extensionCollection);
+	~VulkanDebug();
+
+	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> &extensionCollection);
+	static std::vector<const char*> addInstanceDebugLayerCollection(std::vector<const char*> &extensionCollection);
+
 
 private:
 	void init_vulkanDebug();
 	void destroy_vulkanDebug();
 
 private:
-	PFN_vkCreateDebugReportCallbackEXT CreateDebugReportCallback = VK_NULL_HANDLE;
-	PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallback = VK_NULL_HANDLE;
-
 	VkInstance *instance = nullptr;
+
+	PFN_vkCreateDebugUtilsMessengerEXT  CreateDebugUtilsMessengerEXT  = nullptr;
+	PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT = nullptr;
+
+	PFN_vkCreateDebugReportCallbackEXT  CreateDebugReportCallbackEXT  = nullptr;
+	PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallbackEXT = nullptr;
+
 
 };
