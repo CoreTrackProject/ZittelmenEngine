@@ -21,7 +21,7 @@ class VulkanSwapchain
 	
 
 public:
-	VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface);
+	VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface, uint32_t width, uint32_t height);
 	~VulkanSwapchain();
 
 	VkExtent2D* getSwapchainExtent2D();
@@ -30,23 +30,26 @@ public:
 	VkSwapchainKHR &getSwapchain();
 	uint32_t &getQueueFamilyPresentIdx();
 
+
 private:
 	void init_Swapchain();
 	void querySwapChainRelatedInfo();
 	void init_Imageviews();
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
-	VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkPresentModeKHR   chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D         chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	
 
 private:
-	VkSurfaceKHR *surface = VK_NULL_HANDLE;
-	VkPhysicalDevice *device = VK_NULL_HANDLE; 
+	VkSurfaceKHR* surface = VK_NULL_HANDLE;
+	VkPhysicalDevice* device = VK_NULL_HANDLE; 
 	VkDevice* logicalDevice = VK_NULL_HANDLE;
 	DeviceInfo* deviceInfo = nullptr;
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-	uint32_t queueFamilyPresentIdx = 0;// Queuefamily index which supports presenting
+	
+	// Queuefamily index which supports presenting
+	uint32_t queueFamilyPresentIdx = 0;
 
 	VkSurfaceFormatKHR selectedSurfaceFormat;
 	VkPresentModeKHR selectedPresentMode;
@@ -54,5 +57,8 @@ private:
 
 	Image image;
 	std::vector<Image> imageCollection;
+
+	uint32_t targetwidth  = 800;
+	uint32_t targetheight = 600;
 	
 };

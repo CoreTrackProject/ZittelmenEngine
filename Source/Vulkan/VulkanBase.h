@@ -22,16 +22,17 @@ public:
 	VulkanBase();
 	~VulkanBase();
 
-
 	void setTargetRenderSurface(QWidget *hwnd);
+	void resizeTargetRenderSurface(uint32_t width, uint32_t height);
+
 	void init();
-
-	void init_semaphore();
-
-	void renderLoop();
+	void destroy();
+	void renderFrame();
 	
 
 private:
+	void init_semaphore();
+
 	bool enableValidation = false;
 
 	VulkanInstance* instance    = nullptr;
@@ -49,4 +50,6 @@ private:
 
 	VkSemaphore imageAvailableSemaphore;
 	VkSemaphore renderFinishedSemaphore;
+
+	bool isRenderActive;
 };

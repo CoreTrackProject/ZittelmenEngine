@@ -20,7 +20,6 @@ void VulkanWindow::init_Surface()
 	createInfo.hwnd = (HWND)this->targetRenderSurface->winId();
 	createInfo.hinstance = GetModuleHandle(nullptr);
 
-
 	VkResult res = vkCreateWin32SurfaceKHR(*this->instance, &createInfo, nullptr, &this->surface);
 }
 

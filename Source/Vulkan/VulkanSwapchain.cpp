@@ -1,7 +1,9 @@
 #include "VulkanSwapchain.h"
 
-VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface)
+VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface, uint32_t targetwidth, uint32_t targetheight)
 {
+	this->targetwidth   = targetwidth;
+	this->targetheight  = targetheight;
 	this->surface		= surface;
 	this->device        = device;
 	this->logicalDevice = logicalDevice;
@@ -213,7 +215,7 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & ca
 		return capabilities.currentExtent;
 	}
 	else {
-		VkExtent2D actualExtent = { 800, 600 };
+		VkExtent2D actualExtent = { this->targetwidth, this->targetheight };
 
 		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
