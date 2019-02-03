@@ -12,6 +12,8 @@
 #include "VulkanGraphicsPipeline.h"
 #include "VulkanCommand.h"
 
+const int MAX_FRAMES_IN_FLIGHT = 2;
+
 /*
 	Top class from where the whole Vulkan api get controlled
 */
@@ -48,8 +50,12 @@ private:
 
 	VkQueue presentQueue = VK_NULL_HANDLE;
 
-	VkSemaphore imageAvailableSemaphore;
-	VkSemaphore renderFinishedSemaphore;
+	std::vector<VkSemaphore> imageAvailableSemaphoreCollection;
+	std::vector<VkSemaphore> renderFinishedSemaphoreCollection;
+
+	std::vector<VkFence> inFlightFences;
+
+	size_t currentFrame = 0;
 
 	bool isRenderActive;
 };

@@ -17,6 +17,7 @@ public:
 	void initVulkanRenderer();
 	void renderFrame();
 	void resize(uint32_t width, uint32_t height);
+	bool initialized();
 
 private:
 	VulkanBase *m_vulkanBase     = nullptr;
