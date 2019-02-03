@@ -1,13 +1,19 @@
 #include "VulkanSwapchain.h"
 
-VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface, uint32_t targetwidth, uint32_t targetheight)
+VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height) :
+	targetwidth(targetwidth), 
+	targetheight(targetheight),
+	surface(surface),
+	device(device),
+	logicalDevice(logicalDevice),
+	deviceInfo(deviceInfo)
 {
-	this->targetwidth   = targetwidth;
-	this->targetheight  = targetheight;
-	this->surface		= surface;
-	this->device        = device;
-	this->logicalDevice = logicalDevice;
-	this->deviceInfo    = deviceInfo;
+	//this->targetwidth   = targetwidth;
+	//this->targetheight  = targetheight;
+	//this->surface		= surface;
+	//this->device        = device;
+	//this->logicalDevice = logicalDevice;
+	//this->deviceInfo    = deviceInfo;
 
 	this->init_Swapchain();
 	this->init_Imageviews();
@@ -17,22 +23,22 @@ VulkanSwapchain::~VulkanSwapchain()
 {
 
 	for (Image image : this->imageCollection) {
-		vkDestroyImageView(*this->logicalDevice, image.imageView, nullptr);
+		vkDestroyImageView(this->logicalDevice, image.imageView, nullptr);
 		//vkDestroyImage(*this->logicalDevice, image.image, nullptr);
 	}
 
-	vkDestroySwapchainKHR(*this->logicalDevice, this->swapChain, nullptr);
+	vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
 
 }
 
-VkExtent2D* VulkanSwapchain::getSwapchainExtent2D()
+VkExtent2D &VulkanSwapchain::getSwapchainExtent2D()
 {
-	return &this->selectedExtent;
+	return this->selectedExtent;
 }
 
-VkSurfaceFormatKHR* VulkanSwapchain::getSwapchainImageFormat()
+VkSurfaceFormatKHR &VulkanSwapchain::getSwapchainImageFormat()
 {
-	return &this->selectedSurfaceFormat;
+	return this->selectedSurfaceFormat;
 }
 
 void VulkanSwapchain::init_Swapchain()
@@ -50,7 +56,7 @@ void VulkanSwapchain::init_Swapchain()
 
 	VkSwapchainCreateInfoKHR createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = *this->surface;
+	createInfo.surface = this->surface;
 
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = this->selectedSurfaceFormat.format;
@@ -69,8 +75,8 @@ void VulkanSwapchain::init_Swapchain()
 		
 		{
 			VkBool32 supprtPresent = VK_FALSE;
-			for (uint32_t i = 0; i < this->deviceInfo->queueFamilyCount; i++) {
-				vkGetPhysicalDeviceSurfaceSupportKHR(*this->device, i, *this->surface, &supprtPresent);
+			for (uint32_t i = 0; i < this->deviceInfo.queueFamilyCount; i++) {
+				vkGetPhysicalDeviceSurfaceSupportKHR(this->device, i, this->surface, &supprtPresent);
 				if (supprtPresent == VK_TRUE) {
 					this->queueFamilyPresentIdx = i;
 					break;
@@ -78,9 +84,9 @@ void VulkanSwapchain::init_Swapchain()
 			}
 		}
 
-		uint32_t queueFamilyIndices[] = { this->deviceInfo->queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
+		uint32_t queueFamilyIndices[] = { this->deviceInfo.queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
 
-		if (this->deviceInfo->queueFamilyIndexes.graphics != this->queueFamilyPresentIdx) {
+		if (this->deviceInfo.queueFamilyIndexes.graphics != this->queueFamilyPresentIdx) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
@@ -99,7 +105,7 @@ void VulkanSwapchain::init_Swapchain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(*this->logicalDevice, &createInfo, nullptr, &this->swapChain) != VK_SUCCESS) {
+	if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &this->swapChain) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create swap chain!");
 	}
 
@@ -109,25 +115,25 @@ void VulkanSwapchain::init_Swapchain()
 void VulkanSwapchain::querySwapChainRelatedInfo()
 {
 
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*this->device, *this->surface, &details.capabilities);
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device, this->surface, &details.capabilities);
 
 	// Get surface formats
 	{
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(*this->device, *this->surface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, nullptr);
 		if (formatCount != 0) {
 			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(*this->device, *this->surface, &formatCount, details.formats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, details.formats.data());
 		}
 	}
 	
 	// Get Presentmodes
 	{
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(*this->device, *this->surface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, nullptr);
 		if (presentModeCount != 0) {
 			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(*this->device, *this->surface, &presentModeCount, details.presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, details.presentModes.data());
 		}
 		
 	} 
@@ -138,11 +144,11 @@ void VulkanSwapchain::init_Imageviews()
 
 	{
 		uint32_t swapchainImageCount = 0;
-		VkResult res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
+		VkResult res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
 		//this->imageCollection.resize(swapchainImageCount);
 
 		std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
-		res = vkGetSwapchainImagesKHR(*this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
+		res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
 
 		for (VkImage tmpImage : tmpImageBuffer) {
 
@@ -167,7 +173,7 @@ void VulkanSwapchain::init_Imageviews()
 			imageViewCreateInfo.subresourceRange.layerCount     = 1;
 
 			VkImageView view;
-			res = vkCreateImageView(*this->logicalDevice, &imageViewCreateInfo, NULL, &view);
+			res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
 			image.imageView = view;
 
 
@@ -209,7 +215,7 @@ VkPresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const std::vector<VkPres
 	return bestMode;
 }
 
-VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities)
+VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
 {
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
@@ -224,9 +230,9 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & ca
 	}
 }
 
-std::vector<Image>* VulkanSwapchain::getImageCollection()
+std::vector<Image> &VulkanSwapchain::getImageCollection()
 {
-	return &this->imageCollection;
+	return this->imageCollection;
 }
 
 VkSwapchainKHR &VulkanSwapchain::getSwapchain()

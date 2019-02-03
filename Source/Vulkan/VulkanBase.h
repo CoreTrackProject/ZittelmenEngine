@@ -26,7 +26,7 @@ public:
 	VulkanBase();
 	~VulkanBase();
 
-	void setTargetRenderSurface(QWidget *hwnd);
+	void setTargetRenderSurface(QWidget *targetWindow);
 	void resizeTargetRenderSurface(uint32_t width, uint32_t height);
 
 	void init();
@@ -42,7 +42,7 @@ private:
 	VulkanDebug* vulkanDebug    = nullptr;
 	VulkanDevice* vulkanDevice  = nullptr;
 
-	QWidget* targetRenderWindow = nullptr;
+	QWidget *targetRenderWindow = nullptr;
 	VulkanWindow* window	    = nullptr;
 	VulkanSwapchain* swapchain  = nullptr;
 	VulkanShader* shader	    = nullptr;

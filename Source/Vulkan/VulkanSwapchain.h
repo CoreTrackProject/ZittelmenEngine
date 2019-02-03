@@ -21,12 +21,12 @@ class VulkanSwapchain
 	
 
 public:
-	VulkanSwapchain(VkPhysicalDevice *device, VkDevice* logicalDevice, DeviceInfo* deviceInfo, VkSurfaceKHR *surface, uint32_t width, uint32_t height);
+	VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height);
 	~VulkanSwapchain();
 
-	VkExtent2D* getSwapchainExtent2D();
-	VkSurfaceFormatKHR* getSwapchainImageFormat();
-	std::vector<Image>* getImageCollection();
+	VkExtent2D &getSwapchainExtent2D();
+	VkSurfaceFormatKHR &getSwapchainImageFormat();
+	std::vector<Image> &getImageCollection();
 	VkSwapchainKHR &getSwapchain();
 	uint32_t &getQueueFamilyPresentIdx();
 
@@ -42,10 +42,11 @@ private:
 	
 
 private:
-	VkSurfaceKHR* surface = VK_NULL_HANDLE;
-	VkPhysicalDevice* device = VK_NULL_HANDLE; 
-	VkDevice* logicalDevice = VK_NULL_HANDLE;
-	DeviceInfo* deviceInfo = nullptr;
+	VkSurfaceKHR &surface;
+	VkPhysicalDevice &device;
+	VkDevice &logicalDevice;
+	DeviceInfo &deviceInfo;
+
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 	
 	// Queuefamily index which supports presenting

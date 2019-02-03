@@ -13,7 +13,7 @@ public:
 	~VulkanWindow();
 
 	void init_Surface();
-	VkSurfaceKHR* getSurface();
+	VkSurfaceKHR &getSurface();
 
 private:
 	VkSurfaceKHR surface = VK_NULL_HANDLE;

@@ -11,18 +11,18 @@
 class VulkanShader {
 
 public:
-	VulkanShader(VkDevice* logicalDevice);
+	VulkanShader(VkDevice &logicalDevice);
 	~VulkanShader();
 
-	VkShaderModule* getVertexShaderModule();
-	VkShaderModule* getFragmentShaderModule();
+	VkShaderModule &getVertexShaderModule();
+	VkShaderModule &getFragmentShaderModule();
 
 
 private:
 	void loadShaders();
 	QByteArray loadFile(QString filePath);
 
-	VkDevice* logicalDevice = VK_NULL_HANDLE;
+	VkDevice &logicalDevice;
 	VkShaderModule vertexShaderModule = VK_NULL_HANDLE;
 	VkShaderModule fragmentShaderModule = VK_NULL_HANDLE;
 

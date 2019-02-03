@@ -24,7 +24,7 @@ void VulkanWindow::init_Surface()
 	VkResult res = vkCreateWin32SurfaceKHR(this->instance, &createInfo, nullptr, &this->surface);
 }
 
-VkSurfaceKHR* VulkanWindow::getSurface()
+VkSurfaceKHR &VulkanWindow::getSurface()
 {
-	return &this->surface;
+	return this->surface;
 }

@@ -31,23 +31,22 @@ public:
 	VulkanDevice(VkInstance &instance);
 
 public:
-	VkDevice* getLogicalDevice();
-	VkPhysicalDevice* getPhysicalDevice();
-	DeviceInfo* getPhysicalDeviceInfo(VkPhysicalDevice *physicalDevice);
-	
+	VkDevice &getLogicalDevice();
+	VkPhysicalDevice &getPhysicalDevice();
+	DeviceInfo &getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
 	VkQueue &getGraphicsQueue();
 
 private:
 	void init_vulkanDevice();
 	void destroy_vulkanDevice();
-	void init_logicalDevice(VkPhysicalDevice* logicalDevice);
-	void init_deviceQueue(VkPhysicalDevice* logicalDevice);
+	void init_logicalDevice(VkPhysicalDevice &logicalDevice);
+	void init_deviceQueue(VkPhysicalDevice &logicalDevice);
 
-	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice* physicalDev, VkQueueFlags flag);
+	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag);
 
-	bool isDevExtensionSupported(VkPhysicalDevice* logicalDevice, std::string extensionName);
+	bool isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName);
 
-	bool isSwapchainSupported(VkPhysicalDevice* logicalDevice);
+	bool isSwapchainSupported(VkPhysicalDevice &logicalDevice);
 
 
 private:

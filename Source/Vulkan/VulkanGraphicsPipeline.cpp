@@ -1,13 +1,19 @@
 #include "VulkanGraphicsPipeline.h"
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice* logicalDevice, VkShaderModule* vertexShaderModule, VkShaderModule* fragmentShaderModule, VkExtent2D* swapchainExtent, VkSurfaceFormatKHR* swapchainImageFormat, std::vector<Image>* swapchainImageCollection)
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection) :
+	logicalDevice(logicalDevice),
+	vertexShaderModule(vertexShaderModule),
+	fragmentShaderModule(fragmentShaderModule),
+	swapchainExtent2D(swapchainExtent), 
+	swapchainImageFormat(swapchainImageFormat), 
+	swapchainImageCollection(swapchainImageCollection)
 {
-	this->vertexShaderModule   = vertexShaderModule;
+	/*this->vertexShaderModule   = vertexShaderModule;
 	this->fragmentShaderModule = fragmentShaderModule;
 	this->swapchainExtent2D    = swapchainExtent;
 	this->logicalDevice		   = logicalDevice;
 	this->swapchainImageFormat = swapchainImageFormat;
-	this->swapchainImageCollection = swapchainImageCollection;
+	this->swapchainImageCollection = swapchainImageCollection;*/
 
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
@@ -18,27 +24,27 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice* logicalDevice, VkShader
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline() 
 {
 	for (auto framebuffer : this->swapchainFramebufferCollection) {
-		vkDestroyFramebuffer(*this->logicalDevice, framebuffer, nullptr);
+		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
 	}
 
-	vkDestroyPipeline(*this->logicalDevice, this->graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(*this->logicalDevice, this->pipelineLayout, nullptr);
-	vkDestroyRenderPass(*this->logicalDevice, this->renderPass, nullptr);
+	vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);
+	vkDestroyRenderPass(this->logicalDevice, this->renderPass, nullptr);
 }
 
-std::vector<VkFramebuffer>* VulkanGraphicsPipeline::getFramebufferCollection()
+std::vector<VkFramebuffer> &VulkanGraphicsPipeline::getFramebufferCollection()
 {
-	return &this->swapchainFramebufferCollection;
+	return this->swapchainFramebufferCollection;
 }
 
-VkRenderPass* VulkanGraphicsPipeline::getRenderPass()
+VkRenderPass &VulkanGraphicsPipeline::getRenderPass()
 {
-	return &this->renderPass;
+	return this->renderPass;
 }
 
-VkPipeline* VulkanGraphicsPipeline::getGraphicsPipeline()
+VkPipeline &VulkanGraphicsPipeline::getGraphicsPipeline()
 {
-	return &this->graphicsPipeline;
+	return this->graphicsPipeline;
 }
 
 
@@ -50,13 +56,13 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	VkPipelineShaderStageCreateInfo vertexShaderStageInfo = {};
 	vertexShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertexShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
-	vertexShaderStageInfo.module = *this->vertexShaderModule;
+	vertexShaderStageInfo.module = this->vertexShaderModule;
 	vertexShaderStageInfo.pName  = "main";
 
 	VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
 	fragShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderStageInfo.module = *this->fragmentShaderModule;
+	fragShaderStageInfo.module = this->fragmentShaderModule;
 	fragShaderStageInfo.pName  = "main";
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragShaderStageInfo };
@@ -82,14 +88,14 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	VkViewport viewport = {};
 	viewport.x		  = 0.0f;
 	viewport.y		  = 0.0f;
-	viewport.width    = (float)this->swapchainExtent2D->width;
-	viewport.height   = (float)this->swapchainExtent2D->height;
+	viewport.width    = (float)this->swapchainExtent2D.width;
+	viewport.height   = (float)this->swapchainExtent2D.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor  = {};
 	scissor.offset    = {0, 0};
-	scissor.extent    = *this->swapchainExtent2D;
+	scissor.extent    = this->swapchainExtent2D;
 
 	VkPipelineViewportStateCreateInfo viewportState = {};
 	viewportState.sType			= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -172,7 +178,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 	
-	VkResult res = vkCreatePipelineLayout(*this->logicalDevice, &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
+	VkResult res = vkCreatePipelineLayout(this->logicalDevice, &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
 		
 
 
@@ -200,14 +206,14 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
 
-	res = vkCreateGraphicsPipelines(*this->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
+	res = vkCreateGraphicsPipelines(this->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
 }
 
 void VulkanGraphicsPipeline::init_renderpass()
 {
 	// Attachment description
 	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format		   = this->swapchainImageFormat->format;
+	colorAttachment.format		   = this->swapchainImageFormat.format;
 	colorAttachment.samples		   = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
@@ -248,21 +254,21 @@ void VulkanGraphicsPipeline::init_renderpass()
 
 
 
-	VkResult res = vkCreateRenderPass(*this->logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
+	VkResult res = vkCreateRenderPass(this->logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
 		
 	
 }
 
 void VulkanGraphicsPipeline::init_framebuffer()
 {
-	uint32_t swapchainImageCount = this->swapchainImageCollection->size();
+	uint32_t swapchainImageCount = this->swapchainImageCollection.size();
 
 	this->swapchainFramebufferCollection.resize(swapchainImageCount);
 
 	for (size_t i = 0; i < swapchainImageCount; i++) {
 		
 		VkImageView attachments[] = {
-			this->swapchainImageCollection->at(i).imageView
+			this->swapchainImageCollection.at(i).imageView
 		};
 
 		VkFramebufferCreateInfo framebufferInfo = {};
@@ -270,11 +276,11 @@ void VulkanGraphicsPipeline::init_framebuffer()
 		framebufferInfo.renderPass = renderPass;
 		framebufferInfo.attachmentCount = 1;
 		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width  = this->swapchainExtent2D->width;
-		framebufferInfo.height = this->swapchainExtent2D->height;
+		framebufferInfo.width  = this->swapchainExtent2D.width;
+		framebufferInfo.height = this->swapchainExtent2D.height;
 		framebufferInfo.layers = 1;
 
-		VkResult res = vkCreateFramebuffer(*this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
+		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
 		if (res != VK_SUCCESS) {
 			qDebug() << "Failed to create the framebuffer";
 		}

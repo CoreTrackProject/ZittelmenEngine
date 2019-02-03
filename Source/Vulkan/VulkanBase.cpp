@@ -11,9 +11,9 @@ VulkanBase::~VulkanBase()
 	this->destroy();
 }
 
-void VulkanBase::setTargetRenderSurface(QWidget* target)
+void VulkanBase::setTargetRenderSurface(QWidget *targetWindow)
 {
-	this->targetRenderWindow = target;
+	this->targetRenderWindow = targetWindow;
 }
 
 void VulkanBase::resizeTargetRenderSurface(uint32_t width, uint32_t height)
@@ -41,10 +41,10 @@ void VulkanBase::init()
 	if (this->targetRenderWindow != nullptr) {
 		this->window = new VulkanWindow(this->instance->getInstance(), this->targetRenderWindow);
 
-		VkPhysicalDevice* tmpDev = this->vulkanDevice->getPhysicalDevice();
-		VkDevice* tmpLogicalDev  = this->vulkanDevice->getLogicalDevice();
-		DeviceInfo* tmpDevInfo   = this->vulkanDevice->getPhysicalDeviceInfo(tmpDev);
-		VkSurfaceKHR* tmpSurface = this->window->getSurface();
+		VkPhysicalDevice &tmpDev = this->vulkanDevice->getPhysicalDevice();
+		VkDevice &tmpLogicalDev  = this->vulkanDevice->getLogicalDevice();
+		DeviceInfo &tmpDevInfo   = this->vulkanDevice->getPhysicalDeviceInfo(tmpDev);
+		VkSurfaceKHR &tmpSurface = this->window->getSurface();
 
 		this->swapchain = new VulkanSwapchain(
 			tmpDev,
@@ -69,16 +69,16 @@ void VulkanBase::init()
 		);
 
 		this->command = new VulkanCommand(
-			*tmpLogicalDev, 
-			*tmpDevInfo,
-			*this->graphicsPipeline->getFramebufferCollection(),
-			*this->graphicsPipeline->getRenderPass(),
-			*this->swapchain->getSwapchainExtent2D(),
-			*this->graphicsPipeline->getGraphicsPipeline()
+			tmpLogicalDev, 
+			tmpDevInfo,
+			this->graphicsPipeline->getFramebufferCollection(),
+			this->graphicsPipeline->getRenderPass(),
+			this->swapchain->getSwapchainExtent2D(),
+			this->graphicsPipeline->getGraphicsPipeline()
 		);
 
 		// TODO: has to be improved -> move to vulkan [swapchain]/device
-		vkGetDeviceQueue(*this->vulkanDevice->getLogicalDevice(), this->swapchain->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
+		vkGetDeviceQueue(this->vulkanDevice->getLogicalDevice(), this->swapchain->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
 
 		this->init_syncobjects();
 		
@@ -90,12 +90,12 @@ void VulkanBase::destroy()
 
 	this->renderRunning = false;
 
-	vkDeviceWaitIdle(*this->vulkanDevice->getLogicalDevice());
+	vkDeviceWaitIdle(this->vulkanDevice->getLogicalDevice());
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(*this->vulkanDevice->getLogicalDevice(), renderFinishedSemaphoreCollection[i], nullptr);
-		vkDestroySemaphore(*this->vulkanDevice->getLogicalDevice(), imageAvailableSemaphoreCollection[i], nullptr);
-		vkDestroyFence(*this->vulkanDevice->getLogicalDevice(), inFlightFences[i], nullptr);
+		vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), renderFinishedSemaphoreCollection[i], nullptr);
+		vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), imageAvailableSemaphoreCollection[i], nullptr);
+		vkDestroyFence(this->vulkanDevice->getLogicalDevice(), inFlightFences[i], nullptr);
 	}
 
 	if (this->targetRenderWindow != nullptr) {
@@ -128,9 +128,9 @@ void VulkanBase::init_syncobjects()
 	fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		if (vkCreateSemaphore(*this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &this->imageAvailableSemaphoreCollection[i]) != VK_SUCCESS ||
-			vkCreateSemaphore(*this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphoreCollection[i]) != VK_SUCCESS ||
-			vkCreateFence(*this->vulkanDevice->getLogicalDevice(),     &fenceInfo, nullptr,     &this->inFlightFences[i]) != VK_SUCCESS) {
+		if (vkCreateSemaphore(this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &this->imageAvailableSemaphoreCollection[i]) != VK_SUCCESS ||
+			vkCreateSemaphore(this->vulkanDevice->getLogicalDevice(), &semaphoreInfo, nullptr, &this->renderFinishedSemaphoreCollection[i]) != VK_SUCCESS ||
+			vkCreateFence(this->vulkanDevice->getLogicalDevice(),     &fenceInfo, nullptr,     &this->inFlightFences[i]) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create semaphores for a frame!");
 		}
 	}
@@ -142,16 +142,16 @@ void VulkanBase::renderFrame()
 		return;
 	}
 
-	VkResult res = vkWaitForFences(*this->vulkanDevice->getLogicalDevice(), 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
+	VkResult res = vkWaitForFences(this->vulkanDevice->getLogicalDevice(), 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
 		return;
 	}
 
-	vkResetFences(*this->vulkanDevice->getLogicalDevice(), 1,   &this->inFlightFences[this->currentFrame]);
+	vkResetFences(this->vulkanDevice->getLogicalDevice(), 1,   &this->inFlightFences[this->currentFrame]);
 
 	uint32_t imageIndex = 0;
 	vkAcquireNextImageKHR(
-		*this->vulkanDevice->getLogicalDevice(), 
+		this->vulkanDevice->getLogicalDevice(), 
 		this->swapchain->getSwapchain(), 
 		std::numeric_limits<uint64_t>::max(), 
 		this->imageAvailableSemaphoreCollection[this->currentFrame],
