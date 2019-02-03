@@ -3,6 +3,8 @@
 #define NOMINMAX
 #include <algorithm>
 
+#include <QTimer>
+
 #include "VulkanInstance.h"
 #include "VulkanDebug.h"
 #include "VulkanDevice.h"
@@ -30,10 +32,9 @@ public:
 	void init();
 	void destroy();
 	void renderFrame();
-	
 
 private:
-	void init_semaphore();
+	void init_syncobjects();
 
 	bool enableValidation = false;
 
@@ -58,4 +59,5 @@ private:
 	size_t currentFrame = 0;
 
 	bool isRenderActive;
+	bool renderRunning = false;
 };

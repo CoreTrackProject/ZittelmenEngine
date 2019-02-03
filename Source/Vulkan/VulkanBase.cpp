@@ -87,6 +87,9 @@ void VulkanBase::init()
 
 void VulkanBase::destroy()
 {
+
+	this->renderRunning = false;
+
 	vkDeviceWaitIdle(*this->vulkanDevice->getLogicalDevice());
 
 	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -139,7 +142,7 @@ void VulkanBase::renderFrame()
 		return;
 	}
 
-	VkResult res = vkWaitForFences(*this->vulkanDevice->getLogicalDevice(), 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 2000000000);
+	VkResult res = vkWaitForFences(*this->vulkanDevice->getLogicalDevice(), 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
 		return;
 	}
@@ -195,3 +198,4 @@ void VulkanBase::renderFrame()
 
 	this->currentFrame = (this->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
+

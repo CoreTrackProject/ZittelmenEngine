@@ -19,21 +19,24 @@ VkInstance * VulkanInstance::getInstance()
 
 void VulkanInstance::init_vkInstance(bool enableValidation)
 {
-	VkApplicationInfo appInfo = {};
+
+	VkApplicationInfo appInfo  = {};
 	appInfo.sType			   = VkStructureType::VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	appInfo.pNext = NULL;
+	appInfo.pNext			   = NULL;
 	appInfo.pApplicationName   = "CoreTrack";
 	appInfo.applicationVersion = 1;
 	appInfo.pEngineName		   = "Zittelmen Engine";
 	appInfo.engineVersion      = 1;
 	appInfo.apiVersion		   = VK_API_VERSION_1_1;
-	
+	appInfo.pNext              = &VulkanDebug::debugUtilsMessengerCreateInfo;
 	
 	VkInstanceCreateInfo instanceCreateInfo = {};
 	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceCreateInfo.flags = 0;
 	instanceCreateInfo.pNext = NULL;
 	instanceCreateInfo.pApplicationInfo = &appInfo;
+
+
 
 	std::vector<const char*> instanceExtensions;
 	instanceExtensions.push_back(VK_KHR_SURFACE_EXTENSION_NAME);

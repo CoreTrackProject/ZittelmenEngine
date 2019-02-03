@@ -60,5 +60,7 @@ bool ZittelmenEngine::initialized() {
 
 void ZittelmenEngine::resize(uint32_t width, uint32_t height)
 {
-	this->m_vulkanBase->resizeTargetRenderSurface(width, height);
+	if (this->isInitialized) {
+		this->m_vulkanBase->resizeTargetRenderSurface(width, height);
+	}
 }
