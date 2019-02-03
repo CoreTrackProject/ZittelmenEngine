@@ -28,7 +28,7 @@ struct DeviceInfo {
 class VulkanDevice
 {
 public:
-	VulkanDevice(VkInstance* instance);
+	VulkanDevice(VkInstance &instance);
 
 public:
 	VkDevice* getLogicalDevice();
@@ -53,7 +53,7 @@ private:
 private:
 	uint32_t physicalDevCount = 0;
 	std::map<VkPhysicalDevice, DeviceInfo> physicalDevCollection;
-	VkInstance* instance = nullptr;
+	VkInstance &instance;
 	VkDevice logicalDevice = VK_NULL_HANDLE;
 	
 	VkQueue graphicsQueue = VK_NULL_HANDLE;

@@ -12,9 +12,9 @@ VulkanInstance::~VulkanInstance()
 	this->destroy_vkInstance();
 }
 
-VkInstance * VulkanInstance::getInstance()
+VkInstance &VulkanInstance::getInstance()
 {
-	return &this->m_vkInstance;
+	return this->m_vkInstance;
 }
 
 void VulkanInstance::init_vkInstance(bool enableValidation)

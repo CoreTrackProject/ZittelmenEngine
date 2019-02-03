@@ -36,7 +36,7 @@ public:
 
 
 public:
-	VulkanDebug(VkInstance *instance);
+	VulkanDebug(VkInstance &instance);
 	~VulkanDebug();
 
 	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> &extensionCollection);
@@ -48,7 +48,7 @@ private:
 
 
 private:
-	VkInstance *instance = nullptr;
+	VkInstance &instance;
 
 	PFN_vkCreateDebugUtilsMessengerEXT  CreateDebugUtilsMessengerEXT = nullptr;
 	PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT = nullptr;

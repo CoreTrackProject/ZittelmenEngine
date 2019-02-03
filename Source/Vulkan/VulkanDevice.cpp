@@ -1,9 +1,9 @@
 #include "VulkanDevice.h"
 
 
-VulkanDevice::VulkanDevice(VkInstance* instance)
+VulkanDevice::VulkanDevice(VkInstance &instance) : 
+	instance(instance)
 {
-	this->instance = instance;
 	this->init_vulkanDevice();
 
 	//Select first device
@@ -27,12 +27,12 @@ VkPhysicalDevice* VulkanDevice::getPhysicalDevice()
 void VulkanDevice::init_vulkanDevice()
 {
 	// Get num physical devices
-	vkEnumeratePhysicalDevices(*this->instance, &this->physicalDevCount, nullptr);
+	vkEnumeratePhysicalDevices(this->instance, &this->physicalDevCount, nullptr);
 
 	std::vector<VkPhysicalDevice> tmpPhysicalDevCollection(this->physicalDevCount);
 	
 	// store all available physical devices in a collection
-	VkResult res = vkEnumeratePhysicalDevices(*this->instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
+	VkResult res = vkEnumeratePhysicalDevices(this->instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
 
 	// Get information for each device
 	for (int i = 0; i < tmpPhysicalDevCollection.size(); i++) {
