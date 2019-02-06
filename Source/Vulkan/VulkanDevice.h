@@ -29,6 +29,8 @@ class VulkanDevice
 {
 public:
 	VulkanDevice(VkInstance &instance);
+	~VulkanDevice();
+
 
 public:
 	VkDevice &getLogicalDevice();
@@ -36,22 +38,20 @@ public:
 	DeviceInfo &getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
 	VkQueue &getGraphicsQueue();
 
+
 private:
 	void init_vulkanDevice();
 	void destroy_vulkanDevice();
 	void init_logicalDevice(VkPhysicalDevice &logicalDevice);
 	void init_deviceQueue(VkPhysicalDevice &logicalDevice);
-
 	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag);
-
 	bool isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName);
-
 	bool isSwapchainSupported(VkPhysicalDevice &logicalDevice);
 
 
 private:
 	uint32_t physicalDevCount = 0;
-	std::map<VkPhysicalDevice, DeviceInfo> physicalDevCollection;
+	std::unique_ptr<std::map<VkPhysicalDevice, DeviceInfo>> physicalDevCollection = nullptr;
 	VkInstance &instance;
 	VkDevice logicalDevice = VK_NULL_HANDLE;
 	

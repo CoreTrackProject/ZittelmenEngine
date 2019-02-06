@@ -1,16 +1,22 @@
 #include "VulkanDevice.h"
 
 
-VulkanDevice::VulkanDevice(VkInstance &instance) : 
-	instance(instance)
+VulkanDevice::VulkanDevice(VkInstance &instance) : instance(instance)
 {
+	this->physicalDevCollection.reset(new std::map<VkPhysicalDevice, DeviceInfo>());
+
 	this->init_vulkanDevice();
 
 	//Select first device
-	VkPhysicalDevice dev = this->physicalDevCollection.begin()->first;
+	VkPhysicalDevice dev = this->physicalDevCollection->begin()->first;
 	
 	this->init_logicalDevice(dev);
 	this->init_deviceQueue(dev);
+}
+
+VulkanDevice::~VulkanDevice()
+{
+	this->destroy_vulkanDevice();
 }
 
 VkDevice &VulkanDevice::getLogicalDevice()
@@ -21,7 +27,7 @@ VkDevice &VulkanDevice::getLogicalDevice()
 VkPhysicalDevice &VulkanDevice::getPhysicalDevice()
 {
 	// It compiles but it may EXPLODES
-	return const_cast<VkPhysicalDevice>(this->physicalDevCollection.begin()->first);
+	return const_cast<VkPhysicalDevice>(this->physicalDevCollection->begin()->first);
 }
 
 void VulkanDevice::init_vulkanDevice()
@@ -69,7 +75,7 @@ void VulkanDevice::init_vulkanDevice()
 			}
 		}
 
-		this->physicalDevCollection.insert(std::make_pair(tmpPhysicalDevCollection[i], info));
+		this->physicalDevCollection->insert(std::make_pair(tmpPhysicalDevCollection[i], info));
 	}
 
 
@@ -78,6 +84,7 @@ void VulkanDevice::init_vulkanDevice()
 
 void VulkanDevice::destroy_vulkanDevice()
 {
+	this->physicalDevCollection.reset();
 	vkDestroyDevice(this->logicalDevice, NULL);
 	
 }
@@ -153,6 +160,10 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	}
 
 	VkResult res = vkCreateDevice(physicalDevice, &devCreateInfo, nullptr, &this->logicalDevice);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::exception("vkCreateDevice failed");
+	}
+
 }
 
 void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
@@ -163,7 +174,7 @@ void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 
 uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag)
 {
-	DeviceInfo &info = this->physicalDevCollection.find(physicalDev)->second;
+	DeviceInfo &info = this->physicalDevCollection->find(physicalDev)->second;
 
 	for (int i = 0; i < info.queueFamilyCount; i++) {
 		if ((info.queueFamilyPropertyCollection[i].queueCount > 0) && (info.queueFamilyPropertyCollection[i].queueFlags & flag)) {
@@ -192,7 +203,7 @@ bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice &logicalDevice)
 
 DeviceInfo &VulkanDevice::getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
 {
-	return this->physicalDevCollection.find(physicalDevice)->second;
+	return this->physicalDevCollection->find(physicalDevice)->second;
 }
 
 VkQueue &VulkanDevice::getGraphicsQueue()

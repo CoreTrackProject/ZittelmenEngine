@@ -2,6 +2,7 @@
 
 #define NOMINMAX
 #include <algorithm>
+#include <memory>
 
 #include <QTimer>
 
@@ -29,7 +30,7 @@ public:
 	void setTargetRenderSurface(QWidget *targetWindow);
 	void resizeTargetRenderSurface(uint32_t width, uint32_t height);
 
-	void init();
+	void initialize();
 	void destroy();
 	void renderFrame();
 
@@ -38,16 +39,16 @@ private:
 
 	bool enableValidation = false;
 
-	VulkanInstance* instance    = nullptr;
-	VulkanDebug* vulkanDebug    = nullptr;
-	VulkanDevice* vulkanDevice  = nullptr;
-
 	QWidget *targetRenderWindow = nullptr;
-	VulkanWindow* window	    = nullptr;
-	VulkanSwapchain* swapchain  = nullptr;
-	VulkanShader* shader	    = nullptr;
-	VulkanGraphicsPipeline* graphicsPipeline = nullptr;
-	VulkanCommand* command		= nullptr;
+	 
+	std::unique_ptr<VulkanInstance> instance				 = nullptr;
+	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;
+	std::unique_ptr<VulkanDevice> vulkanDevice				 = nullptr;
+	std::unique_ptr<VulkanWindow> window					 = nullptr;
+	std::unique_ptr<VulkanSwapchain> swapchain				 = nullptr;
+	std::unique_ptr<VulkanShader> shader					 = nullptr;
+	std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline = nullptr;
+	std::unique_ptr<VulkanCommand> command					 = nullptr;
 
 	VkQueue presentQueue = VK_NULL_HANDLE;
 

@@ -21,61 +21,62 @@ void VulkanBase::resizeTargetRenderSurface(uint32_t width, uint32_t height)
 	this->isRenderActive = false;
 
 	this->destroy();
-	this->init();
+	this->initialize();
 
 	this->isRenderActive = true;
 }
 
-void VulkanBase::init()
+void VulkanBase::initialize()
 {
 
 	this->enableValidation = true;
-	this->instance = new VulkanInstance(this->enableValidation);
+	
+	this->instance.reset(new VulkanInstance(this->enableValidation));
 
 	if (this->enableValidation) {
-		this->vulkanDebug = new VulkanDebug(this->instance->getInstance());
+		this->vulkanDebug.reset(new VulkanDebug(this->instance->getInstance()));
 	}
 
-	this->vulkanDevice = new VulkanDevice(this->instance->getInstance());
+	this->vulkanDevice.reset(new VulkanDevice(this->instance->getInstance()));
 
 	if (this->targetRenderWindow != nullptr) {
-		this->window = new VulkanWindow(this->instance->getInstance(), this->targetRenderWindow);
+		this->window.reset(new VulkanWindow(this->instance->getInstance(), this->targetRenderWindow));
 
 		VkPhysicalDevice &tmpDev = this->vulkanDevice->getPhysicalDevice();
 		VkDevice &tmpLogicalDev  = this->vulkanDevice->getLogicalDevice();
 		DeviceInfo &tmpDevInfo   = this->vulkanDevice->getPhysicalDeviceInfo(tmpDev);
 		VkSurfaceKHR &tmpSurface = this->window->getSurface();
 
-		this->swapchain = new VulkanSwapchain(
+		this->swapchain.reset(new VulkanSwapchain(
 			tmpDev,
 			tmpLogicalDev, 
 			tmpDevInfo, 
 			tmpSurface, 
 			this->targetRenderWindow->size().width(), 
 			this->targetRenderWindow->size().height()
-		);
+		));
 
 		
 
-		this->shader = new VulkanShader(tmpLogicalDev);
+		this->shader.reset(new VulkanShader(tmpLogicalDev));
 
-		this->graphicsPipeline = new VulkanGraphicsPipeline(
+		this->graphicsPipeline.reset(new VulkanGraphicsPipeline(
 			tmpLogicalDev,
 			this->shader->getVertexShaderModule(),
 			this->shader->getFragmentShaderModule(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->swapchain->getSwapchainImageFormat(),
 			this->swapchain->getImageCollection()
-		);
+		));
 
-		this->command = new VulkanCommand(
+		this->command.reset(new VulkanCommand(
 			tmpLogicalDev, 
 			tmpDevInfo,
 			this->graphicsPipeline->getFramebufferCollection(),
 			this->graphicsPipeline->getRenderPass(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->graphicsPipeline->getGraphicsPipeline()
-		);
+		));
 
 		// TODO: has to be improved -> move to vulkan [swapchain]/device
 		vkGetDeviceQueue(this->vulkanDevice->getLogicalDevice(), this->swapchain->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
@@ -87,31 +88,34 @@ void VulkanBase::init()
 
 void VulkanBase::destroy()
 {
-
 	this->renderRunning = false;
 
-	vkDeviceWaitIdle(this->vulkanDevice->getLogicalDevice());
 
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), renderFinishedSemaphoreCollection[i], nullptr);
-		vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), imageAvailableSemaphoreCollection[i], nullptr);
-		vkDestroyFence(this->vulkanDevice->getLogicalDevice(), inFlightFences[i], nullptr);
+	if (this->vulkanDevice.get() != nullptr) {
+		vkDeviceWaitIdle(this->vulkanDevice->getLogicalDevice());
+		for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+			vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), renderFinishedSemaphoreCollection[i], nullptr);
+			vkDestroySemaphore(this->vulkanDevice->getLogicalDevice(), imageAvailableSemaphoreCollection[i], nullptr);
+			vkDestroyFence(this->vulkanDevice->getLogicalDevice(), inFlightFences[i], nullptr);
+		}
 	}
+
 
 	if (this->targetRenderWindow != nullptr) {
-		delete this->command;
-		delete this->graphicsPipeline;
-		delete this->shader;
-		delete this->swapchain;
-		delete this->window;
+		this->command.reset();
+		this->graphicsPipeline.reset();
+		this->shader.reset();
+		this->swapchain.reset();
+		this->window.reset();
 	}
 
-	delete this->vulkanDevice;
+	this->vulkanDevice.reset();
 	if (this->enableValidation) {
-		delete this->vulkanDebug;
+		 this->vulkanDebug.reset();
 	}
 
-	delete this->instance;
+	this->instance.reset();
+
 }
 
 void VulkanBase::init_syncobjects()
@@ -152,7 +156,7 @@ void VulkanBase::renderFrame()
 	uint32_t imageIndex = 0;
 	vkAcquireNextImageKHR(
 		this->vulkanDevice->getLogicalDevice(), 
-		this->swapchain->getSwapchain(), 
+		this->swapchain->getSwapchain(),
 		std::numeric_limits<uint64_t>::max(), 
 		this->imageAvailableSemaphoreCollection[this->currentFrame],
 		VK_NULL_HANDLE, 

@@ -10,7 +10,7 @@ VulkanShader::VulkanShader(VkDevice &logicalDevice) : logicalDevice(logicalDevic
 VulkanShader::~VulkanShader() {
 	Q_CLEANUP_RESOURCE(CompiledShaders);
 
-	vkDestroyShaderModule(this->logicalDevice, this->fragmentShaderModule, nullptr);
+	vkDestroyShaderModule(this->logicalDevice, this->fragmentShaderModule,  nullptr);
 	vkDestroyShaderModule(this->logicalDevice, this->vertexShaderModule,    nullptr);
 
 }

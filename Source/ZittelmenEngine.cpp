@@ -2,25 +2,18 @@
 
 ZittelmenEngine::ZittelmenEngine()
 {
+	this->m_vulkanBase.reset(new VulkanBase());
 	this->isInitialized = false;
-	this->m_vulkanBase = new VulkanBase();
 }
 
 ZittelmenEngine::~ZittelmenEngine()
 {
-	delete this->m_vulkanBase;
-}
- 
-void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
-{
-	this->targetRenderSurface = targetRenderSurface;
-	this->m_vulkanBase->setTargetRenderSurface(targetRenderSurface);
+	this->destroy();
 }
 
-void ZittelmenEngine::initVulkanRenderer()
+void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
 {
-	this->m_vulkanBase->init();
-	this->isInitialized = true;
+	this->m_vulkanBase->setTargetRenderSurface(targetRenderSurface);
 }
 
 void ZittelmenEngine::renderFrame()
@@ -28,15 +21,27 @@ void ZittelmenEngine::renderFrame()
 	if (this->isInitialized) {
 		this->m_vulkanBase->renderFrame();
 	}
+
 }
 
-bool ZittelmenEngine::initialized() {
+bool ZittelmenEngine::getInitializedStatus() {
 	return this->isInitialized;
+}
+
+void ZittelmenEngine::initialize()
+{
+	this->m_vulkanBase->initialize();
+	this->isInitialized = true;
+
+}
+
+void ZittelmenEngine::destroy()
+{
+	this->isInitialized = false;
+	this->m_vulkanBase->destroy();
 }
 
 void ZittelmenEngine::resize(uint32_t width, uint32_t height)
 {
-	if (this->isInitialized) {
-		this->m_vulkanBase->resizeTargetRenderSurface(width, height);
-	}
+	this->m_vulkanBase->resizeTargetRenderSurface(width, height);
 }

@@ -28,14 +28,19 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	appInfo.pEngineName		   = "Zittelmen Engine";
 	appInfo.engineVersion      = 1;
 	appInfo.apiVersion		   = VK_API_VERSION_1_1;
-	appInfo.pNext              = &VulkanDebug::debugUtilsMessengerCreateInfo;
+	
+	
 	
 	VkInstanceCreateInfo instanceCreateInfo = {};
 	instanceCreateInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceCreateInfo.flags = 0;
-	instanceCreateInfo.pNext = NULL;
 	instanceCreateInfo.pApplicationInfo = &appInfo;
-
+	
+	if (enableValidation) {
+		instanceCreateInfo.pNext = &VulkanDebug::debugUtilsMessengerCreateInfo;
+	} else {
+		instanceCreateInfo.pNext = NULL;
+	}
 
 
 	std::vector<const char*> instanceExtensions;

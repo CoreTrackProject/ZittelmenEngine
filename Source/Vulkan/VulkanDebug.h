@@ -18,7 +18,7 @@ public:
 		void* pUserData)
 	{
 
-		qDebug() << "Debug utils data: " << messageType;
+		qDebug() << "[" << messageSeverity << "]" << ":" << pCallbackData->pMessage;
 
 		return VK_FALSE;
 	}

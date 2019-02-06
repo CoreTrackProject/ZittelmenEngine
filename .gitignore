@@ -44,3 +44,6 @@ CMakeLists.txt.user*
 
 #Spir-V files
 *.spv
+
+#Visual Studio
+.vs*

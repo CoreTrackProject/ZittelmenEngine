@@ -2,9 +2,10 @@
 
 #include <iostream>
 #include <QWidget>
+#include <QTimer>
 
 #include "Vulkan/VulkanBase.h"
-
+#include "MemoryLeakTest.h"
 
 class ZittelmenEngine
 {
@@ -14,14 +15,18 @@ public:
 	~ZittelmenEngine();
 
 	void setTargetRenderSurface(QWidget *targetRenderSurface);
-	void initVulkanRenderer();
+	
 	void renderFrame();
+	bool getInitializedStatus();
+
+	void initialize();
+	void destroy();
+
 	void resize(uint32_t width, uint32_t height);
-	bool initialized();
 
 private:
-	VulkanBase *m_vulkanBase     = nullptr;
-	QWidget *targetRenderSurface = nullptr;
+	std::unique_ptr<VulkanBase> m_vulkanBase = nullptr;
+	//QWidget *targetRenderSurface = nullptr;
 	VulkanWindow *m_vulkanWindow = nullptr;
 	bool isInitialized;
 };
