@@ -14,9 +14,7 @@
 #include "VulkanShader.h"
 #include "VulkanGraphicsPipeline.h"
 #include "VulkanCommand.h"
-
-const int MAX_FRAMES_IN_FLIGHT = 2;
-
+#include "VulkanRuntime.h"
 /*
 	Top class from where the whole Vulkan api get controlled
 */
@@ -35,7 +33,6 @@ public:
 	void renderFrame();
 
 private:
-	void init_syncobjects();
 
 	bool enableValidation = false;
 
@@ -49,16 +46,7 @@ private:
 	std::unique_ptr<VulkanShader> shader					 = nullptr;
 	std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline = nullptr;
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
+	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 
-	VkQueue presentQueue = VK_NULL_HANDLE;
 
-	std::vector<VkSemaphore> imageAvailableSemaphoreCollection;
-	std::vector<VkSemaphore> renderFinishedSemaphoreCollection;
-
-	std::vector<VkFence> inFlightFences;
-
-	size_t currentFrame = 0;
-
-	bool isRenderActive;
-	bool renderRunning = false;
 };

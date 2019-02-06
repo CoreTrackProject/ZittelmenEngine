@@ -72,7 +72,6 @@ void VulkanSwapchain::init_Swapchain()
 	// Get queue family which supports presenting
 	{
 
-		
 		{
 			VkBool32 supprtPresent = VK_FALSE;
 			for (uint32_t i = 0; i < this->deviceInfo.queueFamilyCount; i++) {
@@ -82,6 +81,7 @@ void VulkanSwapchain::init_Swapchain()
 					break;
 				}
 			}
+			vkGetDeviceQueue(this->logicalDevice, this->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
 		}
 
 		uint32_t queueFamilyIndices[] = { this->deviceInfo.queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
@@ -90,13 +90,11 @@ void VulkanSwapchain::init_Swapchain()
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
-		}
-		else {
+		} else {
 			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			createInfo.queueFamilyIndexCount = 0; // Optional
 			createInfo.pQueueFamilyIndices = nullptr; // Optional
 		}
-
 	}
 
 	createInfo.preTransform   = this->details.capabilities.currentTransform;
@@ -108,7 +106,6 @@ void VulkanSwapchain::init_Swapchain()
 	if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &this->swapChain) != VK_SUCCESS) {
 		throw std::runtime_error("failed to create swap chain!");
 	}
-
 
 }
 
@@ -142,45 +139,42 @@ void VulkanSwapchain::querySwapChainRelatedInfo()
 void VulkanSwapchain::init_Imageviews()
 {
 
-	{
-		uint32_t swapchainImageCount = 0;
-		VkResult res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
-		//this->imageCollection.resize(swapchainImageCount);
+	uint32_t swapchainImageCount = 0;
+	VkResult res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
+	//this->imageCollection.resize(swapchainImageCount);
 
-		std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
-		res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
+	std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
+	res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
 
-		for (VkImage tmpImage : tmpImageBuffer) {
+	for (VkImage tmpImage : tmpImageBuffer) {
 
-			Image image;
-			image.image = tmpImage;
+		Image image;
+		image.image = tmpImage;
 
-			VkImageViewCreateInfo imageViewCreateInfo = {};
-			imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			imageViewCreateInfo.pNext							= NULL;
-			imageViewCreateInfo.flags							= 0;
-			imageViewCreateInfo.image							= image.image;
-			imageViewCreateInfo.viewType						= VK_IMAGE_VIEW_TYPE_2D;
-			imageViewCreateInfo.format							= this->selectedSurfaceFormat.format;
-			imageViewCreateInfo.components.r					= VK_COMPONENT_SWIZZLE_R;
-			imageViewCreateInfo.components.g					= VK_COMPONENT_SWIZZLE_G;
-			imageViewCreateInfo.components.b					= VK_COMPONENT_SWIZZLE_B;
-			imageViewCreateInfo.components.a					= VK_COMPONENT_SWIZZLE_A;
-			imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-			imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
-			imageViewCreateInfo.subresourceRange.levelCount     = 1;
-			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-			imageViewCreateInfo.subresourceRange.layerCount     = 1;
+		VkImageViewCreateInfo imageViewCreateInfo = {};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.pNext = NULL;
+		imageViewCreateInfo.flags = 0;
+		imageViewCreateInfo.image = image.image;
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = this->selectedSurfaceFormat.format;
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
+		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
+		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
+		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
 
-			VkImageView view;
-			res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
-			image.imageView = view;
+		VkImageView view;
+		res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
+		image.imageView = view;
 
 
-			this->imageCollection.push_back(image);
-		}
+		this->imageCollection.push_back(image);
 	}
-
 
 }
 
@@ -219,8 +213,7 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &cap
 {
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
-	}
-	else {
+	} else {
 		VkExtent2D actualExtent = { this->targetwidth, this->targetheight };
 
 		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
@@ -243,5 +236,10 @@ VkSwapchainKHR &VulkanSwapchain::getSwapchain()
 uint32_t &VulkanSwapchain::getQueueFamilyPresentIdx()
 {
 	return this->queueFamilyPresentIdx;
+}
+
+VkQueue &VulkanSwapchain::getPresentQueue()
+{
+	return this->presentQueue;
 }
 

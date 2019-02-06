@@ -26,9 +26,11 @@ public:
 
 	VkExtent2D &getSwapchainExtent2D();
 	VkSurfaceFormatKHR &getSwapchainImageFormat();
-	std::vector<Image> &getImageCollection();
 	VkSwapchainKHR &getSwapchain();
+
+	std::vector<Image> &getImageCollection();
 	uint32_t &getQueueFamilyPresentIdx();
+	VkQueue &getPresentQueue();
 
 
 private:
@@ -48,6 +50,7 @@ private:
 	DeviceInfo &deviceInfo;
 
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
+	VkQueue presentQueue = VK_NULL_HANDLE;
 	
 	// Queuefamily index which supports presenting
 	uint32_t queueFamilyPresentIdx = 0;
