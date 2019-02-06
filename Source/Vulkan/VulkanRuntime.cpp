@@ -22,13 +22,16 @@ void VulkanRuntime::renderFrame()
 
 	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
+
+		// Restart renderer
+
 		return;
 	}
 
-	vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame]);
+	res =  vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame]);
 
 	uint32_t imageIndex = 0;
-	vkAcquireNextImageKHR(
+	res = vkAcquireNextImageKHR(
 		this->logicalDevice,
 		this->swapchain,
 		std::numeric_limits<uint64_t>::max(),

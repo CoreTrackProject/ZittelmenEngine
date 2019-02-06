@@ -21,7 +21,6 @@ void ZittelmenEngine::renderFrame()
 	if (this->isInitialized) {
 		this->m_vulkanBase->renderFrame();
 	}
-
 }
 
 bool ZittelmenEngine::getInitializedStatus() {
@@ -30,15 +29,18 @@ bool ZittelmenEngine::getInitializedStatus() {
 
 void ZittelmenEngine::initialize()
 {
-	this->m_vulkanBase->initialize();
-	this->isInitialized = true;
-
+	if (!this->isInitialized) {
+		this->m_vulkanBase->initialize();
+		this->isInitialized = true;
+	}
 }
 
 void ZittelmenEngine::destroy()
 {
-	this->isInitialized = false;
-	this->m_vulkanBase->destroy();
+	if (this->isInitialized) {
+		this->isInitialized = false;
+		this->m_vulkanBase->destroy();
+	}
 }
 
 void ZittelmenEngine::resize(uint32_t width, uint32_t height)
