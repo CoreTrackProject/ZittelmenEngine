@@ -21,12 +21,12 @@
 /*
 	Top class from where the whole Vulkan api get controlled
 */
-class VulkanBase
+class VulkanController
 {
 
 public:
-	VulkanBase();
-	~VulkanBase();
+	VulkanController();
+	~VulkanController();
 
 	void setTargetRenderSurface(QWidget *targetWindow);
 	void resizeTargetRenderSurface(uint32_t width, uint32_t height);

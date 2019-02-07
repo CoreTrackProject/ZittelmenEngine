@@ -1,28 +1,28 @@
-#include "VulkanBase.h"
+#include "VulkanController.h"
 
-VulkanBase::VulkanBase()
+VulkanController::VulkanController()
 {
 
 }
 
-VulkanBase::~VulkanBase()
+VulkanController::~VulkanController()
 {
 	this->destroy();
 }
 
-void VulkanBase::setTargetRenderSurface(QWidget *targetWindow)
+void VulkanController::setTargetRenderSurface(QWidget *targetWindow)
 {
 	this->targetRenderWindow = targetWindow;
 }
 
-void VulkanBase::resizeTargetRenderSurface(uint32_t width, uint32_t height)
+void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height)
 {
 	this->destroy();
 	this->initialize();
 
 }
 
-void VulkanBase::initialize()
+void VulkanController::initialize()
 {
 	this->enableValidation = true;
 
@@ -127,7 +127,7 @@ void VulkanBase::initialize()
 
 }
 
-void VulkanBase::destroy()
+void VulkanController::destroy()
 {
 	this->runtime.reset();
 	this->command.reset();
@@ -145,7 +145,7 @@ void VulkanBase::destroy()
 	this->instance.reset();
 }
 
-void VulkanBase::renderFrame()
+void VulkanController::renderFrame()
 {
 	this->runtime->renderFrame();
 }

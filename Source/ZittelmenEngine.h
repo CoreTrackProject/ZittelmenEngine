@@ -4,8 +4,7 @@
 #include <QWidget>
 #include <QTimer>
 
-#include "Vulkan/VulkanBase.h"
-#include "MemoryLeakTest.h"
+#include "Vulkan/VulkanController.h"
 
 class ZittelmenEngine
 {
@@ -25,8 +24,7 @@ public:
 	void resize(uint32_t width, uint32_t height);
 
 private:
-	std::unique_ptr<VulkanBase> m_vulkanBase = nullptr;
-	//QWidget *targetRenderSurface = nullptr;
+	std::unique_ptr<VulkanController> vulkanController = nullptr;
 	VulkanWindow *m_vulkanWindow = nullptr;
 	bool isInitialized;
 };
