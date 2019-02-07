@@ -6,6 +6,7 @@
 #include <QDebug>
 
 #include "VulkanSwapchain.h"
+#include "VulkanVertex.hpp"
 
 class VulkanGraphicsPipeline
 {

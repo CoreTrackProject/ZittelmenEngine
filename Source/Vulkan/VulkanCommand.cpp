@@ -1,8 +1,15 @@
 #include "VulkanCommand.h"
 
 
-VulkanCommand::VulkanCommand(VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline)
-	: logicalDevice(logicalDevice), deviceInfo(deviceInfo), frameBufferCollection(frameBufferCollection), renderpass(renderpass), swapchainExtent(swapchainExtent), graphicsPipeline(graphicsPipeline)
+VulkanCommand::VulkanCommand(VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkBuffer &vertexBuffer, uint32_t vertexCount) :
+	logicalDevice(logicalDevice),
+	deviceInfo(deviceInfo),
+	frameBufferCollection(frameBufferCollection),
+	renderpass(renderpass),
+	swapchainExtent(swapchainExtent),
+	graphicsPipeline(graphicsPipeline),
+	vertexBuffer(vertexBuffer),
+	vertexCount(vertexCount)
 {
 
 	this->init_commandPool();
@@ -69,7 +76,17 @@ void VulkanCommand::init_commandBuffer()
 		vkCmdBeginRenderPass(this->commandBufferCollection[idx], &renderPassInfo, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 
 		vkCmdBindPipeline(this->commandBufferCollection[idx], VK_PIPELINE_BIND_POINT_GRAPHICS, this->graphicsPipeline);
-		vkCmdDraw(this->commandBufferCollection[idx], 3, 1, 0, 0);
+		
+
+		VkBuffer vertexBuffers[] = { this->vertexBuffer };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(this->commandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
+
+		// Param with value 3 is the Vertex count
+		// TODO has to be replaced
+		vkCmdDraw(this->commandBufferCollection[idx], vertexCount, 1, 0, 0);
+
+
 		vkCmdEndRenderPass(this->commandBufferCollection[idx]);
 
 		//res = vkEndCommandBuffer(this->commandBufferCollection[idx]);

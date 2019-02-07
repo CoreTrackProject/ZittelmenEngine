@@ -7,7 +7,6 @@ VulkanBase::VulkanBase()
 
 VulkanBase::~VulkanBase()
 {
-
 	this->destroy();
 }
 
@@ -88,6 +87,16 @@ void VulkanBase::initialize()
 			this->swapchain->getImageCollection()
 		));
 	}
+
+	// Vulkan Factory
+	{
+		this->factory.reset(
+			new VulkanFactory(
+				this->vulkanDevice->getPhysicalDevice(),
+				this->vulkanDevice->getLogicalDevice()
+			));
+		this->factory->initVertexBuffer(this->vertex.getVertices());
+	}
 	
 	// Vulkan Command
 	{
@@ -99,10 +108,12 @@ void VulkanBase::initialize()
 			this->graphicsPipeline->getFramebufferCollection(),
 			this->graphicsPipeline->getRenderPass(),
 			this->swapchain->getSwapchainExtent2D(),
-			this->graphicsPipeline->getGraphicsPipeline()
+			this->graphicsPipeline->getGraphicsPipeline(),
+			this->factory->getVertexBuffer(),
+			static_cast<uint32_t>(this->vertex.getVertices().size())
 		));
 	}
-	
+
 	// Vulkan Runtime
 	{
 		this->runtime.reset(new VulkanRuntime(
@@ -118,9 +129,9 @@ void VulkanBase::initialize()
 
 void VulkanBase::destroy()
 {
-
 	this->runtime.reset();
 	this->command.reset();
+	this->factory.reset();
 	this->graphicsPipeline.reset();
 	this->shader.reset();
 	this->swapchain.reset();
@@ -138,4 +149,3 @@ void VulkanBase::renderFrame()
 {
 	this->runtime->renderFrame();
 }
-

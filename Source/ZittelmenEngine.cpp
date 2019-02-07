@@ -16,7 +16,7 @@ void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
 	this->m_vulkanBase->setTargetRenderSurface(targetRenderSurface);
 }
 
-void ZittelmenEngine::renderFrame()
+void ZittelmenEngine::renderFrame() 
 {
 	if (this->isInitialized) {
 		this->m_vulkanBase->renderFrame();

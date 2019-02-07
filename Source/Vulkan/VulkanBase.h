@@ -15,6 +15,9 @@
 #include "VulkanGraphicsPipeline.h"
 #include "VulkanCommand.h"
 #include "VulkanRuntime.h"
+#include "VulkanFactory.h"
+
+
 /*
 	Top class from where the whole Vulkan api get controlled
 */
@@ -48,5 +51,9 @@ private:
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 
+
+	std::unique_ptr<VulkanFactory> factory				     = nullptr;
+
+	VulkanVertex vertex;
 
 };

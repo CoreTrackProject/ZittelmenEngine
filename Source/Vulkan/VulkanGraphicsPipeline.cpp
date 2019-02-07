@@ -8,12 +8,6 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShader
 	swapchainImageFormat(swapchainImageFormat), 
 	swapchainImageCollection(swapchainImageCollection)
 {
-	/*this->vertexShaderModule   = vertexShaderModule;
-	this->fragmentShaderModule = fragmentShaderModule;
-	this->swapchainExtent2D    = swapchainExtent;
-	this->logicalDevice		   = logicalDevice;
-	this->swapchainImageFormat = swapchainImageFormat;
-	this->swapchainImageCollection = swapchainImageCollection;*/
 
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
@@ -47,7 +41,6 @@ VkPipeline &VulkanGraphicsPipeline::getGraphicsPipeline()
 	return this->graphicsPipeline;
 }
 
-
 void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 {
 	// Configure the parts for the Graphics pipeline
@@ -67,12 +60,20 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragShaderStageInfo };
 
+
+
+	
+	// Vertex data format from VulkanVertex;
+	auto bindingDesc = VulkanVertex::getBindingDescription();
+	auto attribDesc  = VulkanVertex::getAttributeDescriptions();
+
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
-	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+	vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputInfo.vertexBindingDescriptionCount   = 1;
+	vertexInputInfo.pVertexBindingDescriptions      = &bindingDesc; // Optional
+	vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attribDesc.size());
+	vertexInputInfo.pVertexAttributeDescriptions    = attribDesc.data(); // Optional
+
 
 
 

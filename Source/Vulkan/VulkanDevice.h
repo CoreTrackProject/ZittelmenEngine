@@ -44,6 +44,8 @@ private:
 	void destroy_vulkanDevice();
 	void init_logicalDevice(VkPhysicalDevice &logicalDevice);
 	void init_deviceQueue(VkPhysicalDevice &logicalDevice);
+
+
 	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag);
 	bool isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName);
 	bool isSwapchainSupported(VkPhysicalDevice &logicalDevice);
