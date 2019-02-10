@@ -55,5 +55,5 @@ private:
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 
 	VulkanVertex vertex;
-
+	
 };

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <map>
 #include <vector>
-#include <vulkan/vulkan.h>
 
+#include <vulkan/vulkan.h>
 #include "VulkanVertex.hpp"
 
 /*
@@ -15,17 +16,12 @@ public:
 	VulkanFactory(VkPhysicalDevice &physicalDev, VkDevice &logicalDev);
 	~VulkanFactory();
 
-	void initVertexBuffer(std::vector<Vertex> vertexCollection);
+	VkBuffer &getVertexBufferGPUOnly(std::vector<Vertex> &vertexCollection);
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-
-	VkBuffer &getVertexBuffer();
-
+	
 private:
 	VkPhysicalDevice &physicalDev;
 	VkDevice &logicalDev;
-
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-
+	std::vector<std::tuple<VkBuffer, VkDeviceMemory>> vulkanBufferCollectionToTrack;
 	bool isInitialized;
 };

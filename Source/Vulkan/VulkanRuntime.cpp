@@ -23,7 +23,7 @@ void VulkanRuntime::renderFrame()
 	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
 
-		// Restart renderer
+		// TODO: Restart renderer
 
 		return;
 	}

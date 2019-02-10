@@ -170,6 +170,7 @@ void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 {
 	DeviceInfo &devInfo = this->getPhysicalDeviceInfo(logicalDevice);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.graphics, 0, &this->graphicsQueue);
+	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
 }
 
 
@@ -211,4 +212,9 @@ DeviceInfo &VulkanDevice::getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice
 VkQueue &VulkanDevice::getGraphicsQueue()
 {
 	return this->graphicsQueue;
+}
+
+VkQueue &VulkanDevice::getTransferQueue()
+{
+	return this->transferQueue;
 }

@@ -95,12 +95,21 @@ void VulkanController::initialize()
 				this->vulkanDevice->getPhysicalDevice(),
 				this->vulkanDevice->getLogicalDevice()
 			));
-		this->factory->initVertexBuffer(this->vertex.getVertices());
+
 	}
+
+
+	// Staging buffer notes:
+	// Vertexbuffer is only in gpu
+	// Stagingbuffer is created which is accessible from gpu and cpu
+	// Vertex data is first stored in staging buffer
+	// Staging buffer gets uploaded to vertex buffer in gpu with a vulkan command (vkCmd...BlaBlaBla....)
 	
+
 	// Vulkan Command
 	{
 		this->command.reset(new VulkanCommand(
+			this->vulkanDevice->getPhysicalDevice(),
 			this->vulkanDevice->getLogicalDevice(),
 			this->vulkanDevice->getPhysicalDeviceInfo(
 				this->vulkanDevice->getPhysicalDevice()
@@ -109,9 +118,16 @@ void VulkanController::initialize()
 			this->graphicsPipeline->getRenderPass(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->graphicsPipeline->getGraphicsPipeline(),
-			this->factory->getVertexBuffer(),
-			static_cast<uint32_t>(this->vertex.getVertices().size())
+			this->factory->getVertexBufferGPUOnly( // TODO: remove this and add separate method
+				this->vertex.getVertices()
+			),
+			static_cast<uint32_t>(this->vertex.getVertices().size()),
+			this->vulkanDevice->getTransferQueue()
 		));
+
+		// TODO: create function for uploading vertex data (with buffers or directly)
+
+		//this->command->uploadBuffer(this->factory->getVertexBufferGPUOnly(),);
 	}
 
 	// Vulkan Runtime
@@ -119,7 +135,7 @@ void VulkanController::initialize()
 		this->runtime.reset(new VulkanRuntime(
 			this->vulkanDevice->getLogicalDevice(),
 			this->swapchain->getSwapchain(),
-			this->command->getCommandBufferCollection(),
+			this->command->getCommandBufferCollection(), // TODO: rename this to getDrawCommandCollection(Vertex buffer params)
 			this->vulkanDevice->getGraphicsQueue(),
 			this->swapchain->getPresentQueue()
 		));

@@ -36,7 +36,9 @@ public:
 	VkDevice &getLogicalDevice();
 	VkPhysicalDevice &getPhysicalDevice();
 	DeviceInfo &getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
+	
 	VkQueue &getGraphicsQueue();
+	VkQueue &getTransferQueue();
 
 
 private:
@@ -55,7 +57,9 @@ private:
 	uint32_t physicalDevCount = 0;
 	std::unique_ptr<std::map<VkPhysicalDevice, DeviceInfo>> physicalDevCollection = nullptr;
 	VkInstance &instance;
-	VkDevice logicalDevice = VK_NULL_HANDLE;
 	
+	VkDevice logicalDevice = VK_NULL_HANDLE;
+
 	VkQueue graphicsQueue = VK_NULL_HANDLE;
+	VkQueue transferQueue = VK_NULL_HANDLE;
 };

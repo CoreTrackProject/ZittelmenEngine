@@ -8,46 +8,54 @@ VulkanFactory::VulkanFactory(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 }
 
 VulkanFactory::~VulkanFactory() {
-	
-	if (this->isInitialized) {
-		vkFreeMemory(this->logicalDev, this->vertexBufferMemory, nullptr);
-		vkDestroyBuffer(logicalDev, this->vertexBuffer, nullptr);
+	if (this->vulkanBufferCollectionToTrack.size() > 0) {
+		for (std::tuple<VkBuffer, VkDeviceMemory> buffer : this->vulkanBufferCollectionToTrack) {
+			vkFreeMemory(this->logicalDev, std::get<1>(buffer), nullptr);
+			vkDestroyBuffer(this->logicalDev, std::get<0>(buffer), nullptr);
+		}
 	}
-
 }
 
-void VulkanFactory::initVertexBuffer(std::vector<Vertex> vertexCollection) {
-	
+VkBuffer &VulkanFactory::getVertexBufferGPUOnly(std::vector<Vertex> &vertexCollection)
+{
+	VkBuffer vertexBuffer;
+	VkDeviceMemory vertexBufferMemory;
+
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType	   = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size		   = sizeof(vertexCollection[0]) * vertexCollection.size();
-	bufferInfo.usage	   = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.usage	   = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(this->logicalDev, &bufferInfo, nullptr, &this->vertexBuffer) != VK_SUCCESS) {
+	VkResult res = vkCreateBuffer(this->logicalDev, &bufferInfo, nullptr, &vertexBuffer);
+	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create Vertex buffer");
 	}
 
+	// Buffer memory allocation begins
 	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(this->logicalDev, this->vertexBuffer, &memRequirements);
+	vkGetBufferMemoryRequirements(this->logicalDev, vertexBuffer, &memRequirements);
 
 	VkMemoryAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize  = memRequirements.size;
+	allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	if (vkAllocateMemory(this->logicalDev, &allocInfo, nullptr, &vertexBufferMemory) != VK_SUCCESS) {
-		throw std::runtime_error("failed to allocate vertex buffer memory!");
+	res = vkAllocateMemory(this->logicalDev, &allocInfo, nullptr, &vertexBufferMemory);
+	if (res != VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate vertex buffer memory.");
 	}
 
-	vkBindBufferMemory(this->logicalDev, this->vertexBuffer, vertexBufferMemory, 0);
+	res = vkBindBufferMemory(this->logicalDev, vertexBuffer, vertexBufferMemory, 0);
+	if (res != VK_SUCCESS) {
+		throw std::runtime_error("Failed to bind vertex memory buffer");
+	}
 
-	void* data;
-	vkMapMemory(this->logicalDev, vertexBufferMemory, 0, bufferInfo.size, 0, &data);
-	memcpy(data, vertexCollection.data(), static_cast<size_t>(bufferInfo.size));
-	vkUnmapMemory(this->logicalDev, vertexBufferMemory);
+	this->vulkanBufferCollectionToTrack.push_back(
+		std::make_tuple(vertexBuffer, vertexBufferMemory)
+	);
 
-	this->isInitialized = true;
+	return vertexBuffer;
 }
 
 uint32_t VulkanFactory::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -61,9 +69,4 @@ uint32_t VulkanFactory::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
 	}
 
 	throw std::runtime_error("failed to find suitable memory type!");
-}
-
-VkBuffer &VulkanFactory::getVertexBuffer()
-{
-	return this->vertexBuffer;
 }
