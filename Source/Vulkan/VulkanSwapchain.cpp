@@ -8,13 +8,6 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevi
 	logicalDevice(logicalDevice),
 	deviceInfo(deviceInfo)
 {
-	//this->targetwidth   = targetwidth;
-	//this->targetheight  = targetheight;
-	//this->surface		= surface;
-	//this->device        = device;
-	//this->logicalDevice = logicalDevice;
-	//this->deviceInfo    = deviceInfo;
-
 	this->init_Swapchain();
 	this->init_Imageviews();
 }

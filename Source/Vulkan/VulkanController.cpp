@@ -58,11 +58,9 @@ void VulkanController::initialize()
 		this->swapchain.reset(new VulkanSwapchain(
 			this->vulkanDevice->getPhysicalDevice(),
 			this->vulkanDevice->getLogicalDevice(),
-
 			this->vulkanDevice->getPhysicalDeviceInfo(
 				this->vulkanDevice->getPhysicalDevice()
 			),
-
 			this->window->getSurface(),
 			this->targetRenderWindow->size().width(),
 			this->targetRenderWindow->size().height()
@@ -90,11 +88,11 @@ void VulkanController::initialize()
 
 	// Vulkan Factory
 	{
-		this->factory.reset(
+		/*this->factory.reset(
 			new VulkanFactory(
 				this->vulkanDevice->getPhysicalDevice(),
 				this->vulkanDevice->getLogicalDevice()
-			));
+			));*/
 
 	}
 
@@ -118,16 +116,12 @@ void VulkanController::initialize()
 			this->graphicsPipeline->getRenderPass(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->graphicsPipeline->getGraphicsPipeline(),
-			this->factory->getVertexBufferGPUOnly( // TODO: remove this and add separate method
-				this->vertex.getVertices()
-			),
-			static_cast<uint32_t>(this->vertex.getVertices().size()),
 			this->vulkanDevice->getTransferQueue()
 		));
 
 		// TODO: create function for uploading vertex data (with buffers or directly)
-
-		//this->command->uploadBuffer(this->factory->getVertexBufferGPUOnly(),);
+		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
+		this->command->setVertexData(this->vertex.getVertices()); 
 	}
 
 	// Vulkan Runtime
@@ -135,7 +129,7 @@ void VulkanController::initialize()
 		this->runtime.reset(new VulkanRuntime(
 			this->vulkanDevice->getLogicalDevice(),
 			this->swapchain->getSwapchain(),
-			this->command->getCommandBufferCollection(), // TODO: rename this to getDrawCommandCollection(Vertex buffer params)
+			this->command->getDrawCommandBufferCollection(), // TODO: rename this to getDrawCommandCollection(Vertex buffer params)
 			this->vulkanDevice->getGraphicsQueue(),
 			this->swapchain->getPresentQueue()
 		));
@@ -147,7 +141,7 @@ void VulkanController::destroy()
 {
 	this->runtime.reset();
 	this->command.reset();
-	this->factory.reset();
+	//this->factory.reset();
 	this->graphicsPipeline.reset();
 	this->shader.reset();
 	this->swapchain.reset();
