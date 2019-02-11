@@ -121,7 +121,7 @@ void VulkanController::initialize()
 
 		// TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-		this->command->setVertexData(this->vertex.getVertices()); 
+		this->command->uploadVertexData(this->vertex.getVertices()); 
 	}
 
 	// Vulkan Runtime

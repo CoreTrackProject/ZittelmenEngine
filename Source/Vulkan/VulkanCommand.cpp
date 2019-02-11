@@ -12,7 +12,6 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 	transferQueue(transferQueue)
 {
 	this->init_commandPool();
-	//this->init_drawCommand();
 }
 
 VulkanCommand::~VulkanCommand() {
@@ -29,9 +28,8 @@ std::vector<VkCommandBuffer>& VulkanCommand::getDrawCommandBufferCollection()
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::setVertexData(std::vector<Vertex> &vertexData)
+void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
 {
-
 	this->vertexCount = vertexData.size();
 	// ----------------------------------------------------------
 	
@@ -135,7 +133,7 @@ void VulkanCommand::setVertexData(std::vector<Vertex> &vertexData)
 	commandBufferBeginInfo.pNext			= nullptr;
 	commandBufferBeginInfo.pInheritanceInfo = nullptr; // Pointer to primary commandbuffer
 	
-	// Record Commands
+	// Record Commands to upload the vertex data to the GPU
 	{
 		res = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
@@ -236,10 +234,10 @@ void VulkanCommand::init_drawCommand()
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
 
-
+		// this->vertexCount was not set so it had (maximum number) which led to a device lost error
 		vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
-		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
 
+		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
 
 		res = vkEndCommandBuffer(this->drawCommandBufferCollection[idx]);
 		if (res != VK_SUCCESS) {

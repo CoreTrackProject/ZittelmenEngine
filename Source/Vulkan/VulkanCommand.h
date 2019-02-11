@@ -13,7 +13,7 @@ public:
 
 
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
-	void setVertexData(std::vector<Vertex> &vertexData);
+	void uploadVertexData(std::vector<Vertex> &vertexData);
 
 
 private:
@@ -30,7 +30,6 @@ private:
 	VkPipeline &graphicsPipeline;
 	std::vector<VkFramebuffer> &frameBufferCollection;
 	
-
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 
@@ -40,5 +39,4 @@ private:
 	VkCommandPool commandPool = VK_NULL_HANDLE;
 	std::vector<VkCommandBuffer> drawCommandBufferCollection;
 	
-
 };
