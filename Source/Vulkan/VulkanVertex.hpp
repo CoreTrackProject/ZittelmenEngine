@@ -19,7 +19,7 @@ public:
 
 
 
-	std::vector<Vertex> getVertices() {
+	std::vector<Vertex> getTriangleVertexCollection() {
 		std::vector<Vertex> vertices = {
 			{
 				{0.0f, -0.5f}, {0.0f, 0.0f, 1.0f}
@@ -34,7 +34,30 @@ public:
 		return vertices;
 	};
 
+	std::vector<Vertex> getQuadVertexCollection() {
+		std::vector<Vertex> vertices = {
+			{
+				{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}
+			},
+			{
+				{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}
+			},
+			{
+				{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}
+			},
+			{
+				{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}
+			}
+		};
+		return vertices;
+	};
 
+	std::vector<uint16_t> getQuadVertexIndexCollection() {
+		std::vector<uint16_t> indices = {
+			0, 1, 2, 2, 3, 0
+		};
+		return indices;
+	};
 
 	static VkVertexInputBindingDescription getBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription = {};

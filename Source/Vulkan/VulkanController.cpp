@@ -19,7 +19,6 @@ void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height
 {
 	this->destroy();
 	this->initialize();
-
 }
 
 void VulkanController::initialize()
@@ -121,7 +120,8 @@ void VulkanController::initialize()
 
 		// TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-		this->command->uploadVertexData(this->vertex.getVertices()); 
+		this->command->uploadVertexData(this->vertex.getQuadVertexCollection(), this->vertex.getQuadVertexIndexCollection());
+
 	}
 
 	// Vulkan Runtime

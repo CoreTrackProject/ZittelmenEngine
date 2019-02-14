@@ -13,7 +13,7 @@ public:
 
 
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
-	void uploadVertexData(std::vector<Vertex> &vertexData);
+	void uploadVertexData(std::vector<Vertex> &vertexData, std::vector<uint16_t> &indexCollection);
 
 
 private:
@@ -33,7 +33,12 @@ private:
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;
 
+	VkBuffer indexBuffer;
+	VkDeviceMemory indexBufferMemory;
+
 	uint32_t vertexCount;
+	uint16_t indexCount;
+
 	VkQueue &transferQueue;
 
 	VkCommandPool commandPool = VK_NULL_HANDLE;

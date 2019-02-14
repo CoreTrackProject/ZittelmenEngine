@@ -16,60 +16,74 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 
 VulkanCommand::~VulkanCommand() {
 
-	vkFreeMemory(this->logicalDevice,    this->vertexBufferMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice, this->vertexBuffer, nullptr);
-	vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
+	vkFreeMemory(this->logicalDevice,		  this->indexBufferMemory, nullptr);
+	vkDestroyBuffer(this->logicalDevice,	  this->indexBuffer, nullptr);
 
+	vkFreeMemory(this->logicalDevice,		  this->vertexBufferMemory, nullptr);
+	vkDestroyBuffer(this->logicalDevice,	  this->vertexBuffer, nullptr);
+
+	vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
 }
 
-std::vector<VkCommandBuffer>& VulkanCommand::getDrawCommandBufferCollection()
+std::vector<VkCommandBuffer> &VulkanCommand::getDrawCommandBufferCollection()
 {
 	return this->drawCommandBufferCollection;
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
+void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vector<uint16_t> &indexCollection)
 {
+
 	this->vertexCount = vertexData.size();
+	this->indexCount  = indexCollection.size();
+
 	// ----------------------------------------------------------
 	
 	// Create staging buffer here
 	// Create vertex buffer
 	// Upload vertex buffer
 
-	VkDeviceSize bufferSize = sizeof(vertexData[0]) * vertexData.size();
+	VkDeviceSize vertexBufferSize = sizeof(vertexData[0]) * vertexData.size();
+	VkBuffer vertexStagingBuffer;
+	VkDeviceMemory vertexStagingBufferMemory;
 
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingBufferMemory;
+
+	VkDeviceSize indexBufferSize = sizeof(indexCollection[0]) * indexCollection.size();
+	VkBuffer indexStagingBuffer;
+	VkDeviceMemory indexStagingBufferMemory;
+	
+
 	VkResult res;
+
+	// TODO: Export this code to VulkanFactory
 
 	// Staging buffer creation logic should be more generic and in the vulkan factory class
 	{
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size        = bufferSize;
+		bufferInfo.size        = vertexBufferSize;
 		bufferInfo.usage       = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &stagingBuffer);
+		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexStagingBuffer);
 		if (res != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create staging buffer!");
 		}
 
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(this->logicalDevice, stagingBuffer, &memRequirements);
+		vkGetBufferMemoryRequirements(this->logicalDevice, vertexStagingBuffer, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize  = memRequirements.size;
 		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &stagingBufferMemory);
+		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexStagingBufferMemory);
 		if (res != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocated staging buffer memory");
 		}
 
-		res = vkBindBufferMemory(this->logicalDevice, stagingBuffer, stagingBufferMemory, 0);
+		res = vkBindBufferMemory(this->logicalDevice, vertexStagingBuffer, vertexStagingBufferMemory, 0);
 		if (res != VK_SUCCESS) {
 			throw std::runtime_error("Failed to bind staging buffer memory");
 		}
@@ -78,16 +92,16 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
 	// Copy Vertex data to staging buffer
 	{
 		void* data;
-		vkMapMemory(this->logicalDevice, stagingBufferMemory, 0, bufferSize, 0, &data);
-		memcpy(data, vertexData.data(), (size_t)bufferSize);
-		vkUnmapMemory(this->logicalDevice, stagingBufferMemory);
+		vkMapMemory(this->logicalDevice, vertexStagingBufferMemory, 0, vertexBufferSize, 0, &data);
+		memcpy(data, vertexData.data(), (size_t)vertexBufferSize);
+		vkUnmapMemory(this->logicalDevice, vertexStagingBufferMemory);
 	}
 
 	// Vertex buffer creation
 	{
 		VkBufferCreateInfo bufferInfo = {};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = bufferSize;
+		bufferInfo.size = vertexBufferSize;
 		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -116,8 +130,85 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
 		}
 	}
 
+
+
+	// Index staging buffer creation
+	{
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = indexBufferSize;
+		bufferInfo.usage = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexStagingBuffer);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create index staging buffer!");
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(this->logicalDevice, indexStagingBuffer, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexStagingBufferMemory);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocated index staging buffer memory");
+		}
+
+		res = vkBindBufferMemory(this->logicalDevice, indexStagingBuffer, indexStagingBufferMemory, 0);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to bind index staging buffer memory");
+		}
+	}
+
+	// Copy Index data to staging buffer
+	{
+		void* data;
+		vkMapMemory(this->logicalDevice, indexStagingBufferMemory, 0, indexBufferSize, 0, &data);
+		memcpy(data, indexCollection.data(), (size_t)indexBufferSize);
+		vkUnmapMemory(this->logicalDevice, indexStagingBufferMemory);
+	}
+
+	// Index buffer creation
+	{
+		VkBufferCreateInfo bufferInfo = {};
+		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+		bufferInfo.size = indexBufferSize;
+		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexBuffer);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create index buffer");
+		}
+
+		// Buffer memory allocation begins
+		VkMemoryRequirements memRequirements;
+		vkGetBufferMemoryRequirements(this->logicalDevice, indexBuffer, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo = {};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexBufferMemory);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to allocate index buffer memory.");
+		}
+
+		res = vkBindBufferMemory(this->logicalDevice, indexBuffer, indexBufferMemory, 0);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to bind index memory buffer");
+		}
+	}
+
+
 	// ----------------------------------------------------------
 
+	// Create new command to upload the index data
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
 	commandBufferAllocateInfo.sType				 = VkStructureType::VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	commandBufferAllocateInfo.pNext				 = nullptr;
@@ -132,14 +223,18 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
 	commandBufferBeginInfo.sType			= VkStructureType::VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	commandBufferBeginInfo.pNext			= nullptr;
 	commandBufferBeginInfo.pInheritanceInfo = nullptr; // Pointer to primary commandbuffer
-	
+
 	// Record Commands to upload the vertex data to the GPU
 	{
 		res = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
-		VkBufferCopy copyRegion = {};
-		copyRegion.size = bufferSize;
-		vkCmdCopyBuffer(commandBuffer, stagingBuffer, this->vertexBuffer, 1, &copyRegion);
+		VkBufferCopy copyRegionVertexBuffer = {};
+		copyRegionVertexBuffer.size = vertexBufferSize;
+		vkCmdCopyBuffer(commandBuffer, vertexStagingBuffer, this->vertexBuffer, 1, &copyRegionVertexBuffer);
+
+		VkBufferCopy copyRegionIndexBuffer = {};
+		copyRegionIndexBuffer.size  = indexBufferSize;
+		vkCmdCopyBuffer(commandBuffer, indexStagingBuffer, this->indexBuffer, 1,  &copyRegionIndexBuffer);
 
 		res = vkEndCommandBuffer(commandBuffer);
 	}
@@ -147,28 +242,28 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData)
 	// Submit Commands
 	{
 		VkSubmitInfo submitInfo = {};
-		submitInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.pNext = nullptr;
-		submitInfo.waitSemaphoreCount = 0;
-		submitInfo.pWaitSemaphores = nullptr;
-		submitInfo.pWaitDstStageMask = nullptr;
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
+		submitInfo.sType			    = VkStructureType::VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pNext			    = nullptr;
+		submitInfo.waitSemaphoreCount   = 0;
+		submitInfo.pWaitSemaphores      = nullptr;
+		submitInfo.pWaitDstStageMask    = nullptr;
+		submitInfo.commandBufferCount   = 1;
+		submitInfo.pCommandBuffers	    = &commandBuffer;
 		submitInfo.signalSemaphoreCount = 0;
-		submitInfo.pSignalSemaphores = nullptr;
+		submitInfo.pSignalSemaphores	= nullptr;
 
-
-		// TODO: Need Transfer Queue and probably more here
+		// Upload data with the transfer queue
 		res = vkQueueSubmit(this->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
 		res = vkQueueWaitIdle(this->transferQueue);
 	}
 
+
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
 
-	// Destroy staging buffer
-	vkFreeMemory(this->logicalDevice, stagingBufferMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice, stagingBuffer, nullptr);
 
+	// Destroy staging buffer
+	vkFreeMemory(this->logicalDevice, vertexStagingBufferMemory, nullptr);
+	vkDestroyBuffer(this->logicalDevice, vertexStagingBuffer, nullptr);
 
 
 	this->init_drawCommand();
@@ -234,8 +329,14 @@ void VulkanCommand::init_drawCommand()
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
 
+		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
+
+
 		// this->vertexCount was not set so it had (maximum number) which led to a device lost error
-		vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
+		//vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
+		
+		vkCmdDrawIndexed(this->drawCommandBufferCollection[idx], this->indexCount, 1, 0, 0, 0);
+
 
 		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
 
