@@ -205,7 +205,6 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vecto
 		}
 	}
 
-
 	// ----------------------------------------------------------
 
 	// Create new command to upload the index data
