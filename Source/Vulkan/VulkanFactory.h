@@ -19,6 +19,7 @@ public:
 	VkBuffer &getVertexBufferGPUOnly(std::vector<Vertex> &vertexCollection);
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	
+
 private:
 	VkPhysicalDevice &physicalDev;
 	VkDevice &logicalDev;

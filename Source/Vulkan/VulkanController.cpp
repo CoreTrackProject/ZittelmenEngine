@@ -51,7 +51,7 @@ void VulkanController::initialize()
 	{
 		this->window.reset(new VulkanWindow(this->instance->getInstance(), this->targetRenderWindow));
 	}
-	
+
 	// Vulkan Swapchain
 	{
 		this->swapchain.reset(new VulkanSwapchain(
@@ -72,6 +72,11 @@ void VulkanController::initialize()
 			this->vulkanDevice->getLogicalDevice()
 		));
 	}
+
+	// Vulkan Uniform Buffer
+	{
+		this->uniform.reset(new VulkanUniform(this->vulkanDevice->getLogicalDevice()));
+	}
 	
 	// Vulkan Graphicspipeline
 	{
@@ -81,7 +86,8 @@ void VulkanController::initialize()
 			this->shader->getFragmentShaderModule(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->swapchain->getSwapchainImageFormat(),
-			this->swapchain->getImageCollection()
+			this->swapchain->getImageCollection(),
+			this->uniform->getDescriptorSetLayout()
 		));
 	}
 
@@ -142,6 +148,7 @@ void VulkanController::destroy()
 	this->runtime.reset();
 	this->command.reset();
 	//this->factory.reset();
+	this->uniform.reset();
 	this->graphicsPipeline.reset();
 	this->shader.reset();
 	this->swapchain.reset();

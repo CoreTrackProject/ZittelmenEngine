@@ -3,6 +3,8 @@
 #include <vulkan/vulkan.h>
 #include <glm/glm.hpp>
 
+#include <stdexcept>
+
 // https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer
 
 struct UniformBufferObject {
@@ -14,11 +16,21 @@ struct UniformBufferObject {
 class VulkanUniform {
 
 public:
-	VulkanUniform();
+	VulkanUniform(VkDevice &logicalDevice);
 	~VulkanUniform();
+
+	VkDescriptorSetLayout &getDescriptorSetLayout();
 
 private:
 	void initUniformBuffer();
 	void initDescriptorPool();
+
+	void initDescriptorSetLayout();
+	void destroyDescriptorSetLayout();
+
+
+private:
+	VkDevice &logicalDevice;
+	VkDescriptorSetLayout descriptorSetLayout;
 
 };

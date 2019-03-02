@@ -1,12 +1,13 @@
 #include "VulkanGraphicsPipeline.h"
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection) :
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection, VkDescriptorSetLayout &descriptorSetLayout) :
 	logicalDevice(logicalDevice),
 	vertexShaderModule(vertexShaderModule),
 	fragmentShaderModule(fragmentShaderModule),
 	swapchainExtent2D(swapchainExtent), 
 	swapchainImageFormat(swapchainImageFormat), 
-	swapchainImageCollection(swapchainImageCollection)
+	swapchainImageCollection(swapchainImageCollection),
+	descriptorSetLayout(descriptorSetLayout)
 {
 
 	this->init_renderpass();
@@ -174,13 +175,15 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineLayoutInfo.setLayoutCount = 0; // Optional
-	pipelineLayoutInfo.pSetLayouts = nullptr; // Optional
+	pipelineLayoutInfo.setLayoutCount = 1; // Used for Uniform Buffers
+	pipelineLayoutInfo.pSetLayouts = &this->descriptorSetLayout; // Used for Uniform Buffers
 	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 	
 	VkResult res = vkCreatePipelineLayout(this->logicalDevice, &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
-		
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create the pipeline layout!");
+	}
 
 
 	// ====================================
@@ -208,6 +211,9 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.basePipelineIndex = -1; // Optional
 
 	res = vkCreateGraphicsPipelines(this->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create the graphics pipeline");
+	}
 }
 
 void VulkanGraphicsPipeline::init_renderpass()

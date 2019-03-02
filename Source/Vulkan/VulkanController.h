@@ -16,7 +16,7 @@
 #include "VulkanCommand.h"
 #include "VulkanRuntime.h"
 #include "VulkanFactory.h"
-
+#include "VulkanUniform.h"
 
 /*
 	Top class from where the whole Vulkan api get controlled
@@ -53,6 +53,7 @@ private:
 
 
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
+	std::unique_ptr<VulkanUniform> uniform					 = nullptr;
 
 	VulkanVertex vertex;
 	
