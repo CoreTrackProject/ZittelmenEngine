@@ -1,5 +1,38 @@
 #include "VulkanBuffer.h"
 
+VulkanBuffer* VulkanBuffer::newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+{
+	return new VulkanBuffer(
+		phyDevice,
+		logicalDevice,
+		sizeBytes,
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+	);
+}
+
+VulkanBuffer* VulkanBuffer::newVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+{
+	return new VulkanBuffer(
+		phyDevice,
+		logicalDevice,
+		sizeBytes,
+		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	);
+}
+
+VulkanBuffer* VulkanBuffer::newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+{
+	return new VulkanBuffer(
+		phyDevice,
+		logicalDevice,
+		sizeBytes,
+		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	);
+}
+
 VulkanBuffer::VulkanBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties) 
 	: phyDevice(phyDevice), logicalDevice(logicalDevice)
 {
@@ -38,8 +71,6 @@ VkDeviceSize &VulkanBuffer::getSize() {
 	}
 }
 
-	
-	
 void VulkanBuffer::allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties) {
 
 	VkResult res;
