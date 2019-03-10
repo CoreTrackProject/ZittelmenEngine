@@ -27,8 +27,8 @@ std::vector<VkCommandBuffer> &VulkanCommand::getDrawCommandBufferCollection()
 void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection)
 {
 
-	this->vertexCount = vertexData.size();
-	this->indexCount  = indexCollection.size();
+	this->vertexCount = static_cast<uint32_t>(vertexData.size());
+	this->indexCount  = static_cast<uint32_t>(indexCollection.size());
 
 	// ----------------------------------------------------------
 	
@@ -290,8 +290,8 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 	// TODO: improve this part
 	{
-		this->vertexCount = vertexData.size();
-		this->indexCount = indexCollection.size();
+		this->vertexCount = static_cast<uint32_t>(vertexData.size());
+		this->indexCount  = static_cast<uint32_t>(indexCollection.size());
 	}
 	
 	this->init_drawCommand();

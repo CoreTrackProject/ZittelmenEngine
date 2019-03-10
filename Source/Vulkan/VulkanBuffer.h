@@ -5,7 +5,9 @@
 
 #include "Vulkan/VulkanVertex.hpp"
 
-// Vulkan Buffer which holds VkBuffer and VkDeviceMemory
+/* 
+*	Vulkan Buffer which holds VkBuffer and VkDeviceMemory 
+*/
 class VulkanBuffer {
 	
 public:

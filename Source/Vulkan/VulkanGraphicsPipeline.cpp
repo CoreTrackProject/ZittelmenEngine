@@ -268,7 +268,7 @@ void VulkanGraphicsPipeline::init_renderpass()
 
 void VulkanGraphicsPipeline::init_framebuffer()
 {
-	uint32_t swapchainImageCount = this->swapchainImageCollection.size();
+	uint32_t swapchainImageCount = static_cast<uint32_t>(this->swapchainImageCollection.size());
 
 	this->swapchainFramebufferCollection.resize(swapchainImageCount);
 

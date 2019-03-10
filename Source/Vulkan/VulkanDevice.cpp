@@ -179,7 +179,7 @@ uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, Vk
 {
 	DeviceInfo &info = this->physicalDevCollection->find(physicalDev)->second;
 
-	for (int i = 0; i < info.queueFamilyCount; i++) {
+	for (uint32_t i = 0; i < info.queueFamilyCount; i++) {
 		if ((info.queueFamilyPropertyCollection[i].queueCount > 0) && (info.queueFamilyPropertyCollection[i].queueFlags & flag)) {
 			return i;
 		}
