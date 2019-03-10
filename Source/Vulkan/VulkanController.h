@@ -40,7 +40,7 @@ private:
 	bool enableValidation = false;
 
 	QWidget *targetRenderWindow = nullptr;
-	 
+	
 	std::unique_ptr<VulkanInstance> instance				 = nullptr;
 	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;
 	std::unique_ptr<VulkanDevice> vulkanDevice				 = nullptr;
@@ -51,10 +51,9 @@ private:
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 
-
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 	std::unique_ptr<VulkanUniform> uniform					 = nullptr;
 
-	VulkanVertex vertex;
+	VulkanVertexData vertex;
 	
 };

@@ -9,6 +9,7 @@
 /*
 	Creates new Buffers and tracks all the memory allocations etc.
 	To be improved
+	Not used at the moment
 */
 class VulkanFactory {
 
@@ -16,7 +17,7 @@ public:
 	VulkanFactory(VkPhysicalDevice &physicalDev, VkDevice &logicalDev);
 	~VulkanFactory();
 
-	VkBuffer &getVertexBufferGPUOnly(std::vector<Vertex> &vertexCollection);
+	VkBuffer &getVertexBufferGPUOnly(std::vector<VulkanVertex> &vertexCollection);
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	
 

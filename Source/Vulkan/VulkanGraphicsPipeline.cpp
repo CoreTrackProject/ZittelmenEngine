@@ -65,8 +65,8 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 	
 	// Vertex data format from VulkanVertex;
-	auto bindingDesc = VulkanVertex::getBindingDescription();
-	auto attribDesc  = VulkanVertex::getAttributeDescriptions();
+	auto bindingDesc = VulkanVertexData::getBindingDescription();
+	auto attribDesc  = VulkanVertexData::getAttributeDescriptions();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

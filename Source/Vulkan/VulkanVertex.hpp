@@ -5,22 +5,22 @@
 #include <vector>
 #include <array>
 
-struct Vertex {
+struct VulkanVertex {
     glm::vec2 pos;
     glm::vec3 color;
 };
 
-class VulkanVertex {
+class VulkanVertexData {
 
 public:
-	VulkanVertex() {};
-	~VulkanVertex() {};
+	VulkanVertexData() {};
+	~VulkanVertexData() {};
 
 
 
 
-	std::vector<Vertex> getTriangleVertexCollection() {
-		std::vector<Vertex> vertices = {
+	std::vector<VulkanVertex> getTriangleVertexCollection() {
+		std::vector<VulkanVertex> vertices = {
 			{
 				{0.0f, -0.5f}, {0.0f, 0.0f, 1.0f}
 			},
@@ -34,8 +34,8 @@ public:
 		return vertices;
 	};
 
-	std::vector<Vertex> getQuadVertexCollection() {
-		std::vector<Vertex> vertices = {
+	std::vector<VulkanVertex> getQuadVertexCollection() {
+		std::vector<VulkanVertex> vertices = {
 			{
 				{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}
 			},
@@ -63,7 +63,7 @@ public:
 		VkVertexInputBindingDescription bindingDescription = {};
 
 		bindingDescription.binding = 0;
-		bindingDescription.stride = sizeof(Vertex);
+		bindingDescription.stride = sizeof(VulkanVertex);
 		bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
 		return bindingDescription;
@@ -75,13 +75,13 @@ public:
 		attributeDescriptions[0].binding  = 0;
 		attributeDescriptions[0].location = 0; // Location in shader
 		attributeDescriptions[0].format   = VK_FORMAT_R32G32_SFLOAT;
-		attributeDescriptions[0].offset   = offsetof(Vertex, pos);
+		attributeDescriptions[0].offset   = offsetof(VulkanVertex, pos);
 
 
 		attributeDescriptions[1].binding  = 0;
 		attributeDescriptions[1].location = 1; // Location in shader
 		attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-		attributeDescriptions[1].offset   = offsetof(Vertex, color);
+		attributeDescriptions[1].offset   = offsetof(VulkanVertex, color);
 
 		return attributeDescriptions;
 	}

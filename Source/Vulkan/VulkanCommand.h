@@ -5,21 +5,23 @@
 #include "VulkanDevice.h"
 #include "Vulkan/VulkanVertex.hpp"
 
+#include "VulkanBuffer.h"
+
 class VulkanCommand {
 
 public:
 	VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkQueue transferQueue);
 	~VulkanCommand();
 
-
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
-	void uploadVertexData(std::vector<Vertex> &vertexData, std::vector<uint16_t> &indexCollection);
+	void uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection);
 
 
 private:
 	void init_commandPool();
 	void init_drawCommand();
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
 
 private:
 	DeviceInfo &deviceInfo;
@@ -30,11 +32,11 @@ private:
 	VkPipeline &graphicsPipeline;
 	std::vector<VkFramebuffer> &frameBufferCollection;
 	
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
+	//VkBuffer vertexBuffer;
+	//VkBuffer indexBuffer;
 
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
+	std::unique_ptr<VulkanBuffer> vertexBuffer;
+	std::unique_ptr<VulkanBuffer> indexBuffer;
 
 	uint32_t vertexCount;
 	uint16_t indexCount;

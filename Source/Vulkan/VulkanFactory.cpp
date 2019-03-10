@@ -16,7 +16,7 @@ VulkanFactory::~VulkanFactory() {
 	}
 }
 
-VkBuffer &VulkanFactory::getVertexBufferGPUOnly(std::vector<Vertex> &vertexCollection)
+VkBuffer &VulkanFactory::getVertexBufferGPUOnly(std::vector<VulkanVertex> &vertexCollection)
 {
 	VkBuffer vertexBuffer;
 	VkDeviceMemory vertexBufferMemory;

@@ -15,13 +15,6 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 }
 
 VulkanCommand::~VulkanCommand() {
-
-	vkFreeMemory(this->logicalDevice,		  this->indexBufferMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice,	  this->indexBuffer, nullptr);
-
-	vkFreeMemory(this->logicalDevice,		  this->vertexBufferMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice,	  this->vertexBuffer, nullptr);
-
 	vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
 }
 
@@ -31,7 +24,7 @@ std::vector<VkCommandBuffer> &VulkanCommand::getDrawCommandBufferCollection()
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vector<uint16_t> &indexCollection)
+void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection)
 {
 
 	this->vertexCount = vertexData.size();
@@ -43,169 +36,201 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vecto
 	// Create vertex buffer
 	// Upload vertex buffer
 
-	VkDeviceSize vertexBufferSize = sizeof(vertexData[0]) * vertexData.size();
-	VkBuffer vertexStagingBuffer;
-	VkDeviceMemory vertexStagingBufferMemory;
-
-
-	VkDeviceSize indexBufferSize = sizeof(indexCollection[0]) * indexCollection.size();
-	VkBuffer indexStagingBuffer;
-	VkDeviceMemory indexStagingBufferMemory;
-	
-
-	VkResult res;
-
-	// TODO: Export this code to VulkanFactory
-
-	// Staging buffer creation logic should be more generic and in the vulkan factory class
+	// Old
 	{
-		VkBufferCreateInfo bufferInfo = {};
-		bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size        = vertexBufferSize;
-		bufferInfo.usage       = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexStagingBuffer);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create staging buffer!");
-		}
+		//VkDeviceSize vertexBufferSize = sizeof(vertexData[0]) * vertexData.size();
+		//VkBuffer vertexStagingBuffer;
+		//VkDeviceMemory vertexStagingBufferMemory;
 
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(this->logicalDevice, vertexStagingBuffer, &memRequirements);
 
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize  = memRequirements.size;
-		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		//VkDeviceSize indexBufferSize = sizeof(indexCollection[0]) * indexCollection.size();
+		//VkBuffer indexStagingBuffer;
+		//VkDeviceMemory indexStagingBufferMemory;
 
-		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexStagingBufferMemory);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocated staging buffer memory");
-		}
-
-		res = vkBindBufferMemory(this->logicalDevice, vertexStagingBuffer, vertexStagingBufferMemory, 0);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to bind staging buffer memory");
-		}
 	}
 
+	VkDeviceSize vertexBufferSize = sizeof(VulkanVertex) * vertexData.size();
+	std::unique_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
+	this->vertexBuffer.reset(VulkanBuffer::newVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize));
+	
 	// Copy Vertex data to staging buffer
 	{
 		void* data;
-		vkMapMemory(this->logicalDevice, vertexStagingBufferMemory, 0, vertexBufferSize, 0, &data);
-		memcpy(data, vertexData.data(), (size_t)vertexBufferSize);
-		vkUnmapMemory(this->logicalDevice, vertexStagingBufferMemory);
+		vkMapMemory(this->logicalDevice, vertexStagingBufferObj->getDeviceMemory(), 0, vertexStagingBufferObj->getSize(), 0, &data);
+		memcpy(data, vertexData.data(), (size_t)vertexStagingBufferObj->getSize());
+		vkUnmapMemory(this->logicalDevice, vertexStagingBufferObj->getDeviceMemory());
 	}
 
-	// Vertex buffer creation
-	{
-		VkBufferCreateInfo bufferInfo = {};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = vertexBufferSize;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexBuffer);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create Vertex buffer");
-		}
-
-		// Buffer memory allocation begins
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(this->logicalDevice, vertexBuffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexBufferMemory);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate vertex buffer memory.");
-		}
-
-		res = vkBindBufferMemory(this->logicalDevice, vertexBuffer, vertexBufferMemory, 0);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to bind vertex memory buffer");
-		}
-	}
-
-
-
-	// Index staging buffer creation
-	{
-		VkBufferCreateInfo bufferInfo = {};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = indexBufferSize;
-		bufferInfo.usage = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexStagingBuffer);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create index staging buffer!");
-		}
-
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(this->logicalDevice, indexStagingBuffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexStagingBufferMemory);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocated index staging buffer memory");
-		}
-
-		res = vkBindBufferMemory(this->logicalDevice, indexStagingBuffer, indexStagingBufferMemory, 0);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to bind index staging buffer memory");
-		}
-	}
-
+	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
+	std::unique_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
+	this->indexBuffer.reset(VulkanBuffer::newIndexBuffer(this->physicalDev,   this->logicalDevice, indexBufferSize));
+	
 	// Copy Index data to staging buffer
 	{
 		void* data;
-		vkMapMemory(this->logicalDevice, indexStagingBufferMemory, 0, indexBufferSize, 0, &data);
-		memcpy(data, indexCollection.data(), (size_t)indexBufferSize);
-		vkUnmapMemory(this->logicalDevice, indexStagingBufferMemory);
+		vkMapMemory(this->logicalDevice, indexStagingBufferObj->getDeviceMemory(), 0, indexStagingBufferObj->getSize(), 0, &data);
+		memcpy(data, indexCollection.data(), (size_t)indexStagingBufferObj->getSize());
+		vkUnmapMemory(this->logicalDevice, indexStagingBufferObj->getDeviceMemory());
 	}
 
-	// Index buffer creation
+	// Old code, just here as a backup
 	{
-		VkBufferCreateInfo bufferInfo = {};
-		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		bufferInfo.size = indexBufferSize;
-		bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		// Staging buffer creation logic should be more generic and in the vulkan factory class
+		{
+			/*VkBufferCreateInfo bufferInfo = {};
+			bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			bufferInfo.size        = vertexBufferSize;
+			bufferInfo.usage       = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexBuffer);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create index buffer");
+			res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexStagingBuffer);
+			if (res != VK_SUCCESS) {
+				throw std::runtime_error("Failed to create staging buffer!");
+			}
+
+			VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(this->logicalDevice, vertexStagingBuffer, &memRequirements);
+
+			VkMemoryAllocateInfo allocInfo = {};
+			allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			allocInfo.allocationSize  = memRequirements.size;
+			allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+			res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexStagingBufferMemory);
+			if (res != VK_SUCCESS) {
+				throw std::runtime_error("Failed to allocated staging buffer memory");
+			}
+
+			res = vkBindBufferMemory(this->logicalDevice, vertexStagingBuffer, vertexStagingBufferMemory, 0);
+			if (res != VK_SUCCESS) {
+				throw std::runtime_error("Failed to bind staging buffer memory");
+			}*/
+
+
+
+
 		}
 
-		// Buffer memory allocation begins
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(this->logicalDevice, indexBuffer, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo = {};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-		res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexBufferMemory);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to allocate index buffer memory.");
+		// Copy Vertex data to staging buffer
+		{
+			/*void* data;
+			vkMapMemory(this->logicalDevice, vertexStagingBufferMemory, 0, vertexBufferSize, 0, &data);
+			memcpy(data, vertexData.data(), (size_t)vertexBufferSize);
+			vkUnmapMemory(this->logicalDevice, vertexStagingBufferMemory);*/
 		}
 
-		res = vkBindBufferMemory(this->logicalDevice, indexBuffer, indexBufferMemory, 0);
-		if (res != VK_SUCCESS) {
-			throw std::runtime_error("Failed to bind index memory buffer");
+		// Vertex buffer creation
+		{
+			//VkBufferCreateInfo bufferInfo = {};
+			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			//bufferInfo.size = vertexBufferSize;
+			//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexBuffer);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to create Vertex buffer");
+			//}
+
+			//// Buffer memory allocation begins
+			//VkMemoryRequirements memRequirements;
+			//vkGetBufferMemoryRequirements(this->logicalDevice, vertexBuffer, &memRequirements);
+
+			//VkMemoryAllocateInfo allocInfo = {};
+			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			//allocInfo.allocationSize = memRequirements.size;
+			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexBufferMemory);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to allocate vertex buffer memory.");
+			//}
+
+			//res = vkBindBufferMemory(this->logicalDevice, vertexBuffer, vertexBufferMemory, 0);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to bind vertex memory buffer");
+			//}
 		}
+
+		// Index staging buffer creation
+		{
+			//VkBufferCreateInfo bufferInfo = {};
+			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			//bufferInfo.size = indexBufferSize;
+			//bufferInfo.usage = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexStagingBuffer);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to create index staging buffer!");
+			//}
+
+			//VkMemoryRequirements memRequirements;
+			//vkGetBufferMemoryRequirements(this->logicalDevice, indexStagingBuffer, &memRequirements);
+
+			//VkMemoryAllocateInfo allocInfo = {};
+			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			//allocInfo.allocationSize = memRequirements.size;
+			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexStagingBufferMemory);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to allocated index staging buffer memory");
+			//}
+
+			//res = vkBindBufferMemory(this->logicalDevice, indexStagingBuffer, indexStagingBufferMemory, 0);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to bind index staging buffer memory");
+			//}
+		}
+
+		// Copy Index data to staging buffer
+		{
+			/*void* data;
+			vkMapMemory(this->logicalDevice, indexStagingBufferMemory, 0, indexBufferSize, 0, &data);
+			memcpy(data, indexCollection.data(), (size_t)indexBufferSize);
+			vkUnmapMemory(this->logicalDevice, indexStagingBufferMemory);*/
+		}
+
+		// Index buffer creation
+		{
+			//VkBufferCreateInfo bufferInfo = {};
+			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+			//bufferInfo.size = indexBufferSize;
+			//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexBuffer);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to create index buffer");
+			//}
+
+			//// Buffer memory allocation begins
+			//VkMemoryRequirements memRequirements;
+			//vkGetBufferMemoryRequirements(this->logicalDevice, indexBuffer, &memRequirements);
+
+			//VkMemoryAllocateInfo allocInfo = {};
+			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			//allocInfo.allocationSize = memRequirements.size;
+			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexBufferMemory);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to allocate index buffer memory.");
+			//}
+
+			//res = vkBindBufferMemory(this->logicalDevice, indexBuffer, indexBufferMemory, 0);
+			//if (res != VK_SUCCESS) {
+			//	throw std::runtime_error("Failed to bind index memory buffer");
+			//}
+		}
+
 	}
 
 	// ----------------------------------------------------------
+
+	VkResult res;
 
 	// Create new command to upload the index data
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
@@ -223,23 +248,24 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vecto
 	commandBufferBeginInfo.pNext			= nullptr;
 	commandBufferBeginInfo.pInheritanceInfo = nullptr; // Pointer to primary commandbuffer
 
-	// Record Commands to upload the vertex data to the GPU
+	// Record Commands to upload the vertex data and the index data to the GPU
 	{
 		res = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
 
 		VkBufferCopy copyRegionVertexBuffer = {};
-		copyRegionVertexBuffer.size = vertexBufferSize;
-		vkCmdCopyBuffer(commandBuffer, vertexStagingBuffer, this->vertexBuffer, 1, &copyRegionVertexBuffer);
+		copyRegionVertexBuffer.size = vertexStagingBufferObj->getSize();
+		vkCmdCopyBuffer(commandBuffer, vertexStagingBufferObj->getBuffer(), this->vertexBuffer->getBuffer(), 1, &copyRegionVertexBuffer);
 
 		VkBufferCopy copyRegionIndexBuffer = {};
-		copyRegionIndexBuffer.size  = indexBufferSize;
-		vkCmdCopyBuffer(commandBuffer, indexStagingBuffer, this->indexBuffer, 1,  &copyRegionIndexBuffer);
+		copyRegionIndexBuffer.size = indexStagingBufferObj->getSize();
+		vkCmdCopyBuffer(commandBuffer, indexStagingBufferObj->getBuffer(),  this->indexBuffer->getBuffer(), 1, &copyRegionIndexBuffer);
 
 		res = vkEndCommandBuffer(commandBuffer);
 	}
 
 	// Submit Commands
 	{
+
 		VkSubmitInfo submitInfo = {};
 		submitInfo.sType			    = VkStructureType::VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.pNext			    = nullptr;
@@ -256,20 +282,23 @@ void VulkanCommand::uploadVertexData(std::vector<Vertex> &vertexData, std::vecto
 		res = vkQueueWaitIdle(this->transferQueue);
 	}
 
-
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
 
-
 	// Destroy staging buffer
-	vkFreeMemory(this->logicalDevice, vertexStagingBufferMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice, vertexStagingBuffer, nullptr);
+	// vkFreeMemory(this->logicalDevice,    vertexStagingBufferMemory, nullptr);
+	// vkDestroyBuffer(this->logicalDevice, vertexStagingBuffer, nullptr);
 
-
+	// TODO: improve this part
+	{
+		this->vertexCount = vertexData.size();
+		this->indexCount = indexCollection.size();
+	}
+	
 	this->init_drawCommand();
 }
 
 void VulkanCommand::init_commandPool()
-{	
+{
 	VkCommandPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 	poolInfo.queueFamilyIndex = this->deviceInfo.queueFamilyIndexes.graphics;
@@ -318,24 +347,20 @@ void VulkanCommand::init_drawCommand()
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
-
 		// Crashed before because of the many swapchain Images allocated in the VulkanSwapchain class
 		vkCmdBeginRenderPass(this->drawCommandBufferCollection[idx], &renderPassInfo, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
 		vkCmdBindPipeline(this->drawCommandBufferCollection[idx], VK_PIPELINE_BIND_POINT_GRAPHICS, this->graphicsPipeline);
 		
-
-		VkBuffer vertexBuffers[] = { this->vertexBuffer };
+		VkBuffer vertexBuffers[] = { this->vertexBuffer->getBuffer() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
 
-		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-
+		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], this->indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
 
 		// this->vertexCount was not set so it had (maximum number) which led to a device lost error
 		//vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
 		
 		vkCmdDrawIndexed(this->drawCommandBufferCollection[idx], this->indexCount, 1, 0, 0, 0);
-
 
 		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
 
