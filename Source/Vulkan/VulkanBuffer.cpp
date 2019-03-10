@@ -11,12 +11,11 @@ VulkanBuffer::~VulkanBuffer() {
 	this->deallocateBuffer();
 }
 
-
 VkDeviceMemory &VulkanBuffer::getDeviceMemory() {
 	if (this->devMemory != VK_NULL_HANDLE) {
 		return this->devMemory;
-	}
-	else {
+	
+	} else {
 		throw std::runtime_error("Buffer is not initialized.");
 	}
 }
@@ -24,8 +23,8 @@ VkDeviceMemory &VulkanBuffer::getDeviceMemory() {
 VkBuffer &VulkanBuffer::getBuffer() {
 	if (this->buffer != VK_NULL_HANDLE) {
 		return this->buffer;
-	}
-	else {
+	
+	} else {
 		throw std::runtime_error("Buffer is not initialized.");
 	}
 }
@@ -33,8 +32,8 @@ VkBuffer &VulkanBuffer::getBuffer() {
 VkDeviceSize &VulkanBuffer::getSize() {
 	if (this->devSize != VK_NULL_HANDLE) {
 		return this->devSize;
-	}
-	else {
+
+	} else {
 		throw std::runtime_error("Buffer is not initialized.");
 	}
 }

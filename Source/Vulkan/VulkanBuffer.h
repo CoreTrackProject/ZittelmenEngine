@@ -5,22 +5,9 @@
 
 #include "Vulkan/VulkanVertex.hpp"
 
-
-// Vulkan Buffer
-// which holds VkBuffer and VkDeviceMemory
-// Maybe ZiBuffer sounds cooler? (VulkanBuffer?)
-// Not used at the moment
-// TODO: Is not a DTO anymore, move it out of the DTO directory
+// Vulkan Buffer which holds VkBuffer and VkDeviceMemory
 class VulkanBuffer {
 	
-	// Possible parameters for this class:
-	// .size
-	// .usage
-	// VkMemoryPropertyFlags (host visible, etc.)
-
-	// TODO:
-	// Staging buffer logic to copy another buffer to the gpu (vice versa?)
-
 public:
 	VulkanBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties);
 	~VulkanBuffer();

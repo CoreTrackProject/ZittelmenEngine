@@ -64,7 +64,7 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
 	std::unique_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
-	this->indexBuffer.reset(VulkanBuffer::newIndexBuffer(this->physicalDev,   this->logicalDevice, indexBufferSize));
+	this->indexBuffer.reset(VulkanBuffer::newIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
 	
 	// Copy Index data to staging buffer
 	{
