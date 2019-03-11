@@ -18,11 +18,13 @@ public: // Public Methods
 	VkDeviceMemory &getDeviceMemory();
 	VkBuffer &getBuffer();
 	VkDeviceSize &getSize();
+	void freeMemory();
 
 public: // Static methods
 	static VulkanBuffer* newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
 	static VulkanBuffer* newVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
 	static VulkanBuffer* newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static VulkanBuffer* newUniformBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
 
 private: // Private Methods
 	void allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties);

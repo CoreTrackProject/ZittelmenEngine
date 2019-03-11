@@ -173,8 +173,6 @@ void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
 }
 
-
-
 uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag)
 {
 	DeviceInfo &info = this->physicalDevCollection->find(physicalDev)->second;

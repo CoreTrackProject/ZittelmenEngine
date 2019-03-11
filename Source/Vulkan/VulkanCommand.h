@@ -10,7 +10,17 @@
 class VulkanCommand {
 
 public:
-	VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkQueue transferQueue);
+	VulkanCommand(VkPhysicalDevice &physicalDev, 
+		VkDevice &logicalDevice, 
+		DeviceInfo &deviceInfo, 
+		std::vector<VkFramebuffer> &frameBufferCollection, 
+		VkRenderPass &renderpass, 
+		VkExtent2D &swapchainExtent, 
+		VkPipeline &graphicsPipeline, 
+		VkPipelineLayout pipelineLayout, 
+		VkQueue transferQueue, 
+		std::vector<VkDescriptorSet> &descriptorSetCollection
+	);
 	~VulkanCommand();
 
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
@@ -31,6 +41,8 @@ private:
 	VkExtent2D &swapchainExtent;
 	VkPipeline &graphicsPipeline;
 	std::vector<VkFramebuffer> &frameBufferCollection;
+	VkPipelineLayout &pipelineLayout;
+	std::vector<VkDescriptorSet> &descriptorSetCollection;
 	
 	std::unique_ptr<VulkanBuffer> vertexBuffer;
 	std::unique_ptr<VulkanBuffer> indexBuffer;

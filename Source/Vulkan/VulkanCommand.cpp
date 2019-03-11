@@ -1,7 +1,7 @@
 #include "VulkanCommand.h"
 
 
-VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkQueue transferQueue) :
+VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout pipelineLayout, VkQueue transferQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
 	physicalDev(physicalDev),
 	logicalDevice(logicalDevice),
 	deviceInfo(deviceInfo),
@@ -9,7 +9,9 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 	renderpass(renderpass),
 	swapchainExtent(swapchainExtent),
 	graphicsPipeline(graphicsPipeline),
-	transferQueue(transferQueue)
+	transferQueue(transferQueue),
+	pipelineLayout(pipelineLayout),
+	descriptorSetCollection(descriptorSetCollection)
 {
 	this->init_commandPool();
 }
@@ -360,6 +362,8 @@ void VulkanCommand::init_drawCommand()
 		// this->vertexCount was not set so it had (maximum number) which led to a device lost error
 		//vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
 		
+		vkCmdBindDescriptorSets(this->drawCommandBufferCollection[idx], VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout, 0, 1, &this->descriptorSetCollection[idx], 0, nullptr);
+
 		vkCmdDrawIndexed(this->drawCommandBufferCollection[idx], this->indexCount, 1, 0, 0, 0);
 
 		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);

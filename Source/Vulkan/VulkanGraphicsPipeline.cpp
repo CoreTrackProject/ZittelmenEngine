@@ -9,10 +9,8 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShader
 	swapchainImageCollection(swapchainImageCollection),
 	descriptorSetLayout(descriptorSetLayout)
 {
-
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
-
 	this->init_framebuffer();
 }
 
@@ -25,6 +23,7 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 	vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);
 	vkDestroyRenderPass(this->logicalDevice, this->renderPass, nullptr);
+
 }
 
 std::vector<VkFramebuffer> &VulkanGraphicsPipeline::getFramebufferCollection()
@@ -40,6 +39,11 @@ VkRenderPass &VulkanGraphicsPipeline::getRenderPass()
 VkPipeline &VulkanGraphicsPipeline::getGraphicsPipeline()
 {
 	return this->graphicsPipeline;
+}
+
+VkPipelineLayout &VulkanGraphicsPipeline::getGraphicsPipelineLayout()
+{
+	return this->pipelineLayout;
 }
 
 void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
@@ -115,7 +119,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	rasterizer.polygonMode = VkPolygonMode::VK_POLYGON_MODE_FILL;
 	rasterizer.lineWidth = 1.0f;
 	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 
 	rasterizer.depthBiasEnable = VK_FALSE;
 	rasterizer.depthBiasConstantFactor = 0.0f; // Optional

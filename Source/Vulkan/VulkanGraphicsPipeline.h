@@ -19,6 +19,7 @@ public:
 	std::vector<VkFramebuffer> &getFramebufferCollection();
 	VkRenderPass &getRenderPass();
 	VkPipeline &getGraphicsPipeline();
+	VkPipelineLayout &getGraphicsPipelineLayout();
 
 private:
 	void init_graphicsPipelineLayout();

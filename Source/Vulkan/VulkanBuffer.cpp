@@ -33,6 +33,17 @@ VulkanBuffer* VulkanBuffer::newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice
 	);
 }
 
+VulkanBuffer* VulkanBuffer::newUniformBuffer(VkPhysicalDevice & phyDevice, VkDevice & logicalDevice, VkDeviceSize sizeBytes)
+{
+	return new VulkanBuffer(
+		phyDevice,
+		logicalDevice,
+		sizeBytes,
+		VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+		(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+	);
+}
+
 VulkanBuffer::VulkanBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties) 
 	: phyDevice(phyDevice), logicalDevice(logicalDevice)
 {
@@ -71,6 +82,11 @@ VkDeviceSize &VulkanBuffer::getSize() {
 	}
 }
 
+void VulkanBuffer::freeMemory()
+{
+	this->deallocateBuffer();
+}
+
 void VulkanBuffer::allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties) {
 
 	VkResult res;
@@ -83,7 +99,7 @@ void VulkanBuffer::allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags buf
 
 	res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &this->buffer);
 	if (res != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create staging buffer!");
+		throw std::runtime_error("Failed to create staging buffer.");
 	}
 
 	VkMemoryRequirements memRequirements;

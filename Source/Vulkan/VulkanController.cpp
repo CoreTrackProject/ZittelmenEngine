@@ -75,7 +75,13 @@ void VulkanController::initialize()
 
 	// Vulkan Uniform Buffer
 	{
-		this->uniform.reset(new VulkanUniform(this->vulkanDevice->getLogicalDevice()));
+		this->uniform.reset(
+			new VulkanUniform(
+				this->vulkanDevice->getPhysicalDevice(), 
+				this->vulkanDevice->getLogicalDevice(),
+				static_cast<uint32_t>(this->swapchain->getImageCollection().size())
+			)
+		);
 	}
 	
 	// Vulkan Graphicspipeline
@@ -121,7 +127,9 @@ void VulkanController::initialize()
 			this->graphicsPipeline->getRenderPass(),
 			this->swapchain->getSwapchainExtent2D(),
 			this->graphicsPipeline->getGraphicsPipeline(),
-			this->vulkanDevice->getTransferQueue()
+			this->graphicsPipeline->getGraphicsPipelineLayout(),
+			this->vulkanDevice->getTransferQueue(),
+			this->uniform->getDescriptorSetCollection()
 		));
 
 		// TODO: create function for uploading vertex data (with buffers or directly)
