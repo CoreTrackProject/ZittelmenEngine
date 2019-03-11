@@ -3,6 +3,7 @@
 #include <vector>
 #include <QDebug>
 #include <Vulkan\vulkan.h>
+#include <functional>
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
@@ -13,6 +14,9 @@ public:
 	~VulkanRuntime();
 
 	void renderFrame();
+	size_t getCurrentFrameIdx();
+
+	void registerUpdateUBOCallback(std::function<void(uint32_t)> updateUBO);
 
 private:
 	void destroy();
@@ -30,8 +34,10 @@ private:
 	std::vector<VkSemaphore> renderFinishedSemaphoreCollection;
 	std::vector<VkFence> inFlightFences;
 
-	size_t currentFrame = 0;
+	size_t currentFrameIdx = 0;
 	bool isRenderActive;
 	bool renderRunning = false;
+
+	std::function<void(uint32_t)> updateUBO;
 
 };

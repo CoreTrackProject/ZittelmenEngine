@@ -20,7 +20,7 @@ void VulkanRuntime::renderFrame()
 		return;
 	}
 
-	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame], VK_FALSE, 1000000000);
+	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
 
 		// TODO: Restart renderer
@@ -28,33 +28,39 @@ void VulkanRuntime::renderFrame()
 		return;
 	}
 
-	res =  vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrame]);
+	res =  vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx]);
 
 	uint32_t imageIndex = 0;
 	res = vkAcquireNextImageKHR(
 		this->logicalDevice,
 		this->swapchain,
 		std::numeric_limits<uint64_t>::max(),
-		this->imageAvailableSemaphoreCollection[this->currentFrame],
+		this->imageAvailableSemaphoreCollection[this->currentFrameIdx],
 		VK_NULL_HANDLE,
 		&imageIndex);
+
+
+	// Update uniform buffers here with imageIndex var
+	if (this->updateUBO != nullptr) {
+		this->updateUBO(imageIndex);
+	}
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-	VkSemaphore waitSemaphores[] = { this->imageAvailableSemaphoreCollection[this->currentFrame] };
+	VkSemaphore waitSemaphores[] = { this->imageAvailableSemaphoreCollection[this->currentFrameIdx] };
 	VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	submitInfo.waitSemaphoreCount = 1;
-	submitInfo.pWaitSemaphores = waitSemaphores;
-	submitInfo.pWaitDstStageMask = waitStages;
+	submitInfo.pWaitSemaphores    = waitSemaphores;
+	submitInfo.pWaitDstStageMask  = waitStages;
 	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &this->commandBufferCollection[imageIndex];
+	submitInfo.pCommandBuffers    = &this->commandBufferCollection[imageIndex];
 
-	VkSemaphore signalSemaphores[] = { this->renderFinishedSemaphoreCollection[this->currentFrame] };
+	VkSemaphore signalSemaphores[] = { this->renderFinishedSemaphoreCollection[this->currentFrameIdx] };
 	submitInfo.signalSemaphoreCount = 1;
 	submitInfo.pSignalSemaphores = signalSemaphores;
 
-	res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, this->inFlightFences[currentFrame]);
+	res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, this->inFlightFences[currentFrameIdx]);
 	if (res != VK_SUCCESS) {
 		qDebug("failed to submit draw command buffer!");
 	}
@@ -75,7 +81,17 @@ void VulkanRuntime::renderFrame()
 		qDebug("failed to submit to present queu!");
 	}
 
-	this->currentFrame = (this->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
+	this->currentFrameIdx = (this->currentFrameIdx + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+size_t VulkanRuntime::getCurrentFrameIdx()
+{
+	return this->currentFrameIdx;
+}
+
+void VulkanRuntime::registerUpdateUBOCallback(std::function<void(uint32_t)> updateUBO)
+{
+	this->updateUBO = updateUBO;
 }
 
 void VulkanRuntime::destroy()

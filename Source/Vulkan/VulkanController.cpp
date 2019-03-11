@@ -79,7 +79,8 @@ void VulkanController::initialize()
 			new VulkanUniform(
 				this->vulkanDevice->getPhysicalDevice(), 
 				this->vulkanDevice->getLogicalDevice(),
-				static_cast<uint32_t>(this->swapchain->getImageCollection().size())
+				static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
+				this->swapchain->getSwapchainExtent2D()
 			)
 		);
 	}
@@ -147,7 +148,16 @@ void VulkanController::initialize()
 			this->vulkanDevice->getGraphicsQueue(),
 			this->swapchain->getPresentQueue()
 		));
+
+		//std::function<void(uint32_t)> test = this->uniform->updateUniformData;
+
+		//this->runtime->registerUpdateUBOCallback();
 	}
+
+
+
+	// Should always be called after aquired new swapchain image idx and rendering
+	//this->uniform->updateUniformData(this->runtime->getCurrentFrameIdx());
 
 }
 
