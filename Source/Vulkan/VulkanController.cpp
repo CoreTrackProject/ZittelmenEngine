@@ -149,25 +149,26 @@ void VulkanController::initialize()
 			this->swapchain->getPresentQueue()
 		));
 
-		//std::function<void(uint32_t)> test = this->uniform->updateUniformData;
+		// Infos about lambdas:
+		// https://de.cppreference.com/w/cpp/language/lambda
+		// https://www.reddit.com/r/cpp/comments/6tgi25/binding_stdfunction_to_member_functions/
 
-		//this->runtime->registerUpdateUBOCallback();
+		//this->runtime->registerUpdateUBOCallback([&](uint32_t currFrameIdx) { this->uniform->updateUniformData(currFrameIdx); });
+
 	}
-
-
-
-	// Should always be called after aquired new swapchain image idx and rendering
-	//this->uniform->updateUniformData(this->runtime->getCurrentFrameIdx());
 
 }
 
+
+
 void VulkanController::destroy()
 {
+
 	this->runtime.reset();
 	this->command.reset();
 	//this->factory.reset();
-	this->uniform.reset();
 	this->graphicsPipeline.reset();
+	this->uniform.reset();
 	this->shader.reset();
 	this->swapchain.reset();
 	this->window.reset();

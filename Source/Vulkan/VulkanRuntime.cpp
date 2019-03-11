@@ -102,6 +102,7 @@ void VulkanRuntime::destroy()
 		vkDestroySemaphore(this->logicalDevice, imageAvailableSemaphoreCollection[i], nullptr);
 		vkDestroyFence(this->logicalDevice,     inFlightFences[i], nullptr);
 	}
+	this->updateUBO = nullptr;
 }
 
 void VulkanRuntime::init_syncobjects()

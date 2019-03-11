@@ -8,7 +8,9 @@ ZittelmenEngine::ZittelmenEngine()
 
 ZittelmenEngine::~ZittelmenEngine()
 {
-	this->destroy();
+	if (this->isInitialized) {
+		this->destroy();
+	}
 }
 
 void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
@@ -45,5 +47,8 @@ void ZittelmenEngine::destroy()
 
 void ZittelmenEngine::resize(uint32_t width, uint32_t height)
 {
+	// Prevent rendering a frame during reinitialization
+	this->isInitialized = false;
 	this->vulkanController->resizeTargetRenderSurface(width, height);
+	this->isInitialized = true;
 }

@@ -14,7 +14,9 @@ VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logical
 }
 
 VulkanUniform::~VulkanUniform() {
+	
 	vkDestroyDescriptorPool(this->logicalDevice, descriptorPool, nullptr);
+
 	this->destroyUniformBuffer();
 	this->destroyDescriptorSetLayout();
 }
@@ -31,7 +33,9 @@ std::vector<VkDescriptorSet> &VulkanUniform::getDescriptorSetCollection()
 
 void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 {
-	if (this->swapchainExtent.height <= 0) { return; }
+	if (this->swapchainExtent.height <= 0) { 
+		return; 
+	}
 
 	static auto startTime = std::chrono::high_resolution_clock::now();
 
