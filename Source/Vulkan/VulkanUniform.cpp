@@ -1,7 +1,7 @@
 #include "VulkanUniform.h"
 
 
-VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D swapchainExtent) :
+VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent) :
 	logicalDevice(logicalDevice), 
 	physicalDevice(physicalDevice), 
 	swapChainImageCollectionSize(swapChainImageCollectionSize),
@@ -54,7 +54,6 @@ void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(this->logicalDevice, this->uniformBufferCollection[currFrameIdx]->getDeviceMemory());
 
-
 }
 
 void VulkanUniform::initUniformBuffer() {
@@ -69,10 +68,12 @@ void VulkanUniform::initUniformBuffer() {
 
 void VulkanUniform::destroyUniformBuffer()
 {
-	for (size_t i = 0; i < this->swapChainImageCollectionSize; i++) {
+
+	// the VulkanBuffer objects are reference counted and destroy them self
+	//for (size_t i = 0; i < this->swapChainImageCollectionSize; i++) {
 		//this->uniformBufferCollection[i]->freeMemory();
-		delete this->uniformBufferCollection[i];
-	}
+		//delete this->uniformBufferCollection[i];
+	//}
 
 }
 
@@ -128,7 +129,7 @@ void VulkanUniform::initDescriptorSet()
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptorPool;
+	allocInfo.descriptorPool = this->descriptorPool;
 	allocInfo.descriptorSetCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
 	allocInfo.pSetLayouts = layouts.data();
 

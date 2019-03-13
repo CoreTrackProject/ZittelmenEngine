@@ -38,13 +38,18 @@ void VulkanShader::loadShaders()
 	vertexShaderInfo.codeSize = vertexShader.size();
 	vertexShaderInfo.pCode = reinterpret_cast<const uint32_t *>(vertexShader.constData());
 	VkResult res = vkCreateShaderModule(this->logicalDevice, &vertexShaderInfo, nullptr, &this->vertexShaderModule);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create vertex shader module.");
+	}
 
 	VkShaderModuleCreateInfo fragmentShaderInfo = {};
 	fragmentShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	fragmentShaderInfo.codeSize = fragmentShader.size();
 	fragmentShaderInfo.pCode = reinterpret_cast<const uint32_t *>(fragmentShader.constData());
 	res = vkCreateShaderModule(this->logicalDevice, &fragmentShaderInfo, nullptr, &this->fragmentShaderModule);
-
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create fragment shader module.");
+	}
 }
 
 QByteArray VulkanShader::loadFile(QString filePath)

@@ -1,7 +1,7 @@
 #include "VulkanCommand.h"
 
 
-VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout pipelineLayout, VkQueue transferQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
+VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout &pipelineLayout, VkQueue &transferQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
 	physicalDev(physicalDev),
 	logicalDevice(logicalDevice),
 	deviceInfo(deviceInfo),
@@ -50,8 +50,8 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	}
 
 	VkDeviceSize vertexBufferSize = sizeof(VulkanVertex) * vertexData.size();
-	std::unique_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
-	this->vertexBuffer.reset(VulkanBuffer::newVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize));
+	std::shared_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
+	this->vertexBuffer = VulkanBuffer::newVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize);
 	
 	// Copy Vertex data to staging buffer
 	{
@@ -62,8 +62,8 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	}
 
 	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
-	std::unique_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
-	this->indexBuffer.reset(VulkanBuffer::newIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
+	std::shared_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
+	this->indexBuffer = VulkanBuffer::newIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize);
 	
 	// Copy Index data to staging buffer
 	{
@@ -241,6 +241,9 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
 	res = vkAllocateCommandBuffers(this->logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate command buffer.");
+	}
 
 	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
 	commandBufferBeginInfo.sType			= VkStructureType::VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -250,6 +253,9 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	// Record Commands to upload the vertex data and the index data to the GPU
 	{
 		res = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to begin command buffer.");
+		}
 
 		VkBufferCopy copyRegionVertexBuffer = {};
 		copyRegionVertexBuffer.size = vertexStagingBufferObj->getSize();
@@ -260,6 +266,9 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 		vkCmdCopyBuffer(commandBuffer, indexStagingBufferObj->getBuffer(),  this->indexBuffer->getBuffer(), 1, &copyRegionIndexBuffer);
 
 		res = vkEndCommandBuffer(commandBuffer);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to end command buffer.");
+		}
 	}
 
 	// Submit Commands
@@ -278,7 +287,14 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 		// Upload data with the transfer queue
 		res = vkQueueSubmit(this->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to submit command to transfer queue.");
+		}
+
 		res = vkQueueWaitIdle(this->transferQueue);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Queue wait idle error.");
+		}
 	}
 
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
@@ -290,7 +306,7 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	// TODO: improve this part
 	{
 		this->vertexCount = static_cast<uint32_t>(vertexData.size());
-		this->indexCount  = static_cast<uint32_t>(indexCollection.size());
+		this->indexCount  = static_cast<uint16_t>(indexCollection.size());
 	}
 	
 	this->init_drawCommand();
@@ -304,6 +320,9 @@ void VulkanCommand::init_commandPool()
 	poolInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT; // Optional
 	
 	VkResult res = vkCreateCommandPool(this->logicalDevice, &poolInfo, nullptr, &this->commandPool);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create command pool.");
+	}
 }
 
 void VulkanCommand::init_drawCommand()
@@ -311,16 +330,18 @@ void VulkanCommand::init_drawCommand()
 	VkResult res;
 
 	this->drawCommandBufferCollection.clear();
-	this->drawCommandBufferCollection.resize((uint32_t)this->frameBufferCollection.size());
+	this->drawCommandBufferCollection.resize(static_cast<uint32_t>(this->frameBufferCollection.size()));
 
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.commandPool = this->commandPool;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandBufferCount = (uint32_t)this->drawCommandBufferCollection.size();
+	allocInfo.commandBufferCount = static_cast<uint32_t>(this->drawCommandBufferCollection.size());
 
 	res = vkAllocateCommandBuffers(this->logicalDevice, &allocInfo, this->drawCommandBufferCollection.data());
-	
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to allocate command buffer.");
+	}
 	// Starting command buffer recording
 
 	uint32_t idx = 0;
@@ -333,6 +354,9 @@ void VulkanCommand::init_drawCommand()
 		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		res = vkBeginCommandBuffer(this->drawCommandBufferCollection[idx], &beginInfo);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to begin command buffer.");
+		}
 
 		// Starting a render pass
 		VkRenderPassBeginInfo renderPassInfo = {};
@@ -352,18 +376,17 @@ void VulkanCommand::init_drawCommand()
 		
 		VkBuffer vertexBuffers[] = { this->vertexBuffer->getBuffer() };
 		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
-
-		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], this->indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
-
+		
 		// this->vertexCount was not set so it had (maximum number) which led to a device lost error
 		//vkCmdDraw(this->drawCommandBufferCollection[idx], this->vertexCount, 1, 0, 0);
-		
+
+
+		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
+		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], this->indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
 		vkCmdBindDescriptorSets(this->drawCommandBufferCollection[idx], VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout, 0, 1, &this->descriptorSetCollection[idx], 0, nullptr);
-
 		vkCmdDrawIndexed(this->drawCommandBufferCollection[idx], this->indexCount, 1, 0, 0, 0);
-
 		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
+
 
 		res = vkEndCommandBuffer(this->drawCommandBufferCollection[idx]);
 		if (res != VK_SUCCESS) {

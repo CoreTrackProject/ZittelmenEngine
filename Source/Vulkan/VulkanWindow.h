@@ -9,7 +9,7 @@ class VulkanWindow
 {
 
 public:
-	VulkanWindow(VkInstance &instance, QWidget *targetRenderSurface);
+	VulkanWindow(VkInstance &instance, WId &targetRenderSurface);
 	~VulkanWindow();
 
 	void init_Surface();
@@ -17,6 +17,6 @@ public:
 
 private:
 	VkSurfaceKHR surface = VK_NULL_HANDLE;
-	QWidget *targetRenderSurface = nullptr;
+	WId &targetRenderSurface;
 	VkInstance &instance;
 };

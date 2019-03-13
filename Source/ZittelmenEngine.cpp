@@ -15,7 +15,12 @@ ZittelmenEngine::~ZittelmenEngine()
 
 void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
 {
-	this->vulkanController->setTargetRenderSurface(targetRenderSurface);
+	this->vulkanController->setTargetRenderSurface(targetRenderSurface->winId());
+}
+
+void ZittelmenEngine::setTargetRenderSurface(QWindow *targetRenderSurface)
+{
+	this->vulkanController->setTargetRenderSurface(targetRenderSurface->winId());
 }
 
 void ZittelmenEngine::renderFrame() 

@@ -1,11 +1,12 @@
 #include "VulkanRuntime.h"
 
-VulkanRuntime::VulkanRuntime(VkDevice &logicalDevice, VkSwapchainKHR &swapchain, std::vector<VkCommandBuffer> &commandBufferCollection, VkQueue &graphicsQueue, VkQueue &presentQueue) :
+VulkanRuntime::VulkanRuntime(VkDevice &logicalDevice, VkSwapchainKHR &swapchain, std::vector<VkCommandBuffer> &commandBufferCollection, VkQueue &graphicsQueue, VkQueue &presentQueue, std::shared_ptr<VulkanUniform> &uniform) :
 	logicalDevice(logicalDevice),
 	swapchain(swapchain),
 	commandBufferCollection(commandBufferCollection),
 	graphicsQueue(graphicsQueue),
-	presentQueue(presentQueue) {
+	presentQueue(presentQueue),
+	uniform(uniform) {
 
 	this->init_syncobjects();
 }
@@ -22,13 +23,18 @@ void VulkanRuntime::renderFrame()
 
 	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
-
+		
+		this->isRenderActive = false;
 		// TODO: Restart renderer
 
 		return;
 	}
 
 	res =  vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx]);
+	if (res != VkResult::VK_SUCCESS) {
+		this->isRenderActive = false;
+		//throw std::runtime_error("Failed to reset fences.");
+	}
 
 	uint32_t imageIndex = 0;
 	res = vkAcquireNextImageKHR(
@@ -39,11 +45,13 @@ void VulkanRuntime::renderFrame()
 		VK_NULL_HANDLE,
 		&imageIndex);
 
-
-	// Update uniform buffers here with imageIndex var
-	if (this->updateUBO != nullptr) {
-		this->updateUBO(imageIndex);
+	if (res != VkResult::VK_SUCCESS) {
+		this->isRenderActive = false;
+		//throw std::runtime_error("Failed acquire next image.");
 	}
+
+	// causes memory curruption
+	this->uniform->updateUniformData(imageIndex);
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -62,7 +70,8 @@ void VulkanRuntime::renderFrame()
 
 	res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, this->inFlightFences[currentFrameIdx]);
 	if (res != VK_SUCCESS) {
-		qDebug("failed to submit draw command buffer!");
+		this->isRenderActive = false;
+		//throw std::runtime_error("Failed to submit draw command buffer!");
 	}
 
 	VkPresentInfoKHR presentInfo = {};
@@ -78,7 +87,8 @@ void VulkanRuntime::renderFrame()
 
 	res = vkQueuePresentKHR(this->presentQueue, &presentInfo);
 	if (res != VK_SUCCESS) {
-		qDebug("failed to submit to present queu!");
+		this->isRenderActive = false;
+		//throw std::runtime_error("Failed to submit to present queue.");
 	}
 
 	this->currentFrameIdx = (this->currentFrameIdx + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -89,11 +99,6 @@ size_t VulkanRuntime::getCurrentFrameIdx()
 	return this->currentFrameIdx;
 }
 
-void VulkanRuntime::registerUpdateUBOCallback(std::function<void(uint32_t)> updateUBO)
-{
-	this->updateUBO = updateUBO;
-}
-
 void VulkanRuntime::destroy()
 {
 	vkDeviceWaitIdle(this->logicalDevice);
@@ -102,7 +107,7 @@ void VulkanRuntime::destroy()
 		vkDestroySemaphore(this->logicalDevice, imageAvailableSemaphoreCollection[i], nullptr);
 		vkDestroyFence(this->logicalDevice,     inFlightFences[i], nullptr);
 	}
-	this->updateUBO = nullptr;
+	
 }
 
 void VulkanRuntime::init_syncobjects()

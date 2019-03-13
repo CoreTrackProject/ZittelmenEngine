@@ -28,7 +28,7 @@ public:
 	VulkanController();
 	~VulkanController();
 
-	void setTargetRenderSurface(QWidget *targetWindow);
+	void setTargetRenderSurface(WId targetWindow);
 	void resizeTargetRenderSurface(uint32_t width, uint32_t height);
 
 	void initialize();
@@ -36,10 +36,10 @@ public:
 	void renderFrame();
 
 private:
-
 	bool enableValidation = false;
+	WId target;
+	uint32_t width, height = 0;
 
-	QWidget *targetRenderWindow = nullptr;
 	
 	std::unique_ptr<VulkanInstance> instance				 = nullptr;
 	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;
@@ -52,7 +52,7 @@ private:
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
-	std::unique_ptr<VulkanUniform> uniform					 = nullptr;
+	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
 
 	VulkanVertexData vertex;
 	

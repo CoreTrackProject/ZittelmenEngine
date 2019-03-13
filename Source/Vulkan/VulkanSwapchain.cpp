@@ -68,7 +68,10 @@ void VulkanSwapchain::init_Swapchain()
 		{
 			VkBool32 supprtPresent = VK_FALSE;
 			for (uint32_t i = 0; i < this->deviceInfo.queueFamilyCount; i++) {
-				vkGetPhysicalDeviceSurfaceSupportKHR(this->device, i, this->surface, &supprtPresent);
+				VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(this->device, i, this->surface, &supprtPresent);
+				if (res != VkResult::VK_SUCCESS) {
+					throw std::runtime_error("Failed to get physical device surface support information.");
+				}
 				if (supprtPresent == VK_TRUE) {
 					this->queueFamilyPresentIdx = i;
 					break;
@@ -105,25 +108,41 @@ void VulkanSwapchain::init_Swapchain()
 void VulkanSwapchain::querySwapChainRelatedInfo()
 {
 
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device, this->surface, &details.capabilities);
+	VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device, this->surface, &details.capabilities);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to get physical device surface capabilities.");
+	}
 
 	// Get surface formats
 	{
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, nullptr);
+		VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, nullptr);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to get physical device surface formats information.");
+		}
+
 		if (formatCount != 0) {
 			details.formats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, details.formats.data());
+			res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, details.formats.data());
+			if (res != VkResult::VK_SUCCESS) {
+				throw std::runtime_error("Failed to get physical device surface formats information.");
+			}
 		}
 	}
 	
 	// Get Presentmodes
 	{
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, nullptr);
+		VkResult res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, nullptr);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to get physical device surface present modes information.");
+		}
 		if (presentModeCount != 0) {
 			details.presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, details.presentModes.data());
+			res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, details.presentModes.data());
+			if (res != VkResult::VK_SUCCESS) {
+				throw std::runtime_error("Failed to get physical device surface present modes information.");
+			}
 		}
 		
 	} 
@@ -134,10 +153,16 @@ void VulkanSwapchain::init_Imageviews()
 
 	uint32_t swapchainImageCount = 0;
 	VkResult res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain images.");
+	}
 	//this->imageCollection.resize(swapchainImageCount);
 
 	std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
 	res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to get swapchain images.");
+	}
 
 	for (VkImage tmpImage : tmpImageBuffer) {
 
@@ -163,6 +188,10 @@ void VulkanSwapchain::init_Imageviews()
 
 		VkImageView view;
 		res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to create image view.");
+		}
+
 		image.imageView = view;
 
 

@@ -10,13 +10,16 @@ VulkanController::~VulkanController()
 	this->destroy();
 }
 
-void VulkanController::setTargetRenderSurface(QWidget *targetWindow)
+void VulkanController::setTargetRenderSurface(WId target)
 {
-	this->targetRenderWindow = targetWindow;
+	this->target = target;
 }
 
 void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height)
 {
+	this->width  = width;
+	this->height = height;
+
 	this->destroy();
 	this->initialize();
 }
@@ -25,69 +28,69 @@ void VulkanController::initialize()
 {
 	this->enableValidation = true;
 
-	if (this->targetRenderWindow == nullptr) {
+	if (this->target == 0) {
 		throw std::exception("No target render Window specified");
+		return;
+	}
+
+	if (this->width <= 0 || this->height <= 0) {
 		return;
 	}
 
 	// Vulkan Instance
 	{
-		this->instance.reset(new VulkanInstance(this->enableValidation));
+		this->instance = std::make_unique<VulkanInstance>(this->enableValidation);
 	}
 
 	// Vulkan Debug
 	{
 		if (this->enableValidation) {
-			this->vulkanDebug.reset(new VulkanDebug(this->instance->getInstance()));
+			this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->getInstance());
 		}
 	}
 
 	// Vulkan Device
 	{
-		this->vulkanDevice.reset(new VulkanDevice(this->instance->getInstance()));
+		this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->getInstance());
 	}
 	
 	// Vulkan Window
 	{
-		this->window.reset(new VulkanWindow(this->instance->getInstance(), this->targetRenderWindow));
+		this->window = std::make_unique<VulkanWindow>(this->instance->getInstance(), this->target);
 	}
 
 	// Vulkan Swapchain
 	{
-		this->swapchain.reset(new VulkanSwapchain(
+		this->swapchain = std::make_unique<VulkanSwapchain>(
 			this->vulkanDevice->getPhysicalDevice(),
 			this->vulkanDevice->getLogicalDevice(),
 			this->vulkanDevice->getPhysicalDeviceInfo(
 				this->vulkanDevice->getPhysicalDevice()
 			),
 			this->window->getSurface(),
-			this->targetRenderWindow->size().width(),
-			this->targetRenderWindow->size().height()
-		));
+			this->width,
+			this->height
+		);
 	}
 
 	// Vulkan Shader
 	{
-		this->shader.reset(new VulkanShader(
-			this->vulkanDevice->getLogicalDevice()
-		));
+		this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->getLogicalDevice());
 	}
 
 	// Vulkan Uniform Buffer
 	{
-		this->uniform.reset(
-			new VulkanUniform(
-				this->vulkanDevice->getPhysicalDevice(), 
-				this->vulkanDevice->getLogicalDevice(),
-				static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
-				this->swapchain->getSwapchainExtent2D()
-			)
-		);
+		this->uniform = std::make_shared<VulkanUniform>(
+			this->vulkanDevice->getPhysicalDevice(),
+			this->vulkanDevice->getLogicalDevice(),
+			static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
+			this->swapchain->getSwapchainExtent2D()
+			);
 	}
 	
 	// Vulkan Graphicspipeline
 	{
-		this->graphicsPipeline.reset(new VulkanGraphicsPipeline(
+		this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(
 			this->vulkanDevice->getLogicalDevice(),
 			this->shader->getVertexShaderModule(),
 			this->shader->getFragmentShaderModule(),
@@ -95,7 +98,7 @@ void VulkanController::initialize()
 			this->swapchain->getSwapchainImageFormat(),
 			this->swapchain->getImageCollection(),
 			this->uniform->getDescriptorSetLayout()
-		));
+		);
 	}
 
 	// Vulkan Factory
@@ -105,9 +108,7 @@ void VulkanController::initialize()
 				this->vulkanDevice->getPhysicalDevice(),
 				this->vulkanDevice->getLogicalDevice()
 			));*/
-
 	}
-
 
 	// Staging buffer notes:
 	// Vertexbuffer is only in gpu
@@ -115,10 +116,9 @@ void VulkanController::initialize()
 	// Vertex data is first stored in staging buffer
 	// Staging buffer gets uploaded to vertex buffer in gpu with a vulkan command (vkCmd...BlaBlaBla....)
 	
-
 	// Vulkan Command
 	{
-		this->command.reset(new VulkanCommand(
+		this->command = std::make_unique<VulkanCommand>(
 			this->vulkanDevice->getPhysicalDevice(),
 			this->vulkanDevice->getLogicalDevice(),
 			this->vulkanDevice->getPhysicalDeviceInfo(
@@ -131,23 +131,23 @@ void VulkanController::initialize()
 			this->graphicsPipeline->getGraphicsPipelineLayout(),
 			this->vulkanDevice->getTransferQueue(),
 			this->uniform->getDescriptorSetCollection()
-		));
+		);
 
 		// TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
 		this->command->uploadVertexData(this->vertex.getQuadVertexCollection(), this->vertex.getQuadVertexIndexCollection());
-
 	}
 
 	// Vulkan Runtime
 	{
-		this->runtime.reset(new VulkanRuntime(
+		this->runtime = std::make_unique<VulkanRuntime>(
 			this->vulkanDevice->getLogicalDevice(),
 			this->swapchain->getSwapchain(),
-			this->command->getDrawCommandBufferCollection(), // TODO: rename this to getDrawCommandCollection(Vertex buffer params)
+			this->command->getDrawCommandBufferCollection(),
 			this->vulkanDevice->getGraphicsQueue(),
-			this->swapchain->getPresentQueue()
-		));
+			this->swapchain->getPresentQueue(),
+			this->uniform // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
+		);
 
 		// Infos about lambdas:
 		// https://de.cppreference.com/w/cpp/language/lambda
@@ -158,8 +158,6 @@ void VulkanController::initialize()
 	}
 
 }
-
-
 
 void VulkanController::destroy()
 {

@@ -152,14 +152,6 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO; // Optional
 	colorBlendAttachment.alphaBlendOp		 = VK_BLEND_OP_ADD;      // Optional
 
-	colorBlendAttachment.blendEnable		 = VK_TRUE;
-	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-	colorBlendAttachment.colorBlendOp		 = VK_BLEND_OP_ADD;
-	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
-	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-	colorBlendAttachment.alphaBlendOp		 = VK_BLEND_OP_ADD;
-
 
 	VkPipelineColorBlendStateCreateInfo colorBlending = {};
 	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -266,7 +258,9 @@ void VulkanGraphicsPipeline::init_renderpass()
 
 
 	VkResult res = vkCreateRenderPass(this->logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
-		
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create renderpass");
+	}
 	
 }
 

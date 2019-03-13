@@ -17,8 +17,8 @@ public:
 		VkRenderPass &renderpass, 
 		VkExtent2D &swapchainExtent, 
 		VkPipeline &graphicsPipeline, 
-		VkPipelineLayout pipelineLayout, 
-		VkQueue transferQueue, 
+		VkPipelineLayout &pipelineLayout, 
+		VkQueue &transferQueue, 
 		std::vector<VkDescriptorSet> &descriptorSetCollection
 	);
 	~VulkanCommand();
@@ -43,14 +43,14 @@ private:
 	std::vector<VkFramebuffer> &frameBufferCollection;
 	VkPipelineLayout &pipelineLayout;
 	std::vector<VkDescriptorSet> &descriptorSetCollection;
-	
-	std::unique_ptr<VulkanBuffer> vertexBuffer;
-	std::unique_ptr<VulkanBuffer> indexBuffer;
+	VkQueue &transferQueue;
+
+	std::shared_ptr<VulkanBuffer> vertexBuffer;
+	std::shared_ptr<VulkanBuffer> indexBuffer;
 
 	uint32_t vertexCount;
 	uint16_t indexCount;
 
-	VkQueue &transferQueue;
 
 	VkCommandPool commandPool = VK_NULL_HANDLE;
 	std::vector<VkCommandBuffer> drawCommandBufferCollection;

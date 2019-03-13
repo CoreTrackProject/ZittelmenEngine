@@ -3,7 +3,7 @@
 
 VulkanDevice::VulkanDevice(VkInstance &instance) : instance(instance)
 {
-	this->physicalDevCollection.reset(new std::map<VkPhysicalDevice, DeviceInfo>());
+	this->physicalDevCollection = std::make_unique<std::map<VkPhysicalDevice, DeviceInfo>>();
 
 	this->init_vulkanDevice();
 
@@ -39,9 +39,12 @@ void VulkanDevice::init_vulkanDevice()
 	
 	// store all available physical devices in a collection
 	VkResult res = vkEnumeratePhysicalDevices(this->instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to enumerate physical devices.");
+	}
 
 	// Get information for each device
-	for (int i = 0; i < tmpPhysicalDevCollection.size(); i++) {
+	for (int i = 0; i < static_cast<int>(tmpPhysicalDevCollection.size()); i++) {
 		
 		VkResult res;
 		DeviceInfo info = {};
@@ -53,8 +56,15 @@ void VulkanDevice::init_vulkanDevice()
 
 		// Device extension information
 		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, nullptr);
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to enumerate device extension properties.");
+		}
+
 		info.deviceExtensionCollection.resize(info.deviceExtensionCount);
 		res = vkEnumerateDeviceExtensionProperties(tmpPhysicalDevCollection[i], nullptr, &info.deviceExtensionCount, info.deviceExtensionCollection.data());
+		if (res != VkResult::VK_SUCCESS) {
+			throw std::runtime_error("Failed to enumerate device extension properties.");
+		}
 
 		// Device queue family information
 		vkGetPhysicalDeviceQueueFamilyProperties(tmpPhysicalDevCollection[i], &info.queueFamilyCount, nullptr);
@@ -84,9 +94,8 @@ void VulkanDevice::init_vulkanDevice()
 
 void VulkanDevice::destroy_vulkanDevice()
 {
-	this->physicalDevCollection.reset();
-	vkDestroyDevice(this->logicalDevice, NULL);
-	
+	//this->physicalDevCollection.reset();
+	vkDestroyDevice(this->logicalDevice, nullptr);
 }
 
 void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)

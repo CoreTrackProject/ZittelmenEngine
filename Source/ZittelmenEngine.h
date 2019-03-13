@@ -1,8 +1,10 @@
 #pragma once
 
-#include <iostream>
 #include <QWidget>
+#include <QWindow>
 #include <QTimer>
+
+#include <iostream>
 
 #include "Vulkan/VulkanController.h"
 
@@ -14,6 +16,7 @@ public:
 	~ZittelmenEngine();
 
 	void setTargetRenderSurface(QWidget *targetRenderSurface);
+	void setTargetRenderSurface(QWindow *targetRenderSurface);
 	
 	void renderFrame();
 	bool getInitializedStatus();
@@ -25,6 +28,5 @@ public:
 
 private:
 	std::unique_ptr<VulkanController> vulkanController = nullptr;
-	VulkanWindow *m_vulkanWindow = nullptr;
 	bool isInitialized;
 };

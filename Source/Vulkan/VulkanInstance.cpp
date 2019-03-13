@@ -77,7 +77,9 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 
 
 	VkResult res = vkCreateInstance(&instanceCreateInfo, NULL, &this->m_vkInstance);
-
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to create vulkan instance.");
+	}
 }
 
 void VulkanInstance::destroy_vkInstance()
