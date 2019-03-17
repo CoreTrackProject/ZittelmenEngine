@@ -312,6 +312,17 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	this->init_drawCommand();
 }
 
+void VulkanCommand::uploadImage(VulkanTexture vulkanTexture)
+{
+	// TODO //
+
+	// Upload texture with a staging buffer same procedure as the vertex data
+
+	VkDeviceSize imageSize = 0; // TODO get image Size
+	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
+
+}
+
 void VulkanCommand::init_commandPool()
 {
 	VkCommandPoolCreateInfo poolInfo = {};

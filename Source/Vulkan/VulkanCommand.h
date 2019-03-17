@@ -2,10 +2,11 @@
 
 #include <Vulkan/vulkan.h>
 
-#include "VulkanDevice.h"
-#include "Vulkan/VulkanVertex.hpp"
+#include "VulkanVertex.hpp"
 
 #include "VulkanBuffer.h"
+#include "VulkanDevice.h"
+#include "VulkanTexture.h"
 
 class VulkanCommand {
 
@@ -25,7 +26,7 @@ public:
 
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
 	void uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection);
-
+	void uploadImage(VulkanTexture vulkanTexture);
 
 private:
 	void init_commandPool();

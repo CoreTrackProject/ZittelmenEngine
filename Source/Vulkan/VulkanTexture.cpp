@@ -11,38 +11,6 @@ std::shared_ptr<VulkanTexture> VulkanTexture::newStagingBuffer(VkPhysicalDevice 
 	);
 }
 
-std::shared_ptr<VulkanTexture> VulkanTexture::newVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
-{
-	return std::make_shared<VulkanTexture>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-}
-
-std::shared_ptr<VulkanTexture> VulkanTexture::newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
-{
-	return std::make_shared<VulkanTexture>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
-		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-}
-
-std::shared_ptr<VulkanTexture> VulkanTexture::newUniformBuffer(VkPhysicalDevice & phyDevice, VkDevice & logicalDevice, VkDeviceSize sizeBytes)
-{
-	return std::make_shared<VulkanTexture>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-	);
-}
 
 
 
