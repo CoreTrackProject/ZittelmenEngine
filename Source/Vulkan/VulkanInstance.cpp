@@ -39,7 +39,7 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	if (enableValidation) {
 		instanceCreateInfo.pNext = &VulkanDebug::debugUtilsMessengerCreateInfo;
 	} else {
-		instanceCreateInfo.pNext = NULL;
+		instanceCreateInfo.pNext = nullptr;
 	}
 
 

@@ -13,6 +13,26 @@ ZittelmenEngine::~ZittelmenEngine()
 	}
 }
 
+void ZittelmenEngine::initialize()
+{
+	if (!this->isInitialized) {
+		this->vulkanController->initialize();
+		this->isInitialized = true;
+	}
+}
+
+void ZittelmenEngine::destroy()
+{
+	if (this->isInitialized) {
+		this->isInitialized = false;
+		this->vulkanController->destroy();
+	}
+}
+
+bool ZittelmenEngine::getInitializedStatus() {
+	return this->isInitialized;
+}
+
 void ZittelmenEngine::setTargetRenderSurface(QWidget *targetRenderSurface)
 {
 	this->vulkanController->setTargetRenderSurface(targetRenderSurface->winId());
@@ -27,26 +47,6 @@ void ZittelmenEngine::renderFrame()
 {
 	if (this->isInitialized) {
 		this->vulkanController->renderFrame();
-	}
-}
-
-bool ZittelmenEngine::getInitializedStatus() {
-	return this->isInitialized;
-}
-
-void ZittelmenEngine::initialize()
-{
-	if (!this->isInitialized) {
-		this->vulkanController->initialize();
-		this->isInitialized = true;
-	}
-}
-
-void ZittelmenEngine::destroy()
-{
-	if (this->isInitialized) {
-		this->isInitialized = false;
-		this->vulkanController->destroy();
 	}
 }
 
