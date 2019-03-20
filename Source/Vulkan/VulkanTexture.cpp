@@ -1,25 +1,27 @@
 #include "VulkanTexture.h"
 
-std::shared_ptr<VulkanTexture> VulkanTexture::newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, uint32_t width, uint32_t height)
 {
 	return std::make_shared<VulkanTexture>(
 		phyDevice,
 		logicalDevice,
 		sizeBytes,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
+		VkImageType::VK_IMAGE_TYPE_2D,
+		VkFormat::VK_FORMAT_R8G8B8A8_UNORM,
+		width, 
+		height
 	);
 }
 
 
 
 
-VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties) 
-	: phyDevice(phyDevice), logicalDevice(logicalDevice)
+VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
+	phyDevice(phyDevice), logicalDevice(logicalDevice)
 {
 	this->devSize = sizeBytes;
 	//this->allocateBuffer(sizeBytes, bufferusage, memoryproperties);
-	this->createImage();
+	this->createImage(sizeBytes, imageType, imageFormat, width, height);
 
 }
 
@@ -61,15 +63,16 @@ void VulkanTexture::freeMemory()
 	this->destroyImage();
 }
 
-void VulkanTexture::createImage()
+void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height)
 {
+
 	VkImageCreateInfo createInfo = {};
 	createInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	createInfo.pNext = nullptr;
-	createInfo.imageType = VkImageType::VK_IMAGE_TYPE_2D;
-	createInfo.format = VkFormat::VK_FORMAT_R8G8B8A8_UNORM; // Maybe not supported
-	createInfo.extent.width = static_cast<uint32_t>(0);
-	createInfo.extent.height = static_cast<uint32_t>(0);
+	createInfo.imageType = imageType;
+	createInfo.format = imageFormat; // Maybe not supported
+	createInfo.extent.width = static_cast<uint32_t>(width);
+	createInfo.extent.height = static_cast<uint32_t>(height);
 	createInfo.extent.depth = 1;
 	createInfo.mipLevels = 1;
 	createInfo.arrayLayers = 1;
@@ -116,46 +119,8 @@ void VulkanTexture::createImage()
 
 void VulkanTexture::destroyImage()
 {
-
-}
-
-void VulkanTexture::allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties) {
-
-	VkResult res;
-
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = sizeBytes;
-	bufferInfo.usage = bufferUsage; //VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &this->buffer);
-	if (res != VK_SUCCESS) {
-		throw std::runtime_error("Failed to create staging buffer.");
-	}
-
-	VkMemoryRequirements memRequirements;
-	vkGetBufferMemoryRequirements(this->logicalDevice, this->buffer, &memRequirements);
-
-	VkMemoryAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	allocInfo.allocationSize = memRequirements.size;
-	allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, memoryproperties);
-
-	res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &this->devMemory);
-	if (res != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocated staging buffer memory");
-	}
-
-	res = vkBindBufferMemory(this->logicalDevice, this->buffer, this->devMemory, 0);
-	if (res != VK_SUCCESS) {
-		throw std::runtime_error("Failed to bind buffer memory");
-	}
-}
-
-void VulkanTexture::deallocateBuffer() {
 	vkFreeMemory(this->logicalDevice, this->devMemory, nullptr);
-	vkDestroyBuffer(this->logicalDevice, this->buffer, nullptr);
+	vkDestroyImage(this->logicalDevice, this->image, nullptr);
 }
 
 uint32_t VulkanTexture::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {

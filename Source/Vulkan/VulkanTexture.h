@@ -3,7 +3,7 @@
 #include <stdexcept>
 #include <vulkan/vulkan.h>
 
-#include "Vulkan/VulkanVertex.hpp"
+#include "VulkanVertex.hpp"
 
 /* 
 *	Represents a texture in vulkan
@@ -15,7 +15,7 @@
 class VulkanTexture {
 
 public:
-	VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties);
+	VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
 	~VulkanTexture();
 
 public: // Public Methods
@@ -27,14 +27,12 @@ public: // Public Methods
 
 
 public: // Static methods
-	static std::shared_ptr<VulkanTexture> newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanTexture> newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, uint32_t width, uint32_t height);
 
 private: // Private Methods
-	void createImage();
+	void createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
 	void destroyImage();
 
-	void allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties);
-	void deallocateBuffer();
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	
 private:

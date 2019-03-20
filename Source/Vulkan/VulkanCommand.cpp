@@ -314,12 +314,24 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 void VulkanCommand::uploadImage(VulkanTexture vulkanTexture)
 {
+	this->imageTexture = std::make_shared<VulkanTexture>(vulkanTexture);
+
 	// TODO //
 
 	// Upload texture with a staging buffer same procedure as the vertex data
 
 	VkDeviceSize imageSize = 0; // TODO get image Size
 	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
+
+	{
+		QPixmap test;
+		
+		void* data;
+		vkMapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory(), 0, imageSize, 0, &data);
+		memcpy(data, &test.data_ptr(), static_cast<size_t>(imageSize));
+		vkUnmapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory());
+	}
+
 
 }
 

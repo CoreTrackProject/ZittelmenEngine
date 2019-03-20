@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Vulkan/vulkan.h>
+#include <QPixmap>
 
 #include "VulkanVertex.hpp"
 
@@ -48,6 +49,8 @@ private:
 
 	std::shared_ptr<VulkanBuffer> vertexBuffer;
 	std::shared_ptr<VulkanBuffer> indexBuffer;
+
+	std::shared_ptr<VulkanTexture> imageTexture;
 
 	uint32_t vertexCount;
 	uint16_t indexCount;
