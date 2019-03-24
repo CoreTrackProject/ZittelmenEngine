@@ -26,6 +26,8 @@ find_package(Vulkan)
 # Find the QtWidgets library
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets 3DCore 3DExtras 3DRender 3DInput)
 
+find_package(glm CONFIG REQUIRED)
+
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
 
 add_library(ZittelmenEngine STATIC ${zittelmenengine_SRCS} ${RCC_SOURCES})
@@ -35,9 +37,10 @@ target_link_libraries(
     ZittelmenEngine 
     Qt5::Widgets
     Qt5::WinMain
-	Qt5::3DCore
+    Qt5::3DCore
     Qt5::3DExtras
     Qt5::3DRender
     Qt5::3DInput
     Vulkan::Vulkan
+    glm
 )
