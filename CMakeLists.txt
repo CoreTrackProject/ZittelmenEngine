@@ -28,7 +28,7 @@ find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets 3DCore 3DExtras 3DRender 3
 
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
 
-add_library(ZittelmenEngine ${zittelmenengine_SRCS} ${RCC_SOURCES})
+add_library(ZittelmenEngine STATIC ${zittelmenengine_SRCS} ${RCC_SOURCES})
 
 # Use the Widgets module from Qt 5
 target_link_libraries(
