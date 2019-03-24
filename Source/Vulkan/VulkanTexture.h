@@ -2,6 +2,7 @@
 
 #include <stdexcept>
 #include <vulkan/vulkan.h>
+#include <QImage>
 
 #include "VulkanVertex.hpp"
 
@@ -27,7 +28,7 @@ public: // Public Methods
 
 
 public: // Static methods
-	static std::shared_ptr<VulkanTexture> newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, uint32_t width, uint32_t height);
+	static std::shared_ptr<VulkanTexture> newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image);
 
 private: // Private Methods
 	void createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
@@ -38,6 +39,7 @@ private: // Private Methods
 private:
 	VkDevice &logicalDevice;
 	VkPhysicalDevice &phyDevice;
+	QImage imageData;
 
 	VkBuffer buffer          = VK_NULL_HANDLE;
 	VkImage image			 = VK_NULL_HANDLE;

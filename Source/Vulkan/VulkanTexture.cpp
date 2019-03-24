@@ -1,15 +1,20 @@
 #include "VulkanTexture.h"
 
-std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, uint32_t width, uint32_t height)
+std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image)
 {
+	// , VkDeviceSize sizeBytes, uint32_t width, uint32_t height
+	//QImage::Format_ARGB32
+	
+
+
 	return std::make_shared<VulkanTexture>(
 		phyDevice,
 		logicalDevice,
-		sizeBytes,
+		static_cast<VkDeviceSize>(image.sizeInBytes()),
 		VkImageType::VK_IMAGE_TYPE_2D,
 		VkFormat::VK_FORMAT_R8G8B8A8_UNORM,
-		width, 
-		height
+		image.width(), 
+		image.height()
 	);
 }
 
@@ -45,6 +50,7 @@ VkBuffer &VulkanTexture::getBuffer() {
 	
 	} else {
 		throw std::runtime_error("Buffer is not initialized.");
+
 	}
 }
 
@@ -54,6 +60,7 @@ VkDeviceSize &VulkanTexture::getSize() {
 
 	} else {
 		throw std::runtime_error("Buffer is not initialized.");
+
 	}
 }
 
@@ -71,7 +78,7 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 	createInfo.pNext = nullptr;
 	createInfo.imageType = imageType;
 	createInfo.format = imageFormat; // Maybe not supported
-	createInfo.extent.width = static_cast<uint32_t>(width);
+	createInfo.extent.width  = static_cast<uint32_t>(width);
 	createInfo.extent.height = static_cast<uint32_t>(height);
 	createInfo.extent.depth = 1;
 	createInfo.mipLevels = 1;
