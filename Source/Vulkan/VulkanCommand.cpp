@@ -1,5 +1,6 @@
 #include "VulkanCommand.h"
 
+#include <QByteArray>
 
 VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout &pipelineLayout, VkQueue &transferQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
 	physicalDev(physicalDev),
@@ -312,25 +313,30 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	this->init_drawCommand();
 }
 
-void VulkanCommand::uploadImage(VulkanTexture vulkanTexture)
+void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 {
-	this->imageTexture = std::make_shared<VulkanTexture>(vulkanTexture);
+    this->imageTexture = vulkanTexture;
 
 	// TODO //
 
 	// Upload texture with a staging buffer same procedure as the vertex data
+	auto format = vulkanTexture->getQImage().format();
+	if (format != QImage::Format_RGBA8888) {
+		throw new std::runtime_error("Format of QImage mismatch, this exception will be removed.");
+	}
 
-	VkDeviceSize imageSize = 0; // TODO get image Size
+	VkDeviceSize imageSize = vulkanTexture->getQImage().byteCount();
 	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
 
-	{
-		QPixmap test;
-		
+	auto tmp = vulkanTexture->getQImage().bits();
+    {
 		void* data;
-		vkMapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory(), 0, imageSize, 0, &data);
-		memcpy(data, &test.data_ptr(), static_cast<size_t>(imageSize));
+		vkMapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory(), 0, static_cast<size_t>(imageSize), 0, &data);
+        std::memcpy(data, tmp, static_cast<size_t>(imageSize));
 		vkUnmapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory());
 	}
+
+
 
 
 }

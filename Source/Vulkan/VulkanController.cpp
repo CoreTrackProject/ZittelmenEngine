@@ -1,5 +1,7 @@
 #include "VulkanController.h"
 
+#include <QImage>
+
 VulkanController::VulkanController()
 {
 
@@ -133,9 +135,23 @@ void VulkanController::initialize()
 			this->uniform->getDescriptorSetCollection()
 		);
 
-		// TODO: create function for uploading vertex data (with buffers or directly)
+        // TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-		this->command->uploadVertexData(this->vertex.getQuadVertexCollection(), this->vertex.getQuadVertexIndexCollection());
+        auto vertexData = this->vertex.getQuadVertexCollection();
+        auto indexData  = this->vertex.getQuadVertexIndexCollection();
+
+        this->command->uploadVertexData(vertexData, indexData);
+
+        auto image = QImage("D:/coretrack_devel/texture.jpg");
+
+        std::shared_ptr<VulkanTexture> tmpTexture = VulkanTexture::newTexture(
+                    this->vulkanDevice->getPhysicalDevice(),
+                    this->vulkanDevice->getLogicalDevice(),
+                    image
+                    );
+
+
+        this->command->uploadImage(tmpTexture);
 	}
 
 	// Vulkan Runtime

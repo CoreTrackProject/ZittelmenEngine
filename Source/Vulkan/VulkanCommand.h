@@ -27,7 +27,7 @@ public:
 
 	std::vector<VkCommandBuffer> &getDrawCommandBufferCollection();
 	void uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection);
-	void uploadImage(VulkanTexture vulkanTexture);
+    void uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture);
 
 private:
 	void init_commandPool();

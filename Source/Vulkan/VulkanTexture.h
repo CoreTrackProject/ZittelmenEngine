@@ -16,13 +16,15 @@
 class VulkanTexture {
 
 public:
-	VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
+    VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
 	~VulkanTexture();
 
 public: // Public Methods
 	VkDeviceMemory &getDeviceMemory();
 	VkBuffer &getBuffer();
 	VkDeviceSize &getSize();
+
+    QImage &getQImage();
 
 	void freeMemory();
 
@@ -39,7 +41,7 @@ private: // Private Methods
 private:
 	VkDevice &logicalDevice;
 	VkPhysicalDevice &phyDevice;
-	QImage imageData;
+    QImage &imageData;
 
 	VkBuffer buffer          = VK_NULL_HANDLE;
 	VkImage image			 = VK_NULL_HANDLE;

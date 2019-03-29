@@ -2,18 +2,14 @@
 
 std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image)
 {
-	// , VkDeviceSize sizeBytes, uint32_t width, uint32_t height
-	//QImage::Format_ARGB32
-	
-
-
 	return std::make_shared<VulkanTexture>(
 		phyDevice,
 		logicalDevice,
+		image,
 		static_cast<VkDeviceSize>(image.sizeInBytes()),
 		VkImageType::VK_IMAGE_TYPE_2D,
 		VkFormat::VK_FORMAT_R8G8B8A8_UNORM,
-		image.width(), 
+		image.width(),
 		image.height()
 	);
 }
@@ -21,9 +17,14 @@ std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDe
 
 
 
-VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
-	phyDevice(phyDevice), logicalDevice(logicalDevice)
+VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
+    phyDevice(phyDevice), logicalDevice(logicalDevice), imageData(imageData)
 {
+
+	//QImage::Format_ARGB32 -> is not byteordered
+	//QImage::Format_RGBA8888 -> is byte ordered
+	this->imageData = imageData.convertToFormat(QImage::Format_RGBA8888);
+
 	this->devSize = sizeBytes;
 	//this->allocateBuffer(sizeBytes, bufferusage, memoryproperties);
 	this->createImage(sizeBytes, imageType, imageFormat, width, height);
@@ -57,11 +58,13 @@ VkBuffer &VulkanTexture::getBuffer() {
 VkDeviceSize &VulkanTexture::getSize() {
 	if (this->devSize != VK_NULL_HANDLE) {
 		return this->devSize;
-
 	} else {
 		throw std::runtime_error("Buffer is not initialized.");
-
 	}
+}
+
+QImage &VulkanTexture::getQImage() {
+    return this->imageData;
 }
 
 void VulkanTexture::freeMemory()
