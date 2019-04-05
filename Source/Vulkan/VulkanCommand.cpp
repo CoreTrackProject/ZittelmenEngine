@@ -336,7 +336,16 @@ void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 		vkUnmapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory());
 	}
 
+	{
+		VkCommandBuffer singleCommand = this->beginSingleTimeCommands();
 
+		VkBufferCopy copyRegion = {};
+		copyRegion.size = imageSize;
+		vkCmdCopyBuffer(singleCommand, imageStagingBufferObj->getBuffer(), imageTexture->getBuffer(), 1, &copyRegion);
+
+		this->endSingleTimeCommands(singleCommand);
+	}
+	
 
 
 }
@@ -442,4 +451,39 @@ uint32_t VulkanCommand::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
 	}
 
 	throw std::runtime_error("failed to find suitable memory type!");
+}
+
+VkCommandBuffer VulkanCommand::beginSingleTimeCommands()
+{
+	VkCommandBufferAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = commandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(this->logicalDevice, &allocInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo beginInfo = {};
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	return commandBuffer;
+}
+
+void VulkanCommand::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+{
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(this->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(this->transferQueue);
+
+	vkFreeCommandBuffers(this->logicalDevice, commandPool, 1, &commandBuffer);
 }

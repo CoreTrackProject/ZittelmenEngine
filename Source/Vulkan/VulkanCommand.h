@@ -34,6 +34,8 @@ private:
 	void init_drawCommand();
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
+	VkCommandBuffer beginSingleTimeCommands();
+	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
 private:
 	DeviceInfo &deviceInfo;

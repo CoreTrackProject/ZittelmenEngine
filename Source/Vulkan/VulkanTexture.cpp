@@ -15,8 +15,6 @@ std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDe
 }
 
 
-
-
 VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
     phyDevice(phyDevice), logicalDevice(logicalDevice), imageData(imageData)
 {
@@ -121,9 +119,6 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 			throw std::runtime_error("Failed to bind image memory.");
 		}
 	}
-
-
-
 
 }
 

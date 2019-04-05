@@ -8,6 +8,11 @@
 
 /* 
 *	Represents a texture in vulkan
+*
+*	TODO: Vulkan Texture class should not expose the QImage instance directly
+*	TO FIGURE OUT: Should the Buffer classes (VulkanTexture, VulkanBuffer) should handle
+*		  the uploading process to the gpu or VulkanCommand class?
+*
 *	TODO: Need parameters for this class
 *		  - width and height
 *		  - Image format
@@ -23,9 +28,7 @@ public: // Public Methods
 	VkDeviceMemory &getDeviceMemory();
 	VkBuffer &getBuffer();
 	VkDeviceSize &getSize();
-
     QImage &getQImage();
-
 	void freeMemory();
 
 
@@ -35,7 +38,6 @@ public: // Static methods
 private: // Private Methods
 	void createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height);
 	void destroyImage();
-
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	
 private:
