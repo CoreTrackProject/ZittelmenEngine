@@ -9,7 +9,7 @@ project(ZittelmenEngine VERSION 1.0.1 DESCRIPTION "Vulkan graphics engine")
 
 
 # Options for Build
-option( ZI_BUILD_EXAMPLES             "Build examples" ON )
+option( ZI_BUILD_EXAMPLES "Build examples" ON )
 
 
 
