@@ -9,6 +9,9 @@
 #include "VulkanDevice.h"
 #include "VulkanTexture.h"
 
+/*
+	TODO: Update function uploadVertexData with the new beginSingleTimeCommands function
+*/
 class VulkanCommand {
 
 public:
@@ -20,7 +23,7 @@ public:
 		VkExtent2D &swapchainExtent, 
 		VkPipeline &graphicsPipeline, 
 		VkPipelineLayout &pipelineLayout, 
-		VkQueue &transferQueue, 
+		VkQueue &graphicsQueue,
 		std::vector<VkDescriptorSet> &descriptorSetCollection
 	);
 	~VulkanCommand();
@@ -37,6 +40,10 @@ private:
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);
 
+	// TODO: Move those functions to other location (VulkanTexture)
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+
 private:
 	DeviceInfo &deviceInfo;
 	VkDevice &logicalDevice;
@@ -47,7 +54,7 @@ private:
 	std::vector<VkFramebuffer> &frameBufferCollection;
 	VkPipelineLayout &pipelineLayout;
 	std::vector<VkDescriptorSet> &descriptorSetCollection;
-	VkQueue &transferQueue;
+	VkQueue &graphicsQueue;
 
 	std::shared_ptr<VulkanBuffer> vertexBuffer;
 	std::shared_ptr<VulkanBuffer> indexBuffer;

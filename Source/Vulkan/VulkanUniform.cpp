@@ -1,11 +1,13 @@
 #include "VulkanUniform.h"
 
 
-VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent) :
+VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent, VkImageView &imageView, VkSampler &imageSampler) :
 	logicalDevice(logicalDevice), 
 	physicalDevice(physicalDevice), 
 	swapChainImageCollectionSize(swapChainImageCollectionSize),
-	swapchainExtent(swapchainExtent)
+	swapchainExtent(swapchainExtent),
+	imageView(imageView),
+	imageSampler(imageSampler)
 {
 	this->initDescriptorSetLayout();
 	this->initUniformBuffer();
@@ -78,18 +80,30 @@ void VulkanUniform::destroyUniformBuffer()
 }
 
 void VulkanUniform::initDescriptorPool() {
-	VkDescriptorPoolSize poolSize = {};
-	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSize.descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
+
+
+	//VkDescriptorPoolSize poolSize = {};
+	//poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	//poolSize.descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
+
+
+
+	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
+	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
+	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
+
 
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = 1;
-	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+	poolInfo.pPoolSizes = poolSizes.data();
 	poolInfo.maxSets = static_cast<uint32_t>(this->swapChainImageCollectionSize);
-
-	if (vkCreateDescriptorPool(this->logicalDevice, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+	
+	VkResult res = vkCreateDescriptorPool(this->logicalDevice, &poolInfo, nullptr, &descriptorPool);
+	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create descriptor pool.");
 	}
 
@@ -104,13 +118,23 @@ void VulkanUniform::initDescriptorSetLayout()
 	descSetLayoutBinding.stageFlags = VkShaderStageFlagBits::VK_SHADER_STAGE_VERTEX_BIT;
 	descSetLayoutBinding.pImmutableSamplers = nullptr;
 
-	VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {};
-	descSetLayoutCreateInfo.bindingCount = 1;
-	descSetLayoutCreateInfo.flags = 0;
-	descSetLayoutCreateInfo.pBindings = &descSetLayoutBinding;
-	descSetLayoutCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	descSetLayoutCreateInfo.pNext = nullptr;
+	VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
+	samplerLayoutBinding.binding = 1;
+	samplerLayoutBinding.descriptorType = VkDescriptorType::VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	samplerLayoutBinding.descriptorCount = 1;
+	samplerLayoutBinding.stageFlags = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
+	samplerLayoutBinding.pImmutableSamplers = nullptr;
+	
 
+	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { descSetLayoutBinding, samplerLayoutBinding };
+
+	VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {};
+	descSetLayoutCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descSetLayoutCreateInfo.flags = 0;
+	descSetLayoutCreateInfo.pNext = nullptr;
+	descSetLayoutCreateInfo.bindingCount = static_cast<uint32_t>(bindings.size());;
+	descSetLayoutCreateInfo.pBindings = bindings.data();
+	
 	VkResult res = vkCreateDescriptorSetLayout(this->logicalDevice, &descSetLayoutCreateInfo, nullptr, &this->descriptorSetLayout);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
@@ -134,7 +158,9 @@ void VulkanUniform::initDescriptorSet()
 	allocInfo.pSetLayouts = layouts.data();
 
 	this->descriptorSetCollection.resize(this->swapChainImageCollectionSize);
-	if (vkAllocateDescriptorSets(this->logicalDevice, &allocInfo, this->descriptorSetCollection.data()) != VK_SUCCESS) {
+
+	VkResult res = vkAllocateDescriptorSets(this->logicalDevice, &allocInfo, this->descriptorSetCollection.data());
+	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate descriptor sets.");
 	}
 
@@ -142,20 +168,48 @@ void VulkanUniform::initDescriptorSet()
 		VkDescriptorBufferInfo bufferInfo = {};
 		bufferInfo.buffer = this->uniformBufferCollection[i]->getBuffer();
 		bufferInfo.offset = 0;
-		bufferInfo.range = sizeof(UniformBufferObject);
+		bufferInfo.range  = sizeof(UniformBufferObject);
 
-		VkWriteDescriptorSet descriptorWrite = {};
-		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptorWrite.dstSet = this->descriptorSetCollection[i];
-		descriptorWrite.dstBinding = 0;
-		descriptorWrite.dstArrayElement = 0;
-		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pBufferInfo = &bufferInfo;
-		descriptorWrite.pImageInfo = nullptr; // Optional
-		descriptorWrite.pTexelBufferView = nullptr; // Optional
+		VkDescriptorImageInfo imageInfo = {};
+		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		imageInfo.imageView   = this->imageView;
+		imageInfo.sampler     = this->imageSampler;
+		
 
-		vkUpdateDescriptorSets(this->logicalDevice, 1, &descriptorWrite, 0, nullptr);
+		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
+		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[0].dstSet = this->descriptorSetCollection[i];
+		descriptorWrites[0].dstBinding = 0;
+		descriptorWrites[0].dstArrayElement = 0;
+		descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrites[0].descriptorCount = 1;
+		descriptorWrites[0].pBufferInfo = &bufferInfo;
+		//descriptorWrites[0].pTexelBufferView = nullptr; // Optional
+
+		descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrites[1].dstSet = this->descriptorSetCollection[i];
+		descriptorWrites[1].dstBinding = 1;
+		descriptorWrites[1].dstArrayElement = 0;
+		descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptorWrites[1].descriptorCount = 1;
+		descriptorWrites[1].pImageInfo = &imageInfo;
+		//descriptorWrites[1].pTexelBufferView = nullptr; // Optional
+
+		vkUpdateDescriptorSets(this->logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+
+
+		//VkWriteDescriptorSet descriptorWrite = {};
+		//descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		//descriptorWrite.dstSet = this->descriptorSetCollection[i];
+		//descriptorWrite.dstBinding = 0;
+		//descriptorWrite.dstArrayElement = 0;
+		//descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		//descriptorWrite.descriptorCount = 1;
+		//descriptorWrite.pBufferInfo = &bufferInfo;
+		//descriptorWrite.pImageInfo = nullptr; // Optional
+		//descriptorWrite.pTexelBufferView = nullptr; // Optional
+
+		//vkUpdateDescriptorSets(this->logicalDevice, 1, &descriptorWrite, 0, nullptr);
 
 	}
 

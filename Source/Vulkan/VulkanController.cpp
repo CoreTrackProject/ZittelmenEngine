@@ -80,13 +80,24 @@ void VulkanController::initialize()
 		this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->getLogicalDevice());
 	}
 
+	auto image = QImage("D:/coretrack_devel/texture.jpg");
+
+	this->texture = VulkanTexture::newTexture(
+		this->vulkanDevice->getPhysicalDevice(),
+		this->vulkanDevice->getLogicalDevice(),
+		image
+	);
+
+
 	// Vulkan Uniform Buffer
 	{
 		this->uniform = std::make_shared<VulkanUniform>(
 			this->vulkanDevice->getPhysicalDevice(),
 			this->vulkanDevice->getLogicalDevice(),
 			static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
-			this->swapchain->getSwapchainExtent2D()
+			this->swapchain->getSwapchainExtent2D(),
+			this->texture->getImageView(),
+			this->texture->getImageSampler()
 			);
 	}
 	
@@ -102,6 +113,7 @@ void VulkanController::initialize()
 			this->uniform->getDescriptorSetLayout()
 		);
 	}
+
 
 	// Vulkan Factory
 	{
@@ -131,27 +143,20 @@ void VulkanController::initialize()
 			this->swapchain->getSwapchainExtent2D(),
 			this->graphicsPipeline->getGraphicsPipeline(),
 			this->graphicsPipeline->getGraphicsPipelineLayout(),
-			this->vulkanDevice->getTransferQueue(),
+			this->vulkanDevice->getGraphicsQueue(),
 			this->uniform->getDescriptorSetCollection()
 		);
+
 
         // TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
         auto vertexData = this->vertex.getQuadVertexCollection();
         auto indexData  = this->vertex.getQuadVertexIndexCollection();
 
+		
         this->command->uploadVertexData(vertexData, indexData);
-
-        auto image = QImage("D:/coretrack_devel/texture.jpg");
-
-        std::shared_ptr<VulkanTexture> tmpTexture = VulkanTexture::newTexture(
-                    this->vulkanDevice->getPhysicalDevice(),
-                    this->vulkanDevice->getLogicalDevice(),
-                    image
-                    );
-
-
-        this->command->uploadImage(tmpTexture);
+		this->command->uploadImage(this->texture);
+        
 	}
 
 	// Vulkan Runtime
@@ -169,8 +174,6 @@ void VulkanController::initialize()
 		// https://de.cppreference.com/w/cpp/language/lambda
 		// https://www.reddit.com/r/cpp/comments/6tgi25/binding_stdfunction_to_member_functions/
 
-		//this->runtime->registerUpdateUBOCallback([&](uint32_t currFrameIdx) { this->uniform->updateUniformData(currFrameIdx); });
-
 	}
 
 }
@@ -183,6 +186,7 @@ void VulkanController::destroy()
 	//this->factory.reset();
 	this->graphicsPipeline.reset();
 	this->uniform.reset();
+	this->texture.reset();
 	this->shader.reset();
 	this->swapchain.reset();
 	this->window.reset();

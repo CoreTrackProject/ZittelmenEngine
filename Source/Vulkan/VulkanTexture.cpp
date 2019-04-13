@@ -14,7 +14,6 @@ std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDe
 	);
 }
 
-
 VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
     phyDevice(phyDevice), logicalDevice(logicalDevice), imageData(imageData)
 {
@@ -26,11 +25,15 @@ VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevic
 	this->devSize = sizeBytes;
 	//this->allocateBuffer(sizeBytes, bufferusage, memoryproperties);
 	this->createImage(sizeBytes, imageType, imageFormat, width, height);
+	this->createImageView();
+	this->createImageSampler();
 
 }
 
 VulkanTexture::~VulkanTexture() {
 	//this->deallocateBuffer();
+	this->destroyImageSampler();
+	this->destroyImageView();
 	this->destroyImage();
 }
 
@@ -43,14 +46,19 @@ VkDeviceMemory &VulkanTexture::getDeviceMemory() {
 	}
 }
 
-VkBuffer &VulkanTexture::getBuffer() {
-	if (this->buffer != VK_NULL_HANDLE) {
-		return this->buffer;
-	
-	} else {
-		throw std::runtime_error("Buffer is not initialized.");
+VkImage &VulkanTexture::getImage()
+{
+	return this->image;
+}
 
-	}
+VkImageView &VulkanTexture::getImageView()
+{
+	return this->imageView;
+}
+
+VkSampler &VulkanTexture::getImageSampler()
+{
+	return this->imageSampler;
 }
 
 VkDeviceSize &VulkanTexture::getSize() {
@@ -94,7 +102,6 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 
 
 	VkResult res = vkCreateImage(this->logicalDevice, &createInfo, nullptr, &this->image);
-
 	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create image.");
 	}
@@ -126,6 +133,71 @@ void VulkanTexture::destroyImage()
 {
 	vkFreeMemory(this->logicalDevice, this->devMemory, nullptr);
 	vkDestroyImage(this->logicalDevice, this->image, nullptr);
+}
+
+void VulkanTexture::createImageView()
+{
+	// TODO: Image view creation is the same as in the vulkan swapchain -> should be reused
+
+	// Create image view from image
+	VkImageViewCreateInfo viewInfo = {};
+	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	viewInfo.image = this->image;
+	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM; 
+	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	viewInfo.subresourceRange.baseMipLevel = 0;
+	viewInfo.subresourceRange.levelCount = 1;
+	viewInfo.subresourceRange.baseArrayLayer = 0;
+	viewInfo.subresourceRange.layerCount = 1;
+
+	VkResult res = vkCreateImageView(this->logicalDevice, &viewInfo, nullptr, &this->imageView);
+	if (res != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture image view.");
+	}
+
+
+}
+
+void VulkanTexture::destroyImageView()
+{
+	vkDestroyImageView(this->logicalDevice, this->imageView, nullptr);
+}
+
+void VulkanTexture::createImageSampler()
+{
+	VkSamplerCreateInfo samplerInfo = {};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = 16;
+
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+	samplerInfo.mipLodBias = 0.0f;
+	samplerInfo.minLod     = 0.0f;
+	samplerInfo.maxLod     = 0.0f;
+
+	VkResult res = vkCreateSampler(this->logicalDevice, &samplerInfo, nullptr, &this->imageSampler);
+	if (res != VK_SUCCESS) {
+		throw std::runtime_error("Failed to create texture sampler.");
+	}
+
+}
+
+void VulkanTexture::destroyImageSampler()
+{
+	vkDestroySampler(this->logicalDevice, this->imageSampler, nullptr);
 }
 
 uint32_t VulkanTexture::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {

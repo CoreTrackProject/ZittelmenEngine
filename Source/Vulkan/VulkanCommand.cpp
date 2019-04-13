@@ -2,7 +2,7 @@
 
 #include <QByteArray>
 
-VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout &pipelineLayout, VkQueue &transferQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
+VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout &pipelineLayout, VkQueue &graphicsQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
 	physicalDev(physicalDev),
 	logicalDevice(logicalDevice),
 	deviceInfo(deviceInfo),
@@ -10,7 +10,7 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 	renderpass(renderpass),
 	swapchainExtent(swapchainExtent),
 	graphicsPipeline(graphicsPipeline),
-	transferQueue(transferQueue),
+	graphicsQueue(graphicsQueue),
 	pipelineLayout(pipelineLayout),
 	descriptorSetCollection(descriptorSetCollection)
 {
@@ -32,24 +32,6 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 	// ----------------------------------------------------------
 	
-	// Create staging buffer here
-	// Create vertex buffer
-	// Upload vertex buffer
-
-	// Old
-	{
-
-		//VkDeviceSize vertexBufferSize = sizeof(vertexData[0]) * vertexData.size();
-		//VkBuffer vertexStagingBuffer;
-		//VkDeviceMemory vertexStagingBufferMemory;
-
-
-		//VkDeviceSize indexBufferSize = sizeof(indexCollection[0]) * indexCollection.size();
-		//VkBuffer indexStagingBuffer;
-		//VkDeviceMemory indexStagingBufferMemory;
-
-	}
-
 	VkDeviceSize vertexBufferSize = sizeof(VulkanVertex) * vertexData.size();
 	std::shared_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
 	this->vertexBuffer = VulkanBuffer::newVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize);
@@ -74,159 +56,6 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 		vkUnmapMemory(this->logicalDevice, indexStagingBufferObj->getDeviceMemory());
 	}
 
-	// Old code, just here as a backup
-	{
-		// Staging buffer creation logic should be more generic and in the vulkan factory class
-		{
-			/*VkBufferCreateInfo bufferInfo = {};
-			bufferInfo.sType       = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-			bufferInfo.size        = vertexBufferSize;
-			bufferInfo.usage       = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-			bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-			res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexStagingBuffer);
-			if (res != VK_SUCCESS) {
-				throw std::runtime_error("Failed to create staging buffer!");
-			}
-
-			VkMemoryRequirements memRequirements;
-			vkGetBufferMemoryRequirements(this->logicalDevice, vertexStagingBuffer, &memRequirements);
-
-			VkMemoryAllocateInfo allocInfo = {};
-			allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			allocInfo.allocationSize  = memRequirements.size;
-			allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-			res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexStagingBufferMemory);
-			if (res != VK_SUCCESS) {
-				throw std::runtime_error("Failed to allocated staging buffer memory");
-			}
-
-			res = vkBindBufferMemory(this->logicalDevice, vertexStagingBuffer, vertexStagingBufferMemory, 0);
-			if (res != VK_SUCCESS) {
-				throw std::runtime_error("Failed to bind staging buffer memory");
-			}*/
-
-
-
-
-		}
-
-		// Copy Vertex data to staging buffer
-		{
-			/*void* data;
-			vkMapMemory(this->logicalDevice, vertexStagingBufferMemory, 0, vertexBufferSize, 0, &data);
-			memcpy(data, vertexData.data(), (size_t)vertexBufferSize);
-			vkUnmapMemory(this->logicalDevice, vertexStagingBufferMemory);*/
-		}
-
-		// Vertex buffer creation
-		{
-			//VkBufferCreateInfo bufferInfo = {};
-			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-			//bufferInfo.size = vertexBufferSize;
-			//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &vertexBuffer);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to create Vertex buffer");
-			//}
-
-			//// Buffer memory allocation begins
-			//VkMemoryRequirements memRequirements;
-			//vkGetBufferMemoryRequirements(this->logicalDevice, vertexBuffer, &memRequirements);
-
-			//VkMemoryAllocateInfo allocInfo = {};
-			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			//allocInfo.allocationSize = memRequirements.size;
-			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &vertexBufferMemory);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to allocate vertex buffer memory.");
-			//}
-
-			//res = vkBindBufferMemory(this->logicalDevice, vertexBuffer, vertexBufferMemory, 0);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to bind vertex memory buffer");
-			//}
-		}
-
-		// Index staging buffer creation
-		{
-			//VkBufferCreateInfo bufferInfo = {};
-			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-			//bufferInfo.size = indexBufferSize;
-			//bufferInfo.usage = VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexStagingBuffer);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to create index staging buffer!");
-			//}
-
-			//VkMemoryRequirements memRequirements;
-			//vkGetBufferMemoryRequirements(this->logicalDevice, indexStagingBuffer, &memRequirements);
-
-			//VkMemoryAllocateInfo allocInfo = {};
-			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			//allocInfo.allocationSize = memRequirements.size;
-			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexStagingBufferMemory);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to allocated index staging buffer memory");
-			//}
-
-			//res = vkBindBufferMemory(this->logicalDevice, indexStagingBuffer, indexStagingBufferMemory, 0);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to bind index staging buffer memory");
-			//}
-		}
-
-		// Copy Index data to staging buffer
-		{
-			/*void* data;
-			vkMapMemory(this->logicalDevice, indexStagingBufferMemory, 0, indexBufferSize, 0, &data);
-			memcpy(data, indexCollection.data(), (size_t)indexBufferSize);
-			vkUnmapMemory(this->logicalDevice, indexStagingBufferMemory);*/
-		}
-
-		// Index buffer creation
-		{
-			//VkBufferCreateInfo bufferInfo = {};
-			//bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-			//bufferInfo.size = indexBufferSize;
-			//bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-			//bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-			//res = vkCreateBuffer(this->logicalDevice, &bufferInfo, nullptr, &indexBuffer);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to create index buffer");
-			//}
-
-			//// Buffer memory allocation begins
-			//VkMemoryRequirements memRequirements;
-			//vkGetBufferMemoryRequirements(this->logicalDevice, indexBuffer, &memRequirements);
-
-			//VkMemoryAllocateInfo allocInfo = {};
-			//allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-			//allocInfo.allocationSize = memRequirements.size;
-			//allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-			//res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &indexBufferMemory);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to allocate index buffer memory.");
-			//}
-
-			//res = vkBindBufferMemory(this->logicalDevice, indexBuffer, indexBufferMemory, 0);
-			//if (res != VK_SUCCESS) {
-			//	throw std::runtime_error("Failed to bind index memory buffer");
-			//}
-		}
-
-	}
 
 	// ----------------------------------------------------------
 
@@ -287,22 +116,18 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 		submitInfo.pSignalSemaphores	= nullptr;
 
 		// Upload data with the transfer queue
-		res = vkQueueSubmit(this->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
 		if (res != VkResult::VK_SUCCESS) {
 			throw std::runtime_error("Failed to submit command to transfer queue.");
 		}
 
-		res = vkQueueWaitIdle(this->transferQueue);
+		res = vkQueueWaitIdle(this->graphicsQueue);
 		if (res != VkResult::VK_SUCCESS) {
 			throw std::runtime_error("Queue wait idle error.");
 		}
 	}
 
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
-
-	// Destroy staging buffer
-	// vkFreeMemory(this->logicalDevice,    vertexStagingBufferMemory, nullptr);
-	// vkDestroyBuffer(this->logicalDevice, vertexStagingBuffer, nullptr);
 
 	// TODO: improve this part
 	{
@@ -316,8 +141,6 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 {
     this->imageTexture = vulkanTexture;
-
-	// TODO //
 
 	// Upload texture with a staging buffer same procedure as the vertex data
 	auto format = vulkanTexture->getQImage().format();
@@ -336,19 +159,35 @@ void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 		vkUnmapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory());
 	}
 
-	{
-		VkCommandBuffer singleCommand = this->beginSingleTimeCommands();
-
-		VkBufferCopy copyRegion = {};
-		copyRegion.size = imageSize;
-		vkCmdCopyBuffer(singleCommand, imageStagingBufferObj->getBuffer(), imageTexture->getBuffer(), 1, &copyRegion);
-
-		this->endSingleTimeCommands(singleCommand);
-	}
-	
-
+	this->transitionImageLayout(this->imageTexture->getImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	this->copyBufferToImage(imageStagingBufferObj->getBuffer(), imageTexture->getImage(), static_cast<uint32_t>(imageTexture->getQImage().width()), static_cast<uint32_t>(imageTexture->getQImage().height()));
+	this->transitionImageLayout(this->imageTexture->getImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 }
+
+void VulkanCommand::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
+	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+
+	VkBufferImageCopy region = {};
+	region.bufferOffset = 0;
+	region.bufferRowLength = 0;
+	region.bufferImageHeight = 0;
+	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	region.imageSubresource.mipLevel = 0;
+	region.imageSubresource.baseArrayLayer = 0;
+	region.imageSubresource.layerCount = 1;
+	region.imageOffset = { 0, 0, 0 };
+	region.imageExtent = {
+		width,
+		height,
+		1
+	};
+
+	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+	this->endSingleTimeCommands(commandBuffer);
+}
+
 
 void VulkanCommand::init_commandPool()
 {
@@ -458,7 +297,7 @@ VkCommandBuffer VulkanCommand::beginSingleTimeCommands()
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = commandPool;
+	allocInfo.commandPool = this->commandPool;
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer commandBuffer;
@@ -482,8 +321,58 @@ void VulkanCommand::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &commandBuffer;
 
-	vkQueueSubmit(this->transferQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(this->transferQueue);
+	vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(this->graphicsQueue);
 
-	vkFreeCommandBuffers(this->logicalDevice, commandPool, 1, &commandBuffer);
+	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
+}
+
+void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+{
+	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+
+	VkImageMemoryBarrier barrier = {};
+	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	barrier.oldLayout = oldLayout;
+	barrier.newLayout = newLayout;
+	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+	barrier.image = image;
+	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	barrier.subresourceRange.baseMipLevel = 0;
+	barrier.subresourceRange.levelCount = 1;
+	barrier.subresourceRange.baseArrayLayer = 0;
+	barrier.subresourceRange.layerCount = 1;
+
+	VkPipelineStageFlags sourceStage;
+	VkPipelineStageFlags destinationStage;
+
+	if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+	}
+	else {
+		throw std::invalid_argument("unsupported layout transition!");
+	}
+
+	vkCmdPipelineBarrier(
+		commandBuffer,
+		sourceStage, destinationStage,
+		0,
+		0, nullptr,
+		0, nullptr,
+		1, &barrier
+	);
+
+	this->endSingleTimeCommands(commandBuffer);
 }

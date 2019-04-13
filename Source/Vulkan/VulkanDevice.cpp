@@ -143,13 +143,15 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 		queueCreateInfoCollection.push_back(transferQueueCreateInfo);
 	}
 
-
 	VkPhysicalDeviceFeatures enabledFeatures = {};
+	enabledFeatures.samplerAnisotropy = VK_TRUE;
+
 	VkDeviceCreateInfo devCreateInfo = {};
 	devCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 	devCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoCollection.size());;
 	devCreateInfo.pQueueCreateInfos = queueCreateInfoCollection.data();
 	devCreateInfo.pEnabledFeatures = &enabledFeatures;
+	
 	
 
 	std::vector<const char*> deviceExtensions;

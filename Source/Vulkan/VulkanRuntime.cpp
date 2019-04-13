@@ -50,7 +50,6 @@ void VulkanRuntime::renderFrame()
 		//throw std::runtime_error("Failed acquire next image.");
 	}
 
-	// causes memory curruption
 	this->uniform->updateUniformData(imageIndex);
 
 	VkSubmitInfo submitInfo = {};

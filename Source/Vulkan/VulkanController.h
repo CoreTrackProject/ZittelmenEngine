@@ -55,5 +55,7 @@ private:
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
 
 	VulkanVertexData vertex;
+
+	std::shared_ptr<VulkanTexture> texture = nullptr;
 	
 };

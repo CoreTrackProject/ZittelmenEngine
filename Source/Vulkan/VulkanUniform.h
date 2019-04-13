@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <vector>
 #include <chrono>
+#include <array>
 
 #include "VulkanBuffer.h"
 
@@ -23,7 +24,7 @@ struct UniformBufferObject {
 class VulkanUniform {
 
 public:
-	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent);
+	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent, VkImageView &imageView, VkSampler &imageSampler);
 	~VulkanUniform();
 
 	VkDescriptorSetLayout &getDescriptorSetLayout();
@@ -43,6 +44,8 @@ private:
 	VkDevice &logicalDevice;
 	VkPhysicalDevice &physicalDevice;
 	VkExtent2D &swapchainExtent;
+	VkImageView &imageView;
+	VkSampler &imageSampler;
 
 	VkDescriptorSetLayout descriptorSetLayout; 
 	uint32_t swapChainImageCollectionSize;
