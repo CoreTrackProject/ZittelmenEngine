@@ -5,6 +5,7 @@
 #include <QImage>
 
 #include "VulkanVertex.hpp"
+#include "VulkanUtils.hpp"
 
 /* 
 *	Represents a texture in vulkan
@@ -46,9 +47,6 @@ private: // Private Methods
 
 	void createImageSampler();
 	void destroyImageSampler();
-
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
-	
 
 private:
 	VkDevice &logicalDevice;

@@ -4,6 +4,7 @@
 #include <stdexcept>
 
 #include "Vulkan/VulkanVertex.hpp"
+#include "VulkanUtils.hpp"
 
 /* 
 *	Vulkan Buffer which holds VkBuffer and VkDeviceMemory 
@@ -29,7 +30,6 @@ public: // Static methods
 private: // Private Methods
 	void allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties);
 	void deallocateBuffer();
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 private:
 	VkDevice &logicalDevice;

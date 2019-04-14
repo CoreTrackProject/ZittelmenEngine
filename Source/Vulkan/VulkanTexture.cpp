@@ -111,7 +111,7 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize  = memRequirements.size;
-		allocInfo.memoryTypeIndex = this->findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		allocInfo.memoryTypeIndex = VulkanUtils::FindMemoryType(this->phyDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 		VkResult res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &this->devMemory);
 		if (res != VK_SUCCESS) {
@@ -194,17 +194,4 @@ void VulkanTexture::createImageSampler()
 void VulkanTexture::destroyImageSampler()
 {
 	vkDestroySampler(this->logicalDevice, this->imageSampler, nullptr);
-}
-
-uint32_t VulkanTexture::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-	VkPhysicalDeviceMemoryProperties memProperties;
-	vkGetPhysicalDeviceMemoryProperties(this->phyDevice, &memProperties);
-
-	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-			return i;
-		}
-	}
-
-	throw std::runtime_error("Failed to find suitable memory type.");
 }

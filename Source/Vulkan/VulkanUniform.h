@@ -12,6 +12,7 @@
 #include <array>
 
 #include "VulkanBuffer.h"
+#include "VulkanUtils.hpp"
 
 //https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer
 

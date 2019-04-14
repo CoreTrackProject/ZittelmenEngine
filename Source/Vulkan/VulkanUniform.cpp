@@ -51,10 +51,20 @@ void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 
 	ubo.proj[1][1] *= -1;
 
+	VkDeviceSize uboSize = sizeof(ubo);
+	VulkanUtils::MapMemory(
+		this->logicalDevice, 
+		this->uniformBufferCollection[currFrameIdx]->getDeviceMemory(), 
+		&ubo, 
+		uboSize
+	);
+
+	/*
 	void* data;
 	vkMapMemory(this->logicalDevice, this->uniformBufferCollection[currFrameIdx]->getDeviceMemory(), 0, sizeof(ubo), 0, &data);
 	memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(this->logicalDevice, this->uniformBufferCollection[currFrameIdx]->getDeviceMemory());
+	*/
 
 }
 

@@ -8,6 +8,7 @@
 #include "VulkanBuffer.h"
 #include "VulkanDevice.h"
 #include "VulkanTexture.h"
+#include "VulkanUtils.hpp"
 
 /*
 	TODO: Update function uploadVertexData with the new beginSingleTimeCommands function
@@ -35,7 +36,6 @@ public:
 private:
 	void init_commandPool();
 	void init_drawCommand();
-	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
 	VkCommandBuffer beginSingleTimeCommands();
 	void endSingleTimeCommands(VkCommandBuffer commandBuffer);

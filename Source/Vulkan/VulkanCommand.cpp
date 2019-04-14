@@ -38,10 +38,12 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	
 	// Copy Vertex data to staging buffer
 	{
-		void* data;
-		vkMapMemory(this->logicalDevice, vertexStagingBufferObj->getDeviceMemory(), 0, vertexStagingBufferObj->getSize(), 0, &data);
-		memcpy(data, vertexData.data(), (size_t)vertexStagingBufferObj->getSize());
-		vkUnmapMemory(this->logicalDevice, vertexStagingBufferObj->getDeviceMemory());
+		VulkanUtils::MapMemory(
+			this->logicalDevice, 
+			vertexStagingBufferObj->getDeviceMemory(), 
+			vertexData.data(), 
+			vertexStagingBufferObj->getSize()
+		);
 	}
 
 	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
@@ -50,84 +52,29 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	
 	// Copy Index data to staging buffer
 	{
-		void* data;
-		vkMapMemory(this->logicalDevice, indexStagingBufferObj->getDeviceMemory(), 0, indexStagingBufferObj->getSize(), 0, &data);
-		memcpy(data, indexCollection.data(), (size_t)indexStagingBufferObj->getSize());
-		vkUnmapMemory(this->logicalDevice, indexStagingBufferObj->getDeviceMemory());
+		VulkanUtils::MapMemory(
+			this->logicalDevice,
+			indexStagingBufferObj->getDeviceMemory(),
+			indexCollection.data(),
+			indexStagingBufferObj->getSize()
+		);
 	}
-
 
 	// ----------------------------------------------------------
 
-	VkResult res;
+	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
 
-	// Create new command to upload the index data
-	VkCommandBufferAllocateInfo commandBufferAllocateInfo = {};
-	commandBufferAllocateInfo.sType				 = VkStructureType::VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	commandBufferAllocateInfo.pNext				 = nullptr;
-	commandBufferAllocateInfo.commandBufferCount = 1;
-	commandBufferAllocateInfo.commandPool		 = this->commandPool;
-	commandBufferAllocateInfo.level				 = VkCommandBufferLevel::VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	VkBufferCopy copyRegionVertexBuffer = {};
+	copyRegionVertexBuffer.size = vertexStagingBufferObj->getSize();
+	vkCmdCopyBuffer(commandBuffer, vertexStagingBufferObj->getBuffer(), this->vertexBuffer->getBuffer(), 1, &copyRegionVertexBuffer);
 
-	VkCommandBuffer commandBuffer = VK_NULL_HANDLE;
-	res = vkAllocateCommandBuffers(this->logicalDevice, &commandBufferAllocateInfo, &commandBuffer);
-	if (res != VkResult::VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate command buffer.");
-	}
+	VkBufferCopy copyRegionIndexBuffer = {};
+	copyRegionIndexBuffer.size = indexStagingBufferObj->getSize();
+	vkCmdCopyBuffer(commandBuffer, indexStagingBufferObj->getBuffer(),  this->indexBuffer->getBuffer(), 1, &copyRegionIndexBuffer);
 
-	VkCommandBufferBeginInfo commandBufferBeginInfo = {};
-	commandBufferBeginInfo.sType			= VkStructureType::VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	commandBufferBeginInfo.pNext			= nullptr;
-	commandBufferBeginInfo.pInheritanceInfo = nullptr; // Pointer to primary commandbuffer
+	this->endSingleTimeCommands(commandBuffer);
 
-	// Record Commands to upload the vertex data and the index data to the GPU
-	{
-		res = vkBeginCommandBuffer(commandBuffer, &commandBufferBeginInfo);
-		if (res != VkResult::VK_SUCCESS) {
-			throw std::runtime_error("Failed to begin command buffer.");
-		}
-
-		VkBufferCopy copyRegionVertexBuffer = {};
-		copyRegionVertexBuffer.size = vertexStagingBufferObj->getSize();
-		vkCmdCopyBuffer(commandBuffer, vertexStagingBufferObj->getBuffer(), this->vertexBuffer->getBuffer(), 1, &copyRegionVertexBuffer);
-
-		VkBufferCopy copyRegionIndexBuffer = {};
-		copyRegionIndexBuffer.size = indexStagingBufferObj->getSize();
-		vkCmdCopyBuffer(commandBuffer, indexStagingBufferObj->getBuffer(),  this->indexBuffer->getBuffer(), 1, &copyRegionIndexBuffer);
-
-		res = vkEndCommandBuffer(commandBuffer);
-		if (res != VkResult::VK_SUCCESS) {
-			throw std::runtime_error("Failed to end command buffer.");
-		}
-	}
-
-	// Submit Commands
-	{
-
-		VkSubmitInfo submitInfo = {};
-		submitInfo.sType			    = VkStructureType::VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.pNext			    = nullptr;
-		submitInfo.waitSemaphoreCount   = 0;
-		submitInfo.pWaitSemaphores      = nullptr;
-		submitInfo.pWaitDstStageMask    = nullptr;
-		submitInfo.commandBufferCount   = 1;
-		submitInfo.pCommandBuffers	    = &commandBuffer;
-		submitInfo.signalSemaphoreCount = 0;
-		submitInfo.pSignalSemaphores	= nullptr;
-
-		// Upload data with the transfer queue
-		res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		if (res != VkResult::VK_SUCCESS) {
-			throw std::runtime_error("Failed to submit command to transfer queue.");
-		}
-
-		res = vkQueueWaitIdle(this->graphicsQueue);
-		if (res != VkResult::VK_SUCCESS) {
-			throw std::runtime_error("Queue wait idle error.");
-		}
-	}
-
-	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
+	// ----------------------------------------------------------
 
 	// TODO: improve this part
 	{
@@ -151,12 +98,13 @@ void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 	VkDeviceSize imageSize = vulkanTexture->getQImage().byteCount();
 	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
 
-	auto tmp = vulkanTexture->getQImage().bits();
-    {
-		void* data;
-		vkMapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory(), 0, static_cast<size_t>(imageSize), 0, &data);
-        std::memcpy(data, tmp, static_cast<size_t>(imageSize));
-		vkUnmapMemory(this->logicalDevice, imageStagingBufferObj->getDeviceMemory());
+	{
+		VulkanUtils::MapMemory(
+			this->logicalDevice, 
+			imageStagingBufferObj->getDeviceMemory(), 
+			vulkanTexture->getQImage().bits(), 
+			imageSize
+		);
 	}
 
 	this->transitionImageLayout(this->imageTexture->getImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -187,7 +135,6 @@ void VulkanCommand::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t w
 
 	this->endSingleTimeCommands(commandBuffer);
 }
-
 
 void VulkanCommand::init_commandPool()
 {
@@ -276,22 +223,6 @@ void VulkanCommand::init_drawCommand()
 
 }
 
-
-// TODO: This method is similar to the one on VulkanFactory
-// -> Put this and others to a new class as static method (maybe VulkanDataProvider)
-uint32_t VulkanCommand::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
-	VkPhysicalDeviceMemoryProperties memProperties;
-	vkGetPhysicalDeviceMemoryProperties(this->physicalDev, &memProperties);
-
-	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
-		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
-			return i;
-		}
-	}
-
-	throw std::runtime_error("failed to find suitable memory type!");
-}
-
 VkCommandBuffer VulkanCommand::beginSingleTimeCommands()
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
@@ -316,13 +247,27 @@ void VulkanCommand::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 {
 	vkEndCommandBuffer(commandBuffer);
 
-	VkSubmitInfo submitInfo = {};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
+	VkSubmitInfo submitInfo         = {};
+	submitInfo.sType			    = VkStructureType::VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.pNext			    = nullptr;
+	submitInfo.waitSemaphoreCount   = 0;
+	submitInfo.pWaitSemaphores      = nullptr;
+	submitInfo.pWaitDstStageMask    = nullptr;
+	submitInfo.commandBufferCount   = 1;
+	submitInfo.pCommandBuffers	    = &commandBuffer;
+	submitInfo.signalSemaphoreCount = 0;
+	submitInfo.pSignalSemaphores	= nullptr;
 
-	vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-	vkQueueWaitIdle(this->graphicsQueue);
+	VkResult res;
+	res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Failed to submit command to transfer queue.");
+	}
+
+	res = vkQueueWaitIdle(this->graphicsQueue);
+	if (res != VkResult::VK_SUCCESS) {
+		throw std::runtime_error("Queue wait idle error.");
+	}
 
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
 }
