@@ -40,45 +40,24 @@ void VulkanController::initialize()
 	}
 
 	// Vulkan Instance
-	{
-		this->instance = std::make_unique<VulkanInstance>(this->enableValidation);
-	}
+	this->initVulkanInstance();
 
 	// Vulkan Debug
-	{
-		if (this->enableValidation) {
-			this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->getInstance());
-		}
+	if (this->enableValidation) {
+		this->initVulkanDebug();
 	}
 
 	// Vulkan Device
-	{
-		this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->getInstance());
-	}
-	
+	this->initVulkanDevice();
+
 	// Vulkan Window
-	{
-		this->window = std::make_unique<VulkanWindow>(this->instance->getInstance(), this->target);
-	}
+	this->initVulkanWindow();
 
 	// Vulkan Swapchain
-	{
-		this->swapchain = std::make_unique<VulkanSwapchain>(
-			this->vulkanDevice->getPhysicalDevice(),
-			this->vulkanDevice->getLogicalDevice(),
-			this->vulkanDevice->getPhysicalDeviceInfo(
-				this->vulkanDevice->getPhysicalDevice()
-			),
-			this->window->getSurface(),
-			this->width,
-			this->height
-		);
-	}
+	this->initVulkanSwapchain();
 
 	// Vulkan Shader
-	{
-		this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->getLogicalDevice());
-	}
+	this->initVulkanShader();
 
 	auto image = QImage("D:/coretrack_devel/texture.jpg");
 
@@ -88,116 +67,201 @@ void VulkanController::initialize()
 		image
 	);
 
-
 	// Vulkan Uniform Buffer
-	{
-		this->uniform = std::make_shared<VulkanUniform>(
-			this->vulkanDevice->getPhysicalDevice(),
-			this->vulkanDevice->getLogicalDevice(),
-			static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
-			this->swapchain->getSwapchainExtent2D(),
-			this->texture->getImageView(),
-			this->texture->getImageSampler()
-			);
-	}
-	
+	this->initVulkanUniform();
+
 	// Vulkan Graphicspipeline
-	{
-		this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(
-			this->vulkanDevice->getLogicalDevice(),
-			this->shader->getVertexShaderModule(),
-			this->shader->getFragmentShaderModule(),
-			this->swapchain->getSwapchainExtent2D(),
-			this->swapchain->getSwapchainImageFormat(),
-			this->swapchain->getImageCollection(),
-			this->uniform->getDescriptorSetLayout()
-		);
-	}
+	this->initVulkanGraphicsPipeline();
 
-
-	// Vulkan Factory
-	{
-		/*this->factory.reset(
-			new VulkanFactory(
-				this->vulkanDevice->getPhysicalDevice(),
-				this->vulkanDevice->getLogicalDevice()
-			));*/
-	}
-
-	// Staging buffer notes:
-	// Vertexbuffer is only in gpu
-	// Stagingbuffer is created which is accessible from gpu and cpu
-	// Vertex data is first stored in staging buffer
-	// Staging buffer gets uploaded to vertex buffer in gpu with a vulkan command (vkCmd...BlaBlaBla....)
-	
 	// Vulkan Command
-	{
-		this->command = std::make_unique<VulkanCommand>(
-			this->vulkanDevice->getPhysicalDevice(),
-			this->vulkanDevice->getLogicalDevice(),
-			this->vulkanDevice->getPhysicalDeviceInfo(
-				this->vulkanDevice->getPhysicalDevice()
-			),
-			this->graphicsPipeline->getFramebufferCollection(),
-			this->graphicsPipeline->getRenderPass(),
-			this->swapchain->getSwapchainExtent2D(),
-			this->graphicsPipeline->getGraphicsPipeline(),
-			this->graphicsPipeline->getGraphicsPipelineLayout(),
-			this->vulkanDevice->getGraphicsQueue(),
-			this->uniform->getDescriptorSetCollection()
-		);
+	this->initVulkanCommand();
 
+	// TODO: create function for uploading vertex data (with buffers or directly)
+	// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
+	auto vertexData = this->vertex.getQuadVertexCollection();
+	auto indexData = this->vertex.getQuadVertexIndexCollection();
 
-        // TODO: create function for uploading vertex data (with buffers or directly)
-		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-        auto vertexData = this->vertex.getQuadVertexCollection();
-        auto indexData  = this->vertex.getQuadVertexIndexCollection();
-
-		
-        this->command->uploadVertexData(vertexData, indexData);
-		this->command->uploadImage(this->texture);
-        
-	}
+	this->command->uploadVertexData(vertexData, indexData);
+	this->command->uploadImage(this->texture);
 
 	// Vulkan Runtime
-	{
-		this->runtime = std::make_unique<VulkanRuntime>(
-			this->vulkanDevice->getLogicalDevice(),
-			this->swapchain->getSwapchain(),
-			this->command->getDrawCommandBufferCollection(),
-			this->vulkanDevice->getGraphicsQueue(),
-			this->swapchain->getPresentQueue(),
-			this->uniform // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
-		);
+	this->initVulkanRuntime();
 
-		// Infos about lambdas:
-		// https://de.cppreference.com/w/cpp/language/lambda
-		// https://www.reddit.com/r/cpp/comments/6tgi25/binding_stdfunction_to_member_functions/
-
-	}
+	// Infos about lambdas:
+	// https://de.cppreference.com/w/cpp/language/lambda
+	// https://www.reddit.com/r/cpp/comments/6tgi25/binding_stdfunction_to_member_functions/
 
 }
 
 void VulkanController::destroy()
 {
+	// Destroy all vulkan objects in reversed order
 
-	this->runtime.reset();
-	this->command.reset();
-	//this->factory.reset();
-	this->graphicsPipeline.reset();
-	this->uniform.reset();
+	this->destroyVulkanRuntime();
+	this->destroyVulkanCommand();
+	this->destroyVulkanGraphicsPipeline();
+	this->destroyVulkanUnform();
+
 	this->texture.reset();
-	this->shader.reset();
-	this->swapchain.reset();
-	this->window.reset();
 
-	this->vulkanDevice.reset();
+	this->destroyVulkanShader();
+	this->destroyVulkanSwapchain();
+	this->destroyVulkanWindow();
+	this->destroyVulkanDevice();
+	if (this->enableValidation) {
+		this->destroyVulkanDebug();
+	}
+	this->destroyVulkanInstance();
+}
+
+void VulkanController::initVulkanInstance()
+{
+	this->instance = std::make_unique<VulkanInstance>(this->enableValidation);
+}
+
+void VulkanController::destroyVulkanInstance()
+{
+	this->instance.reset();
+}
+
+void VulkanController::initVulkanDebug()
+{
+	if (this->enableValidation) {
+		this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->getInstance());
+	}
+}
+
+void VulkanController::destroyVulkanDebug()
+{
 	if (this->enableValidation) {
 		this->vulkanDebug.reset();
 	}
-
-	this->instance.reset();
 }
+
+void VulkanController::initVulkanDevice()
+{
+	this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->getInstance());
+}
+
+void VulkanController::destroyVulkanDevice()
+{
+	this->vulkanDevice.reset();
+}
+
+void VulkanController::initVulkanWindow()
+{
+	this->window = std::make_unique<VulkanWindow>(this->instance->getInstance(), this->target);
+}
+
+void VulkanController::destroyVulkanWindow()
+{
+	this->window.reset();
+}
+
+void VulkanController::initVulkanSwapchain()
+{
+	this->swapchain = std::make_unique<VulkanSwapchain>(
+		this->vulkanDevice->getPhysicalDevice(),
+		this->vulkanDevice->getLogicalDevice(),
+		this->vulkanDevice->getPhysicalDeviceInfo(
+			this->vulkanDevice->getPhysicalDevice()
+		),
+		this->window->getSurface(),
+		this->width,
+		this->height
+		);
+}
+
+void VulkanController::destroyVulkanSwapchain()
+{
+	this->swapchain.reset();
+}
+
+void VulkanController::initVulkanShader()
+{
+	this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->getLogicalDevice());
+}
+
+void VulkanController::destroyVulkanShader()
+{
+	this->shader.reset();
+}
+
+void VulkanController::initVulkanGraphicsPipeline()
+{
+	this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(
+		this->vulkanDevice->getLogicalDevice(),
+		this->shader->getVertexShaderModule(),
+		this->shader->getFragmentShaderModule(),
+		this->swapchain->getSwapchainExtent2D(),
+		this->swapchain->getSwapchainImageFormat(),
+		this->swapchain->getImageCollection(),
+		this->uniform->getDescriptorSetLayout()
+		);
+}
+
+void VulkanController::destroyVulkanGraphicsPipeline()
+{
+	this->graphicsPipeline.reset();
+}
+
+void VulkanController::initVulkanCommand()
+{
+	this->command = std::make_unique<VulkanCommand>(
+		this->vulkanDevice->getPhysicalDevice(),
+		this->vulkanDevice->getLogicalDevice(),
+		this->vulkanDevice->getPhysicalDeviceInfo(
+			this->vulkanDevice->getPhysicalDevice()
+		),
+		this->graphicsPipeline->getFramebufferCollection(),
+		this->graphicsPipeline->getRenderPass(),
+		this->swapchain->getSwapchainExtent2D(),
+		this->graphicsPipeline->getGraphicsPipeline(),
+		this->graphicsPipeline->getGraphicsPipelineLayout(),
+		this->vulkanDevice->getGraphicsQueue(),
+		this->uniform->getDescriptorSetCollection()
+		);
+}
+
+void VulkanController::destroyVulkanCommand()
+{
+	this->command.reset();
+}
+
+void VulkanController::initVulkanRuntime()
+{
+	this->runtime = std::make_unique<VulkanRuntime>(
+		this->vulkanDevice->getLogicalDevice(),
+		this->swapchain->getSwapchain(),
+		this->command->getDrawCommandBufferCollection(),
+		this->vulkanDevice->getGraphicsQueue(),
+		this->swapchain->getPresentQueue(),
+		this->uniform // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
+		);
+}
+
+void VulkanController::destroyVulkanRuntime()
+{
+	this->runtime.reset();
+}
+
+void VulkanController::initVulkanUniform()
+{
+	this->uniform = std::make_shared<VulkanUniform>(
+		this->vulkanDevice->getPhysicalDevice(),
+		this->vulkanDevice->getLogicalDevice(),
+		static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
+		this->swapchain->getSwapchainExtent2D(),
+		this->texture->getImageView(),
+		this->texture->getImageSampler()
+		);
+}
+
+void VulkanController::destroyVulkanUnform()
+{
+	this->uniform.reset();
+}
+
 
 void VulkanController::renderFrame()
 {

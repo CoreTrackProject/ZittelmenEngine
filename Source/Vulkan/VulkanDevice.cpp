@@ -73,6 +73,9 @@ void VulkanDevice::init_vulkanDevice()
 
 
 		// Get queue family indexes which support graphics, compute and transfer
+		// TODO: There are multiple queues for (graphics, transer, compute) atm it always takes the last one
+		//	-> Maybe add all those different queues to different containers
+		// TODO: Find queues which supports graphics and transfer
 		for (int a = 0; a < info.queueFamilyPropertyCollection.size(); a++) {
 			if ((info.queueFamilyPropertyCollection[a].queueCount > 0) && (info.queueFamilyPropertyCollection[a].queueFlags & VkQueueFlagBits::VK_QUEUE_GRAPHICS_BIT)) {
 				info.queueFamilyIndexes.graphics = a;
@@ -87,8 +90,6 @@ void VulkanDevice::init_vulkanDevice()
 
 		this->physicalDevCollection->insert(std::make_pair(tmpPhysicalDevCollection[i], info));
 	}
-
-
 
 }
 
@@ -108,11 +109,6 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	//	- Compute queue
 	//	- Transfer queue
 
-	// TODO:
-	// Create new VkDeviceQueueCreateInfo 
-	// if queueFamilyIndex is different with 
-	// VK_QUEUE_COMPUTE_BIT and VK_QUEUE_TRANSFER_BIT
-
 	DeviceInfo &devInfo = this->getPhysicalDeviceInfo(physicalDevice);
 	
 	const float queuePriority = 0.0f;
@@ -125,6 +121,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	graphicsQueueCreateInfo.queueCount = 1;
 	queueCreateInfoCollection.push_back(graphicsQueueCreateInfo);
 
+	// check if graphics queue differs from the compute queue
 	if (devInfo.queueFamilyIndexes.graphics != devInfo.queueFamilyIndexes.compute) {
 		VkDeviceQueueCreateInfo computeQueueCreateInfo = {};
 		computeQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -134,6 +131,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 		queueCreateInfoCollection.push_back(computeQueueCreateInfo);
 	}
 
+	// Check if the graphics queue differs from transfer queue
 	if (devInfo.queueFamilyIndexes.graphics != devInfo.queueFamilyIndexes.transfer) {
 		VkDeviceQueueCreateInfo transferQueueCreateInfo = {};
 		transferQueueCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -152,8 +150,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	devCreateInfo.pQueueCreateInfos = queueCreateInfoCollection.data();
 	devCreateInfo.pEnabledFeatures = &enabledFeatures;
 	
-	
-
+	// Add device extension to use
 	std::vector<const char*> deviceExtensions;
 
 	if (this->isSwapchainSupported(physicalDevice)) {
@@ -164,8 +161,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 		deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
 	}
 
-	if (deviceExtensions.size() > 0)
-	{
+	if (deviceExtensions.size() > 0) {
 		devCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
 		devCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 	}
@@ -174,11 +170,11 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::exception("vkCreateDevice failed");
 	}
-
 }
 
 void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 {
+	// Get queues from index
 	DeviceInfo &devInfo = this->getPhysicalDeviceInfo(logicalDevice);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.graphics, 0, &this->graphicsQueue);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
@@ -199,6 +195,7 @@ uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, Vk
 
 bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName)
 {
+	// check if the device extension is supported by the selected physical device
 	DeviceInfo &tmpCollection = this->getPhysicalDeviceInfo(logicalDevice);
 	for (VkExtensionProperties props : tmpCollection.deviceExtensionCollection) {
 		if (extensionName == props.extensionName) {

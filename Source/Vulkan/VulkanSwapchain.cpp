@@ -99,7 +99,8 @@ void VulkanSwapchain::init_Swapchain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	if (vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &this->swapChain) != VK_SUCCESS) {
+	VkResult res = vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &this->swapChain);
+	if (res != VK_SUCCESS) {
 		throw std::runtime_error("failed to create swap chain!");
 	}
 
@@ -193,11 +194,8 @@ void VulkanSwapchain::init_Imageviews()
 		}
 
 		image.imageView = view;
-
-
 		this->imageCollection.push_back(image);
 	}
-
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)

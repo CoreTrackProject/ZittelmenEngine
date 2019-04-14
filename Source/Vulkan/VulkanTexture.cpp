@@ -23,7 +23,6 @@ VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevic
 	this->imageData = imageData.convertToFormat(QImage::Format_RGBA8888);
 
 	this->devSize = sizeBytes;
-	//this->allocateBuffer(sizeBytes, bufferusage, memoryproperties);
 	this->createImage(sizeBytes, imageType, imageFormat, width, height);
 	this->createImageView();
 	this->createImageSampler();
@@ -31,7 +30,6 @@ VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevic
 }
 
 VulkanTexture::~VulkanTexture() {
-	//this->deallocateBuffer();
 	this->destroyImageSampler();
 	this->destroyImageView();
 	this->destroyImage();
@@ -42,7 +40,7 @@ VkDeviceMemory &VulkanTexture::getDeviceMemory() {
 		return this->devMemory;
 	
 	} else {
-		throw std::runtime_error("Buffer is not initialized.");
+		throw std::runtime_error("Image device memory is not initialized.");
 	}
 }
 
@@ -75,7 +73,6 @@ QImage &VulkanTexture::getQImage() {
 
 void VulkanTexture::freeMemory()
 {
-	//this->deallocateBuffer();
 	this->destroyImage();
 }
 
@@ -118,7 +115,7 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 
 		VkResult res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &this->devMemory);
 		if (res != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate image memory!");
+			throw std::runtime_error("Failed to allocate image memory.");
 		}
 		
 		res = vkBindImageMemory(this->logicalDevice, this->image, this->devMemory, 0);
@@ -155,7 +152,6 @@ void VulkanTexture::createImageView()
 	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create texture image view.");
 	}
-
 
 }
 
@@ -210,5 +206,5 @@ uint32_t VulkanTexture::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlag
 		}
 	}
 
-	throw std::runtime_error("failed to find suitable memory type!");
+	throw std::runtime_error("Failed to find suitable memory type.");
 }

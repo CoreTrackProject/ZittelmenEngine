@@ -33,6 +33,38 @@ public:
 
 	void initialize();
 	void destroy();
+
+
+	void initVulkanInstance();
+	void destroyVulkanInstance();
+
+	void initVulkanDebug();
+	void destroyVulkanDebug();
+
+	void initVulkanDevice();
+	void destroyVulkanDevice();
+
+	void initVulkanWindow();
+	void destroyVulkanWindow();
+
+	void initVulkanSwapchain();
+	void destroyVulkanSwapchain();
+
+	void initVulkanShader();
+	void destroyVulkanShader();
+	 
+	void initVulkanGraphicsPipeline();
+	void destroyVulkanGraphicsPipeline();
+
+	void initVulkanCommand();
+	void destroyVulkanCommand();
+
+	void initVulkanRuntime();
+	void destroyVulkanRuntime();
+
+	void initVulkanUniform();
+	void destroyVulkanUnform();
+
 	void renderFrame();
 
 private:
@@ -50,12 +82,10 @@ private:
 	std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline = nullptr;
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
-
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
+	std::shared_ptr<VulkanTexture> texture					 = nullptr;
 
 	VulkanVertexData vertex;
 
-	std::shared_ptr<VulkanTexture> texture = nullptr;
-	
 };
