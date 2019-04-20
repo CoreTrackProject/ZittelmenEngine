@@ -18,6 +18,7 @@
 #include "VulkanFactory.h"
 #include "VulkanUniform.h"
 
+
 /*
 	Top class from where the whole Vulkan api get controlled
 */
@@ -67,6 +68,7 @@ public:
 
 	void renderFrame();
 
+
 private:
 	bool enableValidation  = false;
 	WId target;
@@ -84,10 +86,12 @@ private:
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
+	std::shared_ptr<VulkanTexture> depthTexture              = nullptr;
 
-	// TMP
+	// TMP 
+	// Create a scene class which holds all the imported contetnt
 	std::shared_ptr<VulkanTexture> imageTexture			     = nullptr;
-	std::shared_ptr<VulkanTexture> depthTexture				 = nullptr;
+
 
 
 };
