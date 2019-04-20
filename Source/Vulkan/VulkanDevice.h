@@ -33,11 +33,11 @@ public:
 
 
 public:
-	VkDevice &getLogicalDevice();
-	VkPhysicalDevice &getPhysicalDevice();
-	DeviceInfo &getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
+	VkDevice &GetLogicalDevice();
+	VkPhysicalDevice &GetPhysicalDevice();
+	DeviceInfo &GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
 	
-	VkQueue &getGraphicsQueue();
+	VkQueue &GetGraphicsQueue();
 	VkQueue &getTransferQueue();
 
 

@@ -23,12 +23,12 @@ VulkanUniform::~VulkanUniform() {
 	this->destroyDescriptorSetLayout();
 }
 
-VkDescriptorSetLayout &VulkanUniform::getDescriptorSetLayout()
+VkDescriptorSetLayout &VulkanUniform::GetDescriptorSetLayout()
 {
 	return this->descriptorSetLayout;
 }
 
-std::vector<VkDescriptorSet> &VulkanUniform::getDescriptorSetCollection()
+std::vector<VkDescriptorSet> &VulkanUniform::GetDescriptorSetCollection()
 {
 	return this->descriptorSetCollection;
 }
@@ -58,14 +58,6 @@ void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 		&ubo, 
 		uboSize
 	);
-
-	/*
-	void* data;
-	vkMapMemory(this->logicalDevice, this->uniformBufferCollection[currFrameIdx]->getDeviceMemory(), 0, sizeof(ubo), 0, &data);
-	memcpy(data, &ubo, sizeof(ubo));
-	vkUnmapMemory(this->logicalDevice, this->uniformBufferCollection[currFrameIdx]->getDeviceMemory());
-	*/
-
 }
 
 void VulkanUniform::initUniformBuffer() {
@@ -74,7 +66,7 @@ void VulkanUniform::initUniformBuffer() {
 	//this->uniformBufferCollection.resize(this->swapChainImageCollectionSize);
 	
 	for (size_t i = 0; i < this->swapChainImageCollectionSize; i++) {
-		this->uniformBufferCollection.push_back(VulkanBuffer::newUniformBuffer(this->physicalDevice, this->logicalDevice, bufferSize));
+		this->uniformBufferCollection.push_back(VulkanBuffer::NewUniformBuffer(this->physicalDevice, this->logicalDevice, bufferSize));
 	}
 }
 
@@ -89,22 +81,14 @@ void VulkanUniform::destroyUniformBuffer()
 
 }
 
-void VulkanUniform::initDescriptorPool() {
-
-
-	//VkDescriptorPoolSize poolSize = {};
-	//poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//poolSize.descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
-
-
+void VulkanUniform::initDescriptorPool() 
+{
 
 	std::array<VkDescriptorPoolSize, 2> poolSizes = {};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	poolSizes[0].descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	poolSizes[1].descriptorCount = static_cast<uint32_t>(this->swapChainImageCollectionSize);
-
-
 
 	VkDescriptorPoolCreateInfo poolInfo = {};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -135,7 +119,6 @@ void VulkanUniform::initDescriptorSetLayout()
 	samplerLayoutBinding.stageFlags = VkShaderStageFlagBits::VK_SHADER_STAGE_FRAGMENT_BIT;
 	samplerLayoutBinding.pImmutableSamplers = nullptr;
 	
-
 	std::array<VkDescriptorSetLayoutBinding, 2> bindings = { descSetLayoutBinding, samplerLayoutBinding };
 
 	VkDescriptorSetLayoutCreateInfo descSetLayoutCreateInfo = {};
@@ -149,7 +132,6 @@ void VulkanUniform::initDescriptorSetLayout()
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("failed to create descriptor set layout!");
 	}
-
 }
 
 void VulkanUniform::destroyDescriptorSetLayout()
@@ -185,7 +167,6 @@ void VulkanUniform::initDescriptorSet()
 		imageInfo.imageView   = this->imageView;
 		imageInfo.sampler     = this->imageSampler;
 		
-
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites = {};
 		descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrites[0].dstSet = this->descriptorSetCollection[i];
@@ -206,23 +187,5 @@ void VulkanUniform::initDescriptorSet()
 		//descriptorWrites[1].pTexelBufferView = nullptr; // Optional
 
 		vkUpdateDescriptorSets(this->logicalDevice, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-
-		//VkWriteDescriptorSet descriptorWrite = {};
-		//descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		//descriptorWrite.dstSet = this->descriptorSetCollection[i];
-		//descriptorWrite.dstBinding = 0;
-		//descriptorWrite.dstArrayElement = 0;
-		//descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		//descriptorWrite.descriptorCount = 1;
-		//descriptorWrite.pBufferInfo = &bufferInfo;
-		//descriptorWrite.pImageInfo = nullptr; // Optional
-		//descriptorWrite.pTexelBufferView = nullptr; // Optional
-
-		//vkUpdateDescriptorSets(this->logicalDevice, 1, &descriptorWrite, 0, nullptr);
-
 	}
-
-
-
 }

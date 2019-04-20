@@ -24,13 +24,13 @@ public:
 	VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height);
 	~VulkanSwapchain();
 
-	VkExtent2D &getSwapchainExtent2D();
-	VkSurfaceFormatKHR &getSwapchainImageFormat();
-	VkSwapchainKHR &getSwapchain();
+	VkExtent2D &GetSwapchainExtent2D();
+	VkSurfaceFormatKHR &GetSwapchainImageFormat();
+	VkSwapchainKHR &GetSwapchain();
 
-	std::vector<Image> &getImageCollection();
+	std::vector<Image> &GetImageCollection();
 	uint32_t &getQueueFamilyPresentIdx();
-	VkQueue &getPresentQueue();
+	VkQueue &GetPresentQueue();
 
 
 private:

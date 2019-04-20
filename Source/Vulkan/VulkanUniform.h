@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -28,8 +29,8 @@ public:
 	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent, VkImageView &imageView, VkSampler &imageSampler);
 	~VulkanUniform();
 
-	VkDescriptorSetLayout &getDescriptorSetLayout();
-	std::vector<VkDescriptorSet> &getDescriptorSetCollection();
+	VkDescriptorSetLayout &GetDescriptorSetLayout();
+	std::vector<VkDescriptorSet> &GetDescriptorSetCollection();
 
 	void updateUniformData(uint32_t currFrameIdx);
 

@@ -18,12 +18,28 @@ public:
 		void* pUserData)
 	{
 
-		qDebug() << "[" << messageSeverity << "]" << ":" << pCallbackData->pMessage;
+		std::string severity = "";
+		switch (messageSeverity) {
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			severity = "ERROR";
+			break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+			severity = "INFO";
+			break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+			severity = "VERBOSE";
+			break;
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			severity = "WARNING";
+			break;
+		};
+
+		qDebug() << "[" << severity.c_str() << "]" << ":" << pCallbackData->pMessage;
 
 		return VK_FALSE;
 	}
 
-	static constexpr VkDebugUtilsMessengerCreateInfoEXT debugUtilsMessengerCreateInfo = {
+	static constexpr VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo = {
 		VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 		VK_NULL_HANDLE,
 		0,

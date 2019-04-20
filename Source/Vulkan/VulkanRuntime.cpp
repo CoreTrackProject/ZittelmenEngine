@@ -15,7 +15,7 @@ VulkanRuntime::~VulkanRuntime() {
 	this->destroy();
 }
 
-void VulkanRuntime::renderFrame()
+void VulkanRuntime::RenderFrame()
 {
 	if (!this->isRenderActive) {
 		return;

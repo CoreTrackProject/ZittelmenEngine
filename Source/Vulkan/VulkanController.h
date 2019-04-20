@@ -68,7 +68,7 @@ public:
 	void renderFrame();
 
 private:
-	bool enableValidation = false;
+	bool enableValidation  = false;
 	WId target;
 	uint32_t width, height = 0;
 
@@ -84,8 +84,10 @@ private:
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
-	std::shared_ptr<VulkanTexture> texture					 = nullptr;
 
-	VulkanVertexData vertex;
+	// TMP
+	std::shared_ptr<VulkanTexture> imageTexture			     = nullptr;
+	std::shared_ptr<VulkanTexture> depthTexture				 = nullptr;
+
 
 };

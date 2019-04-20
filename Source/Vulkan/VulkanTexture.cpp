@@ -1,6 +1,6 @@
 #include "VulkanTexture.h"
 
-std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image)
+std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image)
 {
 	return std::make_shared<VulkanTexture>(
 		phyDevice,
@@ -9,12 +9,43 @@ std::shared_ptr<VulkanTexture> VulkanTexture::newTexture(VkPhysicalDevice &phyDe
 		static_cast<VkDeviceSize>(image.sizeInBytes()),
 		VkImageType::VK_IMAGE_TYPE_2D,
 		VkFormat::VK_FORMAT_R8G8B8A8_UNORM,
+		VkImageTiling::VK_IMAGE_TILING_OPTIMAL,
+		VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_SAMPLED_BIT,
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		image.width(),
-		image.height()
+		image.height(),
+		VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT
 	);
 }
 
-VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height) :
+std::shared_ptr<VulkanTexture> VulkanTexture::NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, uint32_t width, uint32_t height)
+{
+	// Find supported depth format which is supported by the gpu
+	VkFormat format = VulkanUtils::FindDepthFormat(phyDevice);
+
+	QImage depthImage(width, height, QImage::Format_RGBA8888);
+	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>(
+		phyDevice,
+		logicalDevice,
+		depthImage,
+		static_cast<VkDeviceSize>(depthImage.sizeInBytes()),
+		VkImageType::VK_IMAGE_TYPE_2D,
+		format,
+		VkImageTiling::VK_IMAGE_TILING_OPTIMAL,
+		VkImageUsageFlagBits::VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		width,
+		height,
+		VkImageAspectFlagBits::VK_IMAGE_ASPECT_DEPTH_BIT
+		);
+
+
+	//VulkanUtils::TransitionImageLayout(comm.get(), texture->getImage(), format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+	return texture;
+}
+
+VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t width, uint32_t height, VkImageAspectFlags aspectFlags) :
     phyDevice(phyDevice), logicalDevice(logicalDevice), imageData(imageData)
 {
 
@@ -23,8 +54,8 @@ VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevic
 	this->imageData = imageData.convertToFormat(QImage::Format_RGBA8888);
 
 	this->devSize = sizeBytes;
-	this->createImage(sizeBytes, imageType, imageFormat, width, height);
-	this->createImageView();
+	this->createImage(sizeBytes, imageType, imageFormat, tiling, usage, properties, width, height);
+	this->createImageView(imageFormat, aspectFlags);
 	this->createImageSampler();
 
 }
@@ -44,17 +75,17 @@ VkDeviceMemory &VulkanTexture::getDeviceMemory() {
 	}
 }
 
-VkImage &VulkanTexture::getImage()
+VkImage &VulkanTexture::GetImage()
 {
 	return this->image;
 }
 
-VkImageView &VulkanTexture::getImageView()
+VkImageView &VulkanTexture::GetImageView()
 {
 	return this->imageView;
 }
 
-VkSampler &VulkanTexture::getImageSampler()
+VkSampler &VulkanTexture::GetImageSampler()
 {
 	return this->imageSampler;
 }
@@ -76,9 +107,8 @@ void VulkanTexture::freeMemory()
 	this->destroyImage();
 }
 
-void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, uint32_t width, uint32_t height)
+void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t width, uint32_t height)
 {
-
 	VkImageCreateInfo createInfo = {};
 	createInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	createInfo.pNext = nullptr;
@@ -91,18 +121,16 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 	createInfo.arrayLayers = 1;
 
 	createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	createInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	createInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	createInfo.tiling = tiling; // VK_IMAGE_TILING_OPTIMAL;
+	createInfo.usage = usage;   // VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	createInfo.samples = VK_SAMPLE_COUNT_1_BIT;
 	createInfo.flags = 0; // Optional
-
 
 	VkResult res = vkCreateImage(this->logicalDevice, &createInfo, nullptr, &this->image);
 	if (res != VK_SUCCESS) {
 		throw std::runtime_error("Failed to create image.");
 	}
-
 
 	{
 		VkMemoryRequirements memRequirements;
@@ -111,7 +139,7 @@ void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, V
 		VkMemoryAllocateInfo allocInfo = {};
 		allocInfo.sType			  = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize  = memRequirements.size;
-		allocInfo.memoryTypeIndex = VulkanUtils::FindMemoryType(this->phyDevice, memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		allocInfo.memoryTypeIndex = VulkanUtils::FindMemoryType(this->phyDevice, memRequirements.memoryTypeBits, properties/*VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT*/);
 
 		VkResult res = vkAllocateMemory(this->logicalDevice, &allocInfo, nullptr, &this->devMemory);
 		if (res != VK_SUCCESS) {
@@ -132,7 +160,7 @@ void VulkanTexture::destroyImage()
 	vkDestroyImage(this->logicalDevice, this->image, nullptr);
 }
 
-void VulkanTexture::createImageView()
+void VulkanTexture::createImageView(VkFormat format, VkImageAspectFlags aspectFlags)
 {
 	// TODO: Image view creation is the same as in the vulkan swapchain -> should be reused
 
@@ -141,8 +169,8 @@ void VulkanTexture::createImageView()
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = this->image;
 	viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	viewInfo.format = VK_FORMAT_R8G8B8A8_UNORM; 
-	viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	viewInfo.format = format; // VK_FORMAT_R8G8B8A8_UNORM;
+	viewInfo.subresourceRange.aspectMask = aspectFlags;// VK_IMAGE_ASPECT_COLOR_BIT;
 	viewInfo.subresourceRange.baseMipLevel = 0;
 	viewInfo.subresourceRange.levelCount = 1;
 	viewInfo.subresourceRange.baseArrayLayer = 0;

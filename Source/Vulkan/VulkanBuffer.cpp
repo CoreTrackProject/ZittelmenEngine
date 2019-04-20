@@ -1,6 +1,6 @@
 #include "VulkanBuffer.h"
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
 {
 	return std::make_shared<VulkanBuffer>(
 		phyDevice,
@@ -11,7 +11,7 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::newStagingBuffer(VkPhysicalDevice &p
 	);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::newVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
 {
 	return std::make_shared<VulkanBuffer>(
 		phyDevice,
@@ -22,7 +22,7 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::newVertexBuffer(VkPhysicalDevice &ph
 	);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
 {
 	return std::make_shared<VulkanBuffer>(
 		phyDevice,
@@ -33,7 +33,7 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::newIndexBuffer(VkPhysicalDevice &phy
 	);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::newUniformBuffer(VkPhysicalDevice & phyDevice, VkDevice & logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewUniformBuffer(VkPhysicalDevice & phyDevice, VkDevice & logicalDevice, VkDeviceSize sizeBytes)
 {
 	return std::make_shared<VulkanBuffer>(
 		phyDevice,

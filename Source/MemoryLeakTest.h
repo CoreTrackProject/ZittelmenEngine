@@ -25,8 +25,8 @@ public:
 
 		for (int i = 0; i < 1000; i++) {
 			instance.reset(new VulkanInstance(true));
-			vulkanDebug.reset(new VulkanDebug(instance->getInstance()));
-			vulkanDevice.reset(new VulkanDevice(instance->getInstance()));
+			vulkanDebug.reset(new VulkanDebug(instance->GetInstance()));
+			vulkanDevice.reset(new VulkanDevice(instance->GetInstance()));
 
 			vulkanDevice.reset();
 			vulkanDebug.reset();

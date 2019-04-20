@@ -24,12 +24,12 @@ VulkanSwapchain::~VulkanSwapchain()
 
 }
 
-VkExtent2D &VulkanSwapchain::getSwapchainExtent2D()
+VkExtent2D &VulkanSwapchain::GetSwapchainExtent2D()
 {
 	return this->selectedExtent;
 }
 
-VkSurfaceFormatKHR &VulkanSwapchain::getSwapchainImageFormat()
+VkSurfaceFormatKHR &VulkanSwapchain::GetSwapchainImageFormat()
 {
 	return this->selectedSurfaceFormat;
 }
@@ -170,22 +170,22 @@ void VulkanSwapchain::init_Imageviews()
 		Image image;
 		image.image = tmpImage;
 
-		VkImageViewCreateInfo imageViewCreateInfo = {};
-		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		imageViewCreateInfo.pNext = NULL;
-		imageViewCreateInfo.flags = 0;
-		imageViewCreateInfo.image = image.image;
-		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		imageViewCreateInfo.format = this->selectedSurfaceFormat.format;
-		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_R;
-		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_G;
-		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_B;
-		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_A;
-		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		VkImageViewCreateInfo imageViewCreateInfo			= {};
+		imageViewCreateInfo.sType							= VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.pNext							= NULL;
+		imageViewCreateInfo.flags							= 0;
+		imageViewCreateInfo.image							= image.image;
+		imageViewCreateInfo.viewType						= VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format							= this->selectedSurfaceFormat.format;
+		imageViewCreateInfo.components.r					= VK_COMPONENT_SWIZZLE_R;
+		imageViewCreateInfo.components.g					= VK_COMPONENT_SWIZZLE_G;
+		imageViewCreateInfo.components.b                    = VK_COMPONENT_SWIZZLE_B;
+		imageViewCreateInfo.components.a                    = VK_COMPONENT_SWIZZLE_A;
+		imageViewCreateInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel   = 0;
+		imageViewCreateInfo.subresourceRange.levelCount     = 1;
 		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-		imageViewCreateInfo.subresourceRange.layerCount = 1;
+		imageViewCreateInfo.subresourceRange.layerCount     = 1;
 
 		VkImageView view;
 		res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
@@ -243,12 +243,12 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &cap
 	}
 }
 
-std::vector<Image> &VulkanSwapchain::getImageCollection()
+std::vector<Image> &VulkanSwapchain::GetImageCollection()
 {
 	return this->imageCollection;
 }
 
-VkSwapchainKHR &VulkanSwapchain::getSwapchain()
+VkSwapchainKHR &VulkanSwapchain::GetSwapchain()
 {
 	return this->swapChain;
 }
@@ -258,7 +258,7 @@ uint32_t &VulkanSwapchain::getQueueFamilyPresentIdx()
 	return this->queueFamilyPresentIdx;
 }
 
-VkQueue &VulkanSwapchain::getPresentQueue()
+VkQueue &VulkanSwapchain::GetPresentQueue()
 {
 	return this->presentQueue;
 }

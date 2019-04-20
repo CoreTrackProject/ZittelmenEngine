@@ -32,11 +32,11 @@ std::vector<const char*> VulkanDebug::addInstanceDebugLayerCollection(std::vecto
 
 void VulkanDebug::init_vulkanDebug()
 {
-	this->CreateDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->instance, "vkCreateDebugUtilsMessengerEXT"));
+	this->CreateDebugUtilsMessengerEXT  = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->instance, "vkCreateDebugUtilsMessengerEXT"));
 	this->DestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->instance, "vkDestroyDebugUtilsMessengerEXT"));
 
-	if (CreateDebugUtilsMessengerEXT(this->instance, &VulkanDebug::debugUtilsMessengerCreateInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
-		throw std::runtime_error("failed to set up debug messenger!");
+	if (CreateDebugUtilsMessengerEXT(this->instance, &VulkanDebug::DebugUtilsMessengerCreateInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
+		throw std::runtime_error("Failed to set up debug messenger.");
 	}
 
 }

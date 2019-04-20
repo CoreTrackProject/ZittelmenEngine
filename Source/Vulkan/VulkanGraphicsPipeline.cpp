@@ -1,13 +1,15 @@
 #include "VulkanGraphicsPipeline.h"
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection, VkDescriptorSetLayout &descriptorSetLayout) :
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection, VkDescriptorSetLayout &descriptorSetLayout, VkImageView &depthImageView) :
+	physicalDevice(physicalDevice),
 	logicalDevice(logicalDevice),
 	vertexShaderModule(vertexShaderModule),
 	fragmentShaderModule(fragmentShaderModule),
 	swapchainExtent2D(swapchainExtent), 
 	swapchainImageFormat(swapchainImageFormat), 
 	swapchainImageCollection(swapchainImageCollection),
-	descriptorSetLayout(descriptorSetLayout)
+	descriptorSetLayout(descriptorSetLayout),
+	depthImageView(depthImageView)
 {
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
@@ -26,22 +28,22 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 
 }
 
-std::vector<VkFramebuffer> &VulkanGraphicsPipeline::getFramebufferCollection()
+std::vector<VkFramebuffer> &VulkanGraphicsPipeline::GetFramebufferCollection()
 {
 	return this->swapchainFramebufferCollection;
 }
 
-VkRenderPass &VulkanGraphicsPipeline::getRenderPass()
+VkRenderPass &VulkanGraphicsPipeline::GetRenderPass()
 {
 	return this->renderPass;
 }
 
-VkPipeline &VulkanGraphicsPipeline::getGraphicsPipeline()
+VkPipeline &VulkanGraphicsPipeline::GetGraphicsPipeline()
 {
 	return this->graphicsPipeline;
 }
 
-VkPipelineLayout &VulkanGraphicsPipeline::getGraphicsPipelineLayout()
+VkPipelineLayout &VulkanGraphicsPipeline::GetGraphicsPipelineLayout()
 {
 	return this->pipelineLayout;
 }
@@ -69,8 +71,8 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 	
 	// Vertex data format from VulkanVertex;
-	auto bindingDesc = VulkanVertexData::getBindingDescription();
-	auto attribDesc  = VulkanVertexData::getAttributeDescriptions();
+	auto bindingDesc = VulkanVertexData::GetBindingDescription();
+	auto attribDesc  = VulkanVertexData::GetAttributeDescriptions();
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = {};
 	vertexInputInfo.sType							= VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -140,7 +142,6 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	//Depth and stencil testing
 	//---------------------
 
-
 	//Color blending
 	VkPipelineColorBlendAttachmentState colorBlendAttachment = {};
 	colorBlendAttachment.colorWriteMask		 = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -163,6 +164,21 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	colorBlending.blendConstants[1] = 0.0f; // Optional
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
+
+
+
+	VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+	depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depthStencil.depthTestEnable = VK_TRUE;
+	depthStencil.depthWriteEnable = VK_TRUE;
+	depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+	depthStencil.depthBoundsTestEnable = VK_FALSE;
+	depthStencil.minDepthBounds = 0.0f; // Optional
+	depthStencil.maxDepthBounds = 1.0f; // Optional
+	depthStencil.stencilTestEnable = VK_FALSE;
+	depthStencil.front = {}; // Optional
+	depthStencil.back = {}; // Optional
+
 
 
 	//Dynamic state
@@ -197,7 +213,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.pViewportState = &viewportState;
 	pipelineInfo.pRasterizationState = &rasterizer;
 	pipelineInfo.pMultisampleState = &multisampling;
-	pipelineInfo.pDepthStencilState = nullptr; // Optional
+	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = nullptr; // Optional
 	pipelineInfo.layout = this->pipelineLayout;
@@ -225,16 +241,38 @@ void VulkanGraphicsPipeline::init_renderpass()
 	colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
 	colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
+
 	//Subpasses and attachment references
 	VkAttachmentReference colorAttachmentRef = {};
 	colorAttachmentRef.attachment = 0;
 	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+
+	// -------------------------------------------
+
+	// Depth attachement for depth buffering
+	VkAttachmentDescription depthAttachment = {};
+	depthAttachment.format = VulkanUtils::FindDepthFormat(this->physicalDevice);
+	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	VkAttachmentReference depthAttachmentRef = {};
+	depthAttachmentRef.attachment = 1;
+	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
 	VkSubpassDescription subpass = {};
 	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpass.colorAttachmentCount = 1;
 	subpass.pColorAttachments = &colorAttachmentRef;
+	subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
+
+	// -------------------------------------------
 
 
 	VkSubpassDependency dependency = {};
@@ -246,10 +284,12 @@ void VulkanGraphicsPipeline::init_renderpass()
 	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
 
+	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
+
 	VkRenderPassCreateInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = 1;
-	renderPassInfo.pAttachments = &colorAttachment;
+	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+	renderPassInfo.pAttachments = attachments.data();
 	renderPassInfo.subpassCount = 1;
 	renderPassInfo.pSubpasses = &subpass;
 	renderPassInfo.dependencyCount = 1;
@@ -272,18 +312,19 @@ void VulkanGraphicsPipeline::init_framebuffer()
 
 	for (size_t i = 0; i < swapchainImageCount; i++) {
 		
-		VkImageView attachments[] = {
-			this->swapchainImageCollection.at(i).imageView
+		std::array<VkImageView, 2> attachments = {
+			this->swapchainImageCollection.at(i).imageView,
+			this->depthImageView
 		};
 
 		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = renderPass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
-		framebufferInfo.width  = this->swapchainExtent2D.width;
-		framebufferInfo.height = this->swapchainExtent2D.height;
-		framebufferInfo.layers = 1;
+		framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass				= this->renderPass;
+		framebufferInfo.attachmentCount			= static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments		    = attachments.data();
+		framebufferInfo.width					= this->swapchainExtent2D.width;
+		framebufferInfo.height					= this->swapchainExtent2D.height;
+		framebufferInfo.layers					= 1;
 
 		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
 		if (res != VK_SUCCESS) {

@@ -1,7 +1,5 @@
 #include "VulkanCommand.h"
 
-#include <QByteArray>
-
 VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDevice, DeviceInfo &deviceInfo, std::vector<VkFramebuffer> &frameBufferCollection, VkRenderPass &renderpass, VkExtent2D &swapchainExtent, VkPipeline &graphicsPipeline, VkPipelineLayout &pipelineLayout, VkQueue &graphicsQueue, std::vector<VkDescriptorSet> &descriptorSetCollection) :
 	physicalDev(physicalDev),
 	logicalDevice(logicalDevice),
@@ -17,24 +15,25 @@ VulkanCommand::VulkanCommand(VkPhysicalDevice &physicalDev, VkDevice &logicalDev
 	this->init_commandPool();
 }
 
-VulkanCommand::~VulkanCommand() {
+VulkanCommand::~VulkanCommand() 
+{
 	vkDestroyCommandPool(this->logicalDevice, this->commandPool, nullptr);
 }
 
-std::vector<VkCommandBuffer> &VulkanCommand::getDrawCommandBufferCollection()
+std::vector<VkCommandBuffer> &VulkanCommand::GetDrawCommandBufferCollection()
 {
 	return this->drawCommandBufferCollection;
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection)
+void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection)
 {
 
 	// ----------------------------------------------------------
 	
 	VkDeviceSize vertexBufferSize = sizeof(VulkanVertex) * vertexData.size();
-	std::shared_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
-	this->vertexBuffer = VulkanBuffer::newVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize);
+	std::shared_ptr<VulkanBuffer> vertexStagingBufferObj(VulkanBuffer::NewStagingBuffer(this->physicalDev, this->logicalDevice, vertexBufferSize));
+	this->vertexBuffer = VulkanBuffer::NewVertexBuffer(this->physicalDev,  this->logicalDevice, vertexBufferSize);
 	
 	// Copy Vertex data to staging buffer
 	{
@@ -47,8 +46,8 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	}
 
 	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
-	std::shared_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
-	this->indexBuffer = VulkanBuffer::newIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize);
+	std::shared_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::NewStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
+	this->indexBuffer = VulkanBuffer::NewIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize);
 	
 	// Copy Index data to staging buffer
 	{
@@ -62,7 +61,7 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 
 	// ----------------------------------------------------------
 
-	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = this->BeginSingleTimeCommands();
 
 	VkBufferCopy copyRegionVertexBuffer = {};
 	copyRegionVertexBuffer.size = vertexStagingBufferObj->getSize();
@@ -72,7 +71,7 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	copyRegionIndexBuffer.size = indexStagingBufferObj->getSize();
 	vkCmdCopyBuffer(commandBuffer, indexStagingBufferObj->getBuffer(),  this->indexBuffer->getBuffer(), 1, &copyRegionIndexBuffer);
 
-	this->endSingleTimeCommands(commandBuffer);
+	this->EndSingleTimeCommands(commandBuffer);
 
 	// ----------------------------------------------------------
 
@@ -85,7 +84,7 @@ void VulkanCommand::uploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	this->init_drawCommand();
 }
 
-void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
+void VulkanCommand::UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 {
     this->imageTexture = vulkanTexture;
 
@@ -96,7 +95,7 @@ void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 	}
 
 	VkDeviceSize imageSize = vulkanTexture->getQImage().byteCount();
-	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::newStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
+	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::NewStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
 
 	{
 		VulkanUtils::MapMemory(
@@ -107,14 +106,14 @@ void VulkanCommand::uploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
 		);
 	}
 
-	this->transitionImageLayout(this->imageTexture->getImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-	this->copyBufferToImage(imageStagingBufferObj->getBuffer(), imageTexture->getImage(), static_cast<uint32_t>(imageTexture->getQImage().width()), static_cast<uint32_t>(imageTexture->getQImage().height()));
-	this->transitionImageLayout(this->imageTexture->getImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+	this->TransitionImageLayout(this->imageTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+		this->copyBufferToImage(imageStagingBufferObj->getBuffer(), imageTexture->GetImage(), static_cast<uint32_t>(imageTexture->getQImage().width()), static_cast<uint32_t>(imageTexture->getQImage().height()));
+	this->TransitionImageLayout(this->imageTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 }
 
 void VulkanCommand::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
-	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = this->BeginSingleTimeCommands();
 
 	VkBufferImageCopy region = {};
 	region.bufferOffset = 0;
@@ -133,7 +132,7 @@ void VulkanCommand::copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t w
 
 	vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	this->endSingleTimeCommands(commandBuffer);
+	this->EndSingleTimeCommands(commandBuffer);
 }
 
 void VulkanCommand::init_commandPool()
@@ -190,9 +189,14 @@ void VulkanCommand::init_drawCommand()
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = this->swapchainExtent;
 
-		VkClearValue clearColor = { 0.0f, 0.0f, 0.0f, 1.0f };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+
+		std::array< VkClearValue, 2> clearValues = {};
+		clearValues[0].color					 = { 0.0f, 0.0f, 0.0f, 1.0f };
+		clearValues[1].depthStencil				 = { 1.0f, 0 };
+
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues    = clearValues.data();
+
 
 		// Crashed before because of the many swapchain Images allocated in the VulkanSwapchain class
 		vkCmdBeginRenderPass(this->drawCommandBufferCollection[idx], &renderPassInfo, VkSubpassContents::VK_SUBPASS_CONTENTS_INLINE);
@@ -223,7 +227,7 @@ void VulkanCommand::init_drawCommand()
 
 }
 
-VkCommandBuffer VulkanCommand::beginSingleTimeCommands()
+VkCommandBuffer VulkanCommand::BeginSingleTimeCommands()
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -243,7 +247,7 @@ VkCommandBuffer VulkanCommand::beginSingleTimeCommands()
 	return commandBuffer;
 }
 
-void VulkanCommand::endSingleTimeCommands(VkCommandBuffer commandBuffer)
+void VulkanCommand::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 {
 	vkEndCommandBuffer(commandBuffer);
 
@@ -272,9 +276,11 @@ void VulkanCommand::endSingleTimeCommands(VkCommandBuffer commandBuffer)
 	vkFreeCommandBuffers(this->logicalDevice, this->commandPool, 1, &commandBuffer);
 }
 
-void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
+
+
+void VulkanCommand::TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
-	VkCommandBuffer commandBuffer = this->beginSingleTimeCommands();
+	VkCommandBuffer commandBuffer = this->BeginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier = {};
 	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -283,7 +289,19 @@ void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImag
 	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 	barrier.image = image;
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+
+	//barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	if (newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+		if (VulkanUtils::HasStencilComponent(format)) {
+			barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+		}
+	}
+	else {
+		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	}
+
 	barrier.subresourceRange.baseMipLevel = 0;
 	barrier.subresourceRange.levelCount = 1;
 	barrier.subresourceRange.baseArrayLayer = 0;
@@ -298,6 +316,7 @@ void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImag
 
 		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+
 	}
 	else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -305,9 +324,18 @@ void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImag
 
 		sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 		destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+
+	}
+	else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+		barrier.srcAccessMask = 0;
+		barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+		destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+
 	}
 	else {
-		throw std::invalid_argument("unsupported layout transition!");
+		throw std::invalid_argument("Unsupported layout transition.");
 	}
 
 	vkCmdPipelineBarrier(
@@ -319,5 +347,6 @@ void VulkanCommand::transitionImageLayout(VkImage image, VkFormat format, VkImag
 		1, &barrier
 	);
 
-	this->endSingleTimeCommands(commandBuffer);
+	this->EndSingleTimeCommands(commandBuffer);
+
 }

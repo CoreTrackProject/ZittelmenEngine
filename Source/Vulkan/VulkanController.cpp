@@ -19,6 +19,13 @@ void VulkanController::setTargetRenderSurface(WId target)
 
 void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height)
 {
+
+	//TODO: improve resizing logic, because atm all vulkan objects get destroyed and recreated
+
+	if (this->vulkanDevice.get() != nullptr) {
+		vkDeviceWaitIdle(this->vulkanDevice->GetLogicalDevice());
+	}
+
 	this->width  = width;
 	this->height = height;
 
@@ -59,16 +66,28 @@ void VulkanController::initialize()
 	// Vulkan Shader
 	this->initVulkanShader();
 
+	// Create image texture
 	auto image = QImage("D:/coretrack_devel/texture.jpg");
-
-	this->texture = VulkanTexture::newTexture(
-		this->vulkanDevice->getPhysicalDevice(),
-		this->vulkanDevice->getLogicalDevice(),
+	this->imageTexture = VulkanTexture::NewTexture(
+		this->vulkanDevice->GetPhysicalDevice(),
+		this->vulkanDevice->GetLogicalDevice(),
 		image
 	);
 
 	// Vulkan Uniform Buffer
 	this->initVulkanUniform();
+
+
+
+	// Setup depth buffering (To be relocated)
+	{
+		// Needs to be created before the graphics pipeline
+		this->depthTexture = VulkanTexture::NewDepthTexture(
+			this->vulkanDevice->GetPhysicalDevice(),
+			this->vulkanDevice->GetLogicalDevice(),
+			this->width, this->height);
+	}
+	
 
 	// Vulkan Graphicspipeline
 	this->initVulkanGraphicsPipeline();
@@ -76,13 +95,33 @@ void VulkanController::initialize()
 	// Vulkan Command
 	this->initVulkanCommand();
 
-	// TODO: create function for uploading vertex data (with buffers or directly)
-	// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-	auto vertexData = this->vertex.getQuadVertexCollection();
-	auto indexData = this->vertex.getQuadVertexIndexCollection();
 
-	this->command->uploadVertexData(vertexData, indexData);
-	this->command->uploadImage(this->texture);
+
+	// Setup depth buffering (To be relocated)
+	{
+		// Transform the image to the correct layout
+		this->command->TransitionImageLayout(
+			this->depthTexture->GetImage(),
+			VulkanUtils::FindDepthFormat(this->vulkanDevice->GetPhysicalDevice()),
+			VkImageLayout::VK_IMAGE_LAYOUT_UNDEFINED,
+			VkImageLayout::VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+	}
+
+
+
+
+	// Upload Vertex and Texture data
+	{
+		// TODO: create function for uploading vertex data (with buffers or directly)
+		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
+		auto vertexData = VulkanVertexData::GetQuadVertexCollection();
+		auto indexData  = VulkanVertexData::GetQuadVertexIndexCollection();
+
+		this->command->UploadVertexData(vertexData, indexData);
+		this->command->UploadImage(this->imageTexture);
+	}
+
+
 
 	// Vulkan Runtime
 	this->initVulkanRuntime();
@@ -100,17 +139,22 @@ void VulkanController::destroy()
 	this->destroyVulkanRuntime();
 	this->destroyVulkanCommand();
 	this->destroyVulkanGraphicsPipeline();
+
+	this->depthTexture.reset();
+
 	this->destroyVulkanUnform();
 
-	this->texture.reset();
+	this->imageTexture.reset();
 
 	this->destroyVulkanShader();
 	this->destroyVulkanSwapchain();
 	this->destroyVulkanWindow();
 	this->destroyVulkanDevice();
+
 	if (this->enableValidation) {
 		this->destroyVulkanDebug();
 	}
+
 	this->destroyVulkanInstance();
 }
 
@@ -127,7 +171,7 @@ void VulkanController::destroyVulkanInstance()
 void VulkanController::initVulkanDebug()
 {
 	if (this->enableValidation) {
-		this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->getInstance());
+		this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->GetInstance());
 	}
 }
 
@@ -140,7 +184,7 @@ void VulkanController::destroyVulkanDebug()
 
 void VulkanController::initVulkanDevice()
 {
-	this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->getInstance());
+	this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->GetInstance());
 }
 
 void VulkanController::destroyVulkanDevice()
@@ -150,7 +194,7 @@ void VulkanController::destroyVulkanDevice()
 
 void VulkanController::initVulkanWindow()
 {
-	this->window = std::make_unique<VulkanWindow>(this->instance->getInstance(), this->target);
+	this->window = std::make_unique<VulkanWindow>(this->instance->GetInstance(), this->target);
 }
 
 void VulkanController::destroyVulkanWindow()
@@ -161,12 +205,12 @@ void VulkanController::destroyVulkanWindow()
 void VulkanController::initVulkanSwapchain()
 {
 	this->swapchain = std::make_unique<VulkanSwapchain>(
-		this->vulkanDevice->getPhysicalDevice(),
-		this->vulkanDevice->getLogicalDevice(),
-		this->vulkanDevice->getPhysicalDeviceInfo(
-			this->vulkanDevice->getPhysicalDevice()
+		this->vulkanDevice->GetPhysicalDevice(),
+		this->vulkanDevice->GetLogicalDevice(),
+		this->vulkanDevice->GetPhysicalDeviceInfo(
+			this->vulkanDevice->GetPhysicalDevice()
 		),
-		this->window->getSurface(),
+		this->window->GetSurface(),
 		this->width,
 		this->height
 		);
@@ -179,7 +223,7 @@ void VulkanController::destroyVulkanSwapchain()
 
 void VulkanController::initVulkanShader()
 {
-	this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->getLogicalDevice());
+	this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->GetLogicalDevice());
 }
 
 void VulkanController::destroyVulkanShader()
@@ -189,15 +233,19 @@ void VulkanController::destroyVulkanShader()
 
 void VulkanController::initVulkanGraphicsPipeline()
 {
+
 	this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(
-		this->vulkanDevice->getLogicalDevice(),
-		this->shader->getVertexShaderModule(),
-		this->shader->getFragmentShaderModule(),
-		this->swapchain->getSwapchainExtent2D(),
-		this->swapchain->getSwapchainImageFormat(),
-		this->swapchain->getImageCollection(),
-		this->uniform->getDescriptorSetLayout()
+		this->vulkanDevice->GetPhysicalDevice(),
+		this->vulkanDevice->GetLogicalDevice(),
+		this->shader->GetVertexShaderModule(),
+		this->shader->GetFragmentShaderModule(),
+		this->swapchain->GetSwapchainExtent2D(),
+		this->swapchain->GetSwapchainImageFormat(),
+		this->swapchain->GetImageCollection(),
+		this->uniform->GetDescriptorSetLayout(),
+		this->depthTexture->GetImageView()
 		);
+
 }
 
 void VulkanController::destroyVulkanGraphicsPipeline()
@@ -208,18 +256,18 @@ void VulkanController::destroyVulkanGraphicsPipeline()
 void VulkanController::initVulkanCommand()
 {
 	this->command = std::make_unique<VulkanCommand>(
-		this->vulkanDevice->getPhysicalDevice(),
-		this->vulkanDevice->getLogicalDevice(),
-		this->vulkanDevice->getPhysicalDeviceInfo(
-			this->vulkanDevice->getPhysicalDevice()
+		this->vulkanDevice->GetPhysicalDevice(),
+		this->vulkanDevice->GetLogicalDevice(),
+		this->vulkanDevice->GetPhysicalDeviceInfo(
+			this->vulkanDevice->GetPhysicalDevice()
 		),
-		this->graphicsPipeline->getFramebufferCollection(),
-		this->graphicsPipeline->getRenderPass(),
-		this->swapchain->getSwapchainExtent2D(),
-		this->graphicsPipeline->getGraphicsPipeline(),
-		this->graphicsPipeline->getGraphicsPipelineLayout(),
-		this->vulkanDevice->getGraphicsQueue(),
-		this->uniform->getDescriptorSetCollection()
+		this->graphicsPipeline->GetFramebufferCollection(),
+		this->graphicsPipeline->GetRenderPass(),
+		this->swapchain->GetSwapchainExtent2D(),
+		this->graphicsPipeline->GetGraphicsPipeline(),
+		this->graphicsPipeline->GetGraphicsPipelineLayout(),
+		this->vulkanDevice->GetGraphicsQueue(),
+		this->uniform->GetDescriptorSetCollection()
 		);
 }
 
@@ -231,11 +279,11 @@ void VulkanController::destroyVulkanCommand()
 void VulkanController::initVulkanRuntime()
 {
 	this->runtime = std::make_unique<VulkanRuntime>(
-		this->vulkanDevice->getLogicalDevice(),
-		this->swapchain->getSwapchain(),
-		this->command->getDrawCommandBufferCollection(),
-		this->vulkanDevice->getGraphicsQueue(),
-		this->swapchain->getPresentQueue(),
+		this->vulkanDevice->GetLogicalDevice(),
+		this->swapchain->GetSwapchain(),
+		this->command->GetDrawCommandBufferCollection(),
+		this->vulkanDevice->GetGraphicsQueue(),
+		this->swapchain->GetPresentQueue(),
 		this->uniform // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
 		);
 }
@@ -248,12 +296,12 @@ void VulkanController::destroyVulkanRuntime()
 void VulkanController::initVulkanUniform()
 {
 	this->uniform = std::make_shared<VulkanUniform>(
-		this->vulkanDevice->getPhysicalDevice(),
-		this->vulkanDevice->getLogicalDevice(),
-		static_cast<uint32_t>(this->swapchain->getImageCollection().size()),
-		this->swapchain->getSwapchainExtent2D(),
-		this->texture->getImageView(),
-		this->texture->getImageSampler()
+		this->vulkanDevice->GetPhysicalDevice(),
+		this->vulkanDevice->GetLogicalDevice(),
+		static_cast<uint32_t>(this->swapchain->GetImageCollection().size()),
+		this->swapchain->GetSwapchainExtent2D(),
+		this->imageTexture->GetImageView(),
+		this->imageTexture->GetImageSampler()
 		);
 }
 
@@ -265,5 +313,5 @@ void VulkanController::destroyVulkanUnform()
 
 void VulkanController::renderFrame()
 {
-	this->runtime->renderFrame();
+	this->runtime->RenderFrame();
 }

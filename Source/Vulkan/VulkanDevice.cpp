@@ -19,12 +19,12 @@ VulkanDevice::~VulkanDevice()
 	this->destroy_vulkanDevice();
 }
 
-VkDevice &VulkanDevice::getLogicalDevice()
+VkDevice &VulkanDevice::GetLogicalDevice()
 {
 	return this->logicalDevice;
 }
 
-VkPhysicalDevice &VulkanDevice::getPhysicalDevice()
+VkPhysicalDevice &VulkanDevice::GetPhysicalDevice()
 {
 	// It compiles but it may EXPLODES
 	return const_cast<VkPhysicalDevice>(this->physicalDevCollection->begin()->first);
@@ -109,7 +109,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	//	- Compute queue
 	//	- Transfer queue
 
-	DeviceInfo &devInfo = this->getPhysicalDeviceInfo(physicalDevice);
+	DeviceInfo &devInfo = this->GetPhysicalDeviceInfo(physicalDevice);
 	
 	const float queuePriority = 0.0f;
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfoCollection;
@@ -175,7 +175,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 {
 	// Get queues from index
-	DeviceInfo &devInfo = this->getPhysicalDeviceInfo(logicalDevice);
+	DeviceInfo &devInfo = this->GetPhysicalDeviceInfo(logicalDevice);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.graphics, 0, &this->graphicsQueue);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
 }
@@ -196,7 +196,7 @@ uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, Vk
 bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName)
 {
 	// check if the device extension is supported by the selected physical device
-	DeviceInfo &tmpCollection = this->getPhysicalDeviceInfo(logicalDevice);
+	DeviceInfo &tmpCollection = this->GetPhysicalDeviceInfo(logicalDevice);
 	for (VkExtensionProperties props : tmpCollection.deviceExtensionCollection) {
 		if (extensionName == props.extensionName) {
 			return true;
@@ -210,12 +210,12 @@ bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice &logicalDevice)
 	return this->isDevExtensionSupported(logicalDevice, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
-DeviceInfo &VulkanDevice::getPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
+DeviceInfo &VulkanDevice::GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
 {
 	return this->physicalDevCollection->find(physicalDevice)->second;
 }
 
-VkQueue &VulkanDevice::getGraphicsQueue()
+VkQueue &VulkanDevice::GetGraphicsQueue()
 {
 	return this->graphicsQueue;
 }

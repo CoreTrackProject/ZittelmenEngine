@@ -12,7 +12,7 @@ VulkanInstance::~VulkanInstance()
 	this->destroy_vkInstance();
 }
 
-VkInstance &VulkanInstance::getInstance()
+VkInstance &VulkanInstance::GetInstance()
 {
 	return this->m_vkInstance;
 }
@@ -35,7 +35,7 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	instanceCreateInfo.pApplicationInfo = &appInfo;
 	
 	if (enableValidation) {
-		instanceCreateInfo.pNext = &VulkanDebug::debugUtilsMessengerCreateInfo;
+		instanceCreateInfo.pNext = &VulkanDebug::DebugUtilsMessengerCreateInfo;
 	} else {
 		instanceCreateInfo.pNext = nullptr;
 	}

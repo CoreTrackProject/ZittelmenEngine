@@ -22,10 +22,10 @@ public: // Public Methods
 	void freeMemory();
 
 public: // Static methods
-	static std::shared_ptr<VulkanBuffer> newStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> newVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> newIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> newUniformBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewUniformBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
 
 private: // Private Methods
 	void allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties);

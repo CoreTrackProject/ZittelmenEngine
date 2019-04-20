@@ -26,7 +26,7 @@ void VulkanWindow::init_Surface()
 	}
 }
 
-VkSurfaceKHR &VulkanWindow::getSurface()
+VkSurfaceKHR &VulkanWindow::GetSurface()
 {
 	return this->surface;
 }

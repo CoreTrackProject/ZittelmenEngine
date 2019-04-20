@@ -12,8 +12,8 @@ public:
 	VulkanShader(VkDevice &logicalDevice);
 	~VulkanShader();
 
-	VkShaderModule &getVertexShaderModule();
-	VkShaderModule &getFragmentShaderModule();
+	VkShaderModule &GetVertexShaderModule();
+	VkShaderModule &GetFragmentShaderModule();
 
 
 private:

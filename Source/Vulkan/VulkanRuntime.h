@@ -15,7 +15,7 @@ public:
 	VulkanRuntime(VkDevice &logicalDevice, VkSwapchainKHR &swapchain, std::vector<VkCommandBuffer> &commandBufferCollection, VkQueue &graphicsQueue, VkQueue &presentQueue, std::shared_ptr<VulkanUniform> &uniform);
 	~VulkanRuntime();
 
-	void renderFrame();
+	void RenderFrame();
 	size_t getCurrentFrameIdx();
 
 private:
