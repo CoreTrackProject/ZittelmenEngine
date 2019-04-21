@@ -25,7 +25,7 @@ public:
     VulkanTexture(
 		VkPhysicalDevice &phyDevice, 
 		VkDevice &logicalDevice,
-		QImage &imageData, 
+		std::shared_ptr<QImage> &imageData, 
 		VkDeviceSize sizeBytes, 
 		VkImageType imageType,
 		VkFormat imageFormat, 
@@ -44,12 +44,12 @@ public: // Public Methods
 	VkImageView &GetImageView();
 	VkSampler &GetImageSampler();
 	VkDeviceSize &getSize();
-    QImage &getQImage();
+    std::shared_ptr<QImage> &getQImage();
 	void freeMemory();
 
 
 public: // Static methods
-	static std::shared_ptr<VulkanTexture> NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image);
+	static std::shared_ptr<VulkanTexture> NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &image);
 	static std::shared_ptr<VulkanTexture> NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, uint32_t width, uint32_t height);
 
 private: // Private Methods
@@ -65,7 +65,7 @@ private: // Private Methods
 private:
 	VkDevice &logicalDevice;
 	VkPhysicalDevice &phyDevice;
-    QImage &imageData;
+    std::shared_ptr<QImage> &imageData;
 
 	VkImage image			 = VK_NULL_HANDLE;
 	VkImageView imageView    = VK_NULL_HANDLE;

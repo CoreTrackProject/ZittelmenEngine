@@ -89,25 +89,25 @@ void VulkanCommand::UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
     this->imageTexture = vulkanTexture;
 
 	// Upload texture with a staging buffer same procedure as the vertex data
-	auto format = vulkanTexture->getQImage().format();
+	auto format = vulkanTexture->getQImage()->format();
 	if (format != QImage::Format_RGBA8888) {
 		throw new std::runtime_error("Format of QImage mismatch, this exception will be removed.");
 	}
 
-	VkDeviceSize imageSize = vulkanTexture->getQImage().byteCount();
+	VkDeviceSize imageSize = vulkanTexture->getQImage()->byteCount();
 	std::shared_ptr<VulkanBuffer> imageStagingBufferObj(VulkanBuffer::NewStagingBuffer(this->physicalDev, this->logicalDevice, imageSize));
 
 	{
 		VulkanUtils::MapMemory(
 			this->logicalDevice, 
 			imageStagingBufferObj->getDeviceMemory(), 
-			vulkanTexture->getQImage().bits(), 
+			vulkanTexture->getQImage()->bits(), 
 			imageSize
 		);
 	}
 
 	this->TransitionImageLayout(this->imageTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		this->copyBufferToImage(imageStagingBufferObj->getBuffer(), imageTexture->GetImage(), static_cast<uint32_t>(imageTexture->getQImage().width()), static_cast<uint32_t>(imageTexture->getQImage().height()));
+		this->copyBufferToImage(imageStagingBufferObj->getBuffer(), imageTexture->GetImage(), static_cast<uint32_t>(imageTexture->getQImage()->width()), static_cast<uint32_t>(imageTexture->getQImage()->height()));
 	this->TransitionImageLayout(this->imageTexture->GetImage(), VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 }

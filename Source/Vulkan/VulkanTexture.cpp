@@ -1,19 +1,19 @@
 #include "VulkanTexture.h"
 
-std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &image)
+std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &image)
 {
 	return std::make_shared<VulkanTexture>(
 		phyDevice,
 		logicalDevice,
 		image,
-		static_cast<VkDeviceSize>(image.sizeInBytes()),
+		static_cast<VkDeviceSize>(image->sizeInBytes()),
 		VkImageType::VK_IMAGE_TYPE_2D,
 		VkFormat::VK_FORMAT_R8G8B8A8_UNORM,
 		VkImageTiling::VK_IMAGE_TILING_OPTIMAL,
 		VkImageUsageFlagBits::VK_IMAGE_USAGE_TRANSFER_DST_BIT | VkImageUsageFlagBits::VK_IMAGE_USAGE_SAMPLED_BIT,
 		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-		image.width(),
-		image.height(),
+		image->width(),
+		image->height(),
 		VkImageAspectFlagBits::VK_IMAGE_ASPECT_COLOR_BIT
 	);
 }
@@ -23,12 +23,12 @@ std::shared_ptr<VulkanTexture> VulkanTexture::NewDepthTexture(VkPhysicalDevice &
 	// Find supported depth format which is supported by the gpu
 	VkFormat format = VulkanUtils::FindDepthFormat(phyDevice);
 
-	QImage depthImage(width, height, QImage::Format_RGBA8888);
+	std::shared_ptr<QImage> depthImage = std::make_shared<QImage>(width, height, QImage::Format_RGBA8888);
 	std::shared_ptr<VulkanTexture> texture = std::make_shared<VulkanTexture>(
 		phyDevice,
 		logicalDevice,
 		depthImage,
-		static_cast<VkDeviceSize>(depthImage.sizeInBytes()),
+		static_cast<VkDeviceSize>(depthImage->sizeInBytes()),
 		VkImageType::VK_IMAGE_TYPE_2D,
 		format,
 		VkImageTiling::VK_IMAGE_TILING_OPTIMAL,
@@ -45,13 +45,13 @@ std::shared_ptr<VulkanTexture> VulkanTexture::NewDepthTexture(VkPhysicalDevice &
 	return texture;
 }
 
-VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, QImage &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t width, uint32_t height, VkImageAspectFlags aspectFlags) :
+VulkanTexture::VulkanTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &imageData, VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t width, uint32_t height, VkImageAspectFlags aspectFlags) :
     phyDevice(phyDevice), logicalDevice(logicalDevice), imageData(imageData)
 {
 
 	//QImage::Format_ARGB32 -> is not byteordered
 	//QImage::Format_RGBA8888 -> is byte ordered
-	this->imageData = imageData.convertToFormat(QImage::Format_RGBA8888);
+	this->imageData = std::make_shared<QImage>(imageData->convertToFormat(QImage::Format_RGBA8888));
 
 	this->devSize = sizeBytes;
 	this->createImage(sizeBytes, imageType, imageFormat, tiling, usage, properties, width, height);
@@ -98,7 +98,7 @@ VkDeviceSize &VulkanTexture::getSize() {
 	}
 }
 
-QImage &VulkanTexture::getQImage() {
+std::shared_ptr<QImage> &VulkanTexture::getQImage() {
     return this->imageData;
 }
 

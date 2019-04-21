@@ -15,8 +15,8 @@
 #include "VulkanGraphicsPipeline.h"
 #include "VulkanCommand.h"
 #include "VulkanRuntime.h"
-#include "VulkanFactory.h"
 #include "VulkanUniform.h"
+#include "VulkanVertex.hpp"
 
 
 /*
@@ -24,18 +24,21 @@
 */
 class VulkanController
 {
-
 public:
 	VulkanController();
 	~VulkanController();
 
-	void setTargetRenderSurface(WId targetWindow);
-	void resizeTargetRenderSurface(uint32_t width, uint32_t height);
+	void SetTargetRenderSurface(WId targetWindow);
+	void ResizeTargetRenderSurface(uint32_t width, uint32_t height);
 
-	void initialize();
-	void destroy();
+	void Initialize();
+	void Destroy();
 
+	void RenderFrame();
 
+	void ImportData(std::vector<VulkanVertex> &vertexCollection, std::vector<std::uint16_t> &indexCollection, std::shared_ptr<QImage> &meshTexture);
+
+private:
 	void initVulkanInstance();
 	void destroyVulkanInstance();
 
@@ -53,7 +56,7 @@ public:
 
 	void initVulkanShader();
 	void destroyVulkanShader();
-	 
+	
 	void initVulkanGraphicsPipeline();
 	void destroyVulkanGraphicsPipeline();
 
@@ -66,15 +69,12 @@ public:
 	void initVulkanUniform();
 	void destroyVulkanUnform();
 
-	void renderFrame();
-
 
 private:
 	bool enableValidation  = false;
 	WId target;
 	uint32_t width, height = 0;
 
-	
 	std::unique_ptr<VulkanInstance> instance				 = nullptr;
 	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;
 	std::unique_ptr<VulkanDevice> vulkanDevice				 = nullptr;
@@ -84,14 +84,16 @@ private:
 	std::unique_ptr<VulkanGraphicsPipeline> graphicsPipeline = nullptr;
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
-	std::unique_ptr<VulkanFactory> factory				     = nullptr;
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
 	std::shared_ptr<VulkanTexture> depthTexture              = nullptr;
 
-	// TMP 
+
+
 	// Create a scene class which holds all the imported contetnt
-	std::shared_ptr<VulkanTexture> imageTexture			     = nullptr;
+	std::shared_ptr<QImage> imageData = nullptr;
+	std::shared_ptr<VulkanTexture> imageTexture = nullptr;
 
-
+	std::vector<VulkanVertex> vertexCollection;
+	std::vector<std::uint16_t> indexCollection;
 
 };

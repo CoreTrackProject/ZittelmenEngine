@@ -5,19 +5,35 @@
 VulkanController::VulkanController()
 {
 
+	//// Default data (will be removed)
+	//{
+
+	//	this->tmpImage = QImage("D:/coretrack_devel/texture.jpg");
+	//	this->imageTexture = VulkanTexture::NewTexture(
+	//		this->vulkanDevice->GetPhysicalDevice(),
+	//		this->vulkanDevice->GetLogicalDevice(),
+	//		this->tmpImage
+	//	);
+
+	//	this->vertexCollection = VulkanVertexData::GetQuadVertexCollection();
+	//	this->indexCollection = VulkanVertexData::GetQuadVertexIndexCollection();
+
+	//}
+
+
 }
 
 VulkanController::~VulkanController()
 {
-	this->destroy();
+	this->Destroy();
 }
 
-void VulkanController::setTargetRenderSurface(WId target)
+void VulkanController::SetTargetRenderSurface(WId target)
 {
 	this->target = target;
 }
 
-void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height)
+void VulkanController::ResizeTargetRenderSurface(uint32_t width, uint32_t height)
 {
 
 	//TODO: improve resizing logic, because atm all vulkan objects get destroyed and recreated
@@ -29,11 +45,11 @@ void VulkanController::resizeTargetRenderSurface(uint32_t width, uint32_t height
 	this->width  = width;
 	this->height = height;
 
-	this->destroy();
-	this->initialize();
+	this->Destroy();
+	this->Initialize();
 }
 
-void VulkanController::initialize()
+void VulkanController::Initialize()
 {
 	this->enableValidation = true;
 
@@ -67,11 +83,13 @@ void VulkanController::initialize()
 	this->initVulkanShader();
 
 	// Create image texture
-	auto image = QImage("D:/coretrack_devel/texture.jpg");
+	/*auto image = QImage("D:/coretrack_devel/texture.jpg");*/
+	
+	// Convert from QImage to Vulkan Texture
 	this->imageTexture = VulkanTexture::NewTexture(
 		this->vulkanDevice->GetPhysicalDevice(),
 		this->vulkanDevice->GetLogicalDevice(),
-		image
+		this->imageData
 	);
 
 	// Vulkan Uniform Buffer
@@ -114,10 +132,10 @@ void VulkanController::initialize()
 	{
 		// TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-		auto vertexData = VulkanVertexData::GetQuadVertexCollection();
-		auto indexData  = VulkanVertexData::GetQuadVertexIndexCollection();
+		//auto vertexData = VulkanVertexData::GetQuadVertexCollection();
+		//auto indexData  = VulkanVertexData::GetQuadVertexIndexCollection();
 
-		this->command->UploadVertexData(vertexData, indexData);
+		this->command->UploadVertexData(this->vertexCollection, this->indexCollection);
 		this->command->UploadImage(this->imageTexture);
 	}
 
@@ -132,7 +150,7 @@ void VulkanController::initialize()
 
 }
 
-void VulkanController::destroy()
+void VulkanController::Destroy()
 {
 	// Destroy all vulkan objects in reversed order
 
@@ -311,7 +329,14 @@ void VulkanController::destroyVulkanUnform()
 }
 
 
-void VulkanController::renderFrame()
+void VulkanController::RenderFrame()
 {
 	this->runtime->RenderFrame();
+}
+
+void VulkanController::ImportData(std::vector<VulkanVertex>& vertexCollection, std::vector<std::uint16_t>& indexCollection, std::shared_ptr<QImage>& imageData)
+{
+	this->vertexCollection = vertexCollection;
+	this->indexCollection  = indexCollection;
+	this->imageData = imageData;
 }
