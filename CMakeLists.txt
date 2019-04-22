@@ -18,18 +18,28 @@ file(GLOB_RECURSE zittelmenengine_Resources
 )
 qt5_add_resources(RCC_SOURCES ${zittelmenengine_Resources})
 
-
-
 # Find Vulkan  SDK
 find_package(Vulkan)
 
 # Find the QtWidgets library
 find_package(Qt5 REQUIRED COMPONENTS Core Gui Widgets 3DCore 3DExtras 3DRender 3DInput)
-
 find_package(glm CONFIG REQUIRED)
 
-include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
 
+
+# ATM Windows only
+# https://github.com/Microsoft/vcpkg/issues/4026
+find_package(assimp CONFIG REQUIRED)
+find_library(ASSIMP_DEBUG_LIBRARY assimp-vc140-mtd.lib)
+add_library(assimp INTERFACE)
+target_include_directories(assimp INTERFACE ${ASSIMP_INCLUDE_DIRS})
+target_link_libraries(assimp INTERFACE
+    debug ${ASSIMP_DEBUG_LIBRARY}
+    optimized ${ASSIMP_LIBRARIES}
+)
+
+
+include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
 add_library(ZittelmenEngine STATIC ${zittelmenengine_SRCS} ${RCC_SOURCES})
 
 # Use the Widgets module from Qt 5
@@ -43,4 +53,5 @@ target_link_libraries(
     Qt5::3DInput
     Vulkan::Vulkan
     glm
+	assimp
 )

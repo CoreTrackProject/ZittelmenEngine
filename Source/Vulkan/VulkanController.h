@@ -36,7 +36,7 @@ public:
 
 	void RenderFrame();
 
-	void ImportData(std::vector<VulkanVertex> &vertexCollection, std::vector<std::uint16_t> &indexCollection, std::shared_ptr<QImage> &meshTexture);
+	void ImportData(std::vector<VulkanVertex> &vertexCollection, std::vector<std::uint32_t> &indexCollection, std::shared_ptr<QImage> &meshTexture);
 
 private:
 	void initVulkanInstance();
@@ -94,6 +94,6 @@ private:
 	std::shared_ptr<VulkanTexture> imageTexture = nullptr;
 
 	std::vector<VulkanVertex> vertexCollection;
-	std::vector<std::uint16_t> indexCollection;
+	std::vector<std::uint32_t> indexCollection;
 
 };

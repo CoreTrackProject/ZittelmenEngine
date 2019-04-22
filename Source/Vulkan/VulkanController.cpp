@@ -334,7 +334,7 @@ void VulkanController::RenderFrame()
 	this->runtime->RenderFrame();
 }
 
-void VulkanController::ImportData(std::vector<VulkanVertex>& vertexCollection, std::vector<std::uint16_t>& indexCollection, std::shared_ptr<QImage>& imageData)
+void VulkanController::ImportData(std::vector<VulkanVertex>& vertexCollection, std::vector<std::uint32_t>& indexCollection, std::shared_ptr<QImage>& imageData)
 {
 	this->vertexCollection = vertexCollection;
 	this->indexCollection  = indexCollection;

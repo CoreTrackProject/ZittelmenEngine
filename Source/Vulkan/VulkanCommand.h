@@ -31,7 +31,7 @@ public:
 	~VulkanCommand();
 
 	std::vector<VkCommandBuffer> &GetDrawCommandBufferCollection();
-	void UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection);
+	void UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint32_t> &indexCollection);
     void UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture);
 
 	VkCommandBuffer BeginSingleTimeCommands();
@@ -64,7 +64,7 @@ private:
 	std::shared_ptr<VulkanTexture> imageTexture;
 
 	uint32_t vertexCount;
-	uint16_t indexCount;
+	uint32_t indexCount;
 
 	VkCommandPool commandPool = VK_NULL_HANDLE;
 	std::vector<VkCommandBuffer> drawCommandBufferCollection;

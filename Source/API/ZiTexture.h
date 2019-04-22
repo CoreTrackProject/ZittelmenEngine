@@ -6,7 +6,6 @@
 #include <string>
 
 #include <glm/glm.hpp>
-#include "Vulkan/VulkanTexture.h"
 
 #include <QImage>
 

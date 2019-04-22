@@ -26,7 +26,7 @@ std::vector<VkCommandBuffer> &VulkanCommand::GetDrawCommandBufferCollection()
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint16_t> &indexCollection)
+void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint32_t> &indexCollection)
 {
 
 	// ----------------------------------------------------------
@@ -45,7 +45,7 @@ void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 		);
 	}
 
-	VkDeviceSize indexBufferSize = sizeof(uint16_t) * indexCollection.size();
+	VkDeviceSize indexBufferSize = sizeof(uint32_t) * indexCollection.size();
 	std::shared_ptr<VulkanBuffer> indexStagingBufferObj(VulkanBuffer::NewStagingBuffer(this->physicalDev, this->logicalDevice, indexBufferSize));
 	this->indexBuffer = VulkanBuffer::NewIndexBuffer(this->physicalDev, this->logicalDevice, indexBufferSize);
 	
@@ -78,7 +78,7 @@ void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	// TODO: improve this part
 	{
 		this->vertexCount = static_cast<uint32_t>(vertexData.size());
-		this->indexCount  = static_cast<uint16_t>(indexCollection.size());
+		this->indexCount  = static_cast<uint32_t>(indexCollection.size());
 	}
 	
 	this->init_drawCommand();
@@ -210,7 +210,7 @@ void VulkanCommand::init_drawCommand()
 
 
 		vkCmdBindVertexBuffers(this->drawCommandBufferCollection[idx], 0, 1, vertexBuffers, offsets);
-		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], this->indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT16);
+		vkCmdBindIndexBuffer(this->drawCommandBufferCollection[idx], this->indexBuffer->getBuffer(), 0, VK_INDEX_TYPE_UINT32);
 		vkCmdBindDescriptorSets(this->drawCommandBufferCollection[idx], VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout, 0, 1, &this->descriptorSetCollection[idx], 0, nullptr);
 		vkCmdDrawIndexed(this->drawCommandBufferCollection[idx], this->indexCount, 1, 0, 0, 0);
 		vkCmdEndRenderPass(this->drawCommandBufferCollection[idx]);
