@@ -87,6 +87,7 @@ std::shared_ptr<ZiMesh> ZiMesh::LoadOBJ(std::string meshFile, std::string textur
 				// Extract uv coordinates
 				if (mesh->HasTextureCoords(0)) {
 					vertex.texCoord.x = mesh->mTextureCoords[0][j].x;
+					// Flip y coordinate because of vulkan
 					vertex.texCoord.y = 1.0f - mesh->mTextureCoords[0][j].y;
 				}
 

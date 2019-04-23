@@ -325,7 +325,7 @@ void VulkanGraphicsPipeline::init_framebuffer()
 		framebufferInfo.width					= this->swapchainExtent2D.width;
 		framebufferInfo.height					= this->swapchainExtent2D.height;
 		framebufferInfo.layers					= 1;
-
+		
 		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
 		if (res != VK_SUCCESS) {
 			qDebug() << "Failed to create the framebuffer";
