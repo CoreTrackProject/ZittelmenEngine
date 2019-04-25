@@ -19,6 +19,15 @@
 #include "VulkanVertex.hpp"
 
 
+enum VulkanControllerStatus {
+	VC_Created,
+	VC_Initializing,
+	VC_Ready,
+	VC_Rendering,
+	VC_Resizing
+};
+
+
 /*
 	Top class from where the whole Vulkan api get controlled
 */
@@ -28,14 +37,13 @@ public:
 	VulkanController();
 	~VulkanController();
 
-	void SetTargetRenderSurface(WId targetWindow);
+	void SetTargetRenderSurface(WId targetWindow, std::uint32_t width, std::uint32_t height);
 	void ResizeTargetRenderSurface(uint32_t width, uint32_t height);
 
 	void Initialize();
 	void Destroy();
 
 	void RenderFrame();
-
 	void ImportData(std::vector<VulkanVertex> &vertexCollection, std::vector<std::uint32_t> &indexCollection, std::shared_ptr<QImage> &meshTexture);
 
 private:
@@ -63,17 +71,19 @@ private:
 	void initVulkanCommand();
 	void destroyVulkanCommand();
 
+	void uploadContent();
+
 	void initVulkanRuntime();
 	void destroyVulkanRuntime();
 
 	void initVulkanUniform();
-	void destroyVulkanUnform();
+	void destroyVulkanUniform();
 
 
 private:
 	bool enableValidation  = false;
 	WId target;
-	uint32_t width, height = 0;
+	uint32_t width = 0, height = 0;
 
 	std::unique_ptr<VulkanInstance> instance				 = nullptr;
 	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;
@@ -85,7 +95,6 @@ private:
 	std::unique_ptr<VulkanCommand> command					 = nullptr;
 	std::unique_ptr<VulkanRuntime> runtime				     = nullptr;
 	std::shared_ptr<VulkanUniform> uniform					 = nullptr;
-	std::shared_ptr<VulkanTexture> depthTexture              = nullptr;
 
 
 
@@ -95,5 +104,7 @@ private:
 
 	std::vector<VulkanVertex> vertexCollection;
 	std::vector<std::uint32_t> indexCollection;
+
+	VulkanControllerStatus currStatus;
 
 };

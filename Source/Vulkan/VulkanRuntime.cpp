@@ -17,14 +17,16 @@ VulkanRuntime::~VulkanRuntime() {
 
 void VulkanRuntime::RenderFrame()
 {
-	if (!this->isRenderActive) {
+	if (this->renderingFailed) {
 		return;
 	}
+
+	
 
 	VkResult res = vkWaitForFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx], VK_FALSE, 1000000000);
 	if (res != VkResult::VK_SUCCESS) {
 		
-		this->isRenderActive = false;
+		this->renderingFailed = true;
 		// TODO: Restart renderer
 
 		return;
@@ -32,7 +34,7 @@ void VulkanRuntime::RenderFrame()
 
 	res =  vkResetFences(this->logicalDevice, 1, &this->inFlightFences[this->currentFrameIdx]);
 	if (res != VkResult::VK_SUCCESS) {
-		this->isRenderActive = false;
+		this->renderingFailed = true;
 		//throw std::runtime_error("Failed to reset fences.");
 	}
 
@@ -46,7 +48,7 @@ void VulkanRuntime::RenderFrame()
 		&imageIndex);
 
 	if (res != VkResult::VK_SUCCESS) {
-		this->isRenderActive = false;
+		this->renderingFailed = true;
 		//throw std::runtime_error("Failed acquire next image.");
 	}
 
@@ -69,7 +71,7 @@ void VulkanRuntime::RenderFrame()
 
 	res = vkQueueSubmit(this->graphicsQueue, 1, &submitInfo, this->inFlightFences[currentFrameIdx]);
 	if (res != VK_SUCCESS) {
-		this->isRenderActive = false;
+		this->renderingFailed = true;
 		//throw std::runtime_error("Failed to submit draw command buffer!");
 	}
 
@@ -86,7 +88,7 @@ void VulkanRuntime::RenderFrame()
 
 	res = vkQueuePresentKHR(this->presentQueue, &presentInfo);
 	if (res != VK_SUCCESS) {
-		this->isRenderActive = false;
+		this->renderingFailed = true;
 		//throw std::runtime_error("Failed to submit to present queue.");
 	}
 

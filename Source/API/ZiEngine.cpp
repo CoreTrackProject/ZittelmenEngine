@@ -26,6 +26,7 @@ void ZiEngine::Initialize() {
 	);
 
 
+
 	this->vulkanController->Initialize();
 	this->currStatus = ZiEngineStatus::Ready;
 }
@@ -37,11 +38,11 @@ void ZiEngine::Destroy() {
 }
 
 void ZiEngine::SetTargetRenderSurface(QWidget *targetRenderSurface) {
-	this->vulkanController->SetTargetRenderSurface(targetRenderSurface->winId());
+	this->vulkanController->SetTargetRenderSurface(targetRenderSurface->winId(), targetRenderSurface->width(), targetRenderSurface->height());
 }
 
 void ZiEngine::SetTargetRenderSurface(QWindow *targetRenderSurface) {
-	this->vulkanController->SetTargetRenderSurface(targetRenderSurface->winId());
+	this->vulkanController->SetTargetRenderSurface(targetRenderSurface->winId(), targetRenderSurface->width(), targetRenderSurface->height());
 }
 	
 void ZiEngine::RenderFrame() {

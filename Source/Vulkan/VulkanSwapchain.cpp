@@ -1,8 +1,8 @@
 #include "VulkanSwapchain.h"
 
 VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height) :
-	targetwidth(targetwidth), 
-	targetheight(targetheight),
+	targetwidth(width),
+	targetheight(height),
 	surface(surface),
 	device(device),
 	logicalDevice(logicalDevice),
@@ -10,10 +10,14 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevi
 {
 	this->init_Swapchain();
 	this->init_Imageviews();
+	this->init_DepthTexture();
 }
 
 VulkanSwapchain::~VulkanSwapchain()
 {
+	for (auto framebuffer : this->swapchainFramebufferCollection) {
+		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
+	}
 
 	for (Image image : this->imageCollection) {
 		vkDestroyImageView(this->logicalDevice, image.imageView, nullptr);
@@ -21,8 +25,10 @@ VulkanSwapchain::~VulkanSwapchain()
 	}
 
 	vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
-
 }
+
+
+
 
 VkExtent2D &VulkanSwapchain::GetSwapchainExtent2D()
 {
@@ -33,6 +39,63 @@ VkSurfaceFormatKHR &VulkanSwapchain::GetSwapchainImageFormat()
 {
 	return this->selectedSurfaceFormat;
 }
+
+void VulkanSwapchain::InitFramebuffer(VkRenderPass &renderpass)
+{
+
+	uint32_t swapchainImageCount = static_cast<uint32_t>(this->imageCollection.size());
+	this->swapchainFramebufferCollection.resize(swapchainImageCount);
+
+	for (size_t i = 0; i < swapchainImageCount; i++) {
+
+		std::array<VkImageView, 2> attachments = {
+			this->imageCollection.at(i).imageView,
+			this->depthTexture->GetImageView()
+		};
+
+		VkFramebufferCreateInfo framebufferInfo = {};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = renderpass;
+		framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+		framebufferInfo.pAttachments = attachments.data();
+		framebufferInfo.width = this->selectedExtent.width;
+		framebufferInfo.height = this->selectedExtent.height;
+		framebufferInfo.layers = 1;
+
+		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
+		if (res != VK_SUCCESS) {
+			qDebug() << "Failed to create the framebuffer";
+		}
+	}
+}
+
+std::shared_ptr<VulkanTexture> VulkanSwapchain::GetDepthTexture()
+{
+	return this->depthTexture;
+}
+
+std::vector<Image> &VulkanSwapchain::GetImageCollection()
+{
+	return this->imageCollection;
+}
+
+VkSwapchainKHR &VulkanSwapchain::GetSwapchain()
+{
+	return this->swapChain;
+}
+
+VkQueue &VulkanSwapchain::GetPresentQueue()
+{
+	return this->presentQueue;
+}
+
+std::vector<VkFramebuffer> VulkanSwapchain::GetFramebufferCollection()
+{
+	return this->swapchainFramebufferCollection;
+}
+
+
+
 
 void VulkanSwapchain::init_Swapchain()
 {
@@ -48,7 +111,7 @@ void VulkanSwapchain::init_Swapchain()
 	}
 
 	VkSwapchainCreateInfoKHR createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	createInfo.sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 	createInfo.surface = this->surface;
 
 	createInfo.minImageCount = imageCount;
@@ -198,6 +261,11 @@ void VulkanSwapchain::init_Imageviews()
 	}
 }
 
+void VulkanSwapchain::init_DepthTexture()
+{
+	this->depthTexture = VulkanTexture::NewDepthTexture(this->device, this->logicalDevice, this->targetwidth, this->targetheight);
+}
+
 VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
 	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
@@ -243,23 +311,9 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &cap
 	}
 }
 
-std::vector<Image> &VulkanSwapchain::GetImageCollection()
-{
-	return this->imageCollection;
-}
-
-VkSwapchainKHR &VulkanSwapchain::GetSwapchain()
-{
-	return this->swapChain;
-}
-
 uint32_t &VulkanSwapchain::getQueueFamilyPresentIdx()
 {
 	return this->queueFamilyPresentIdx;
 }
 
-VkQueue &VulkanSwapchain::GetPresentQueue()
-{
-	return this->presentQueue;
-}
 

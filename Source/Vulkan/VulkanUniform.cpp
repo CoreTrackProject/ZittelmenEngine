@@ -1,13 +1,14 @@
 #include "VulkanUniform.h"
 
 
-VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent, VkImageView &imageView, VkSampler &imageSampler) :
+VulkanUniform::VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkImageView &imageView, VkSampler &imageSampler, std::uint32_t width, std::uint32_t height) :
 	logicalDevice(logicalDevice), 
 	physicalDevice(physicalDevice), 
 	swapChainImageCollectionSize(swapChainImageCollectionSize),
-	swapchainExtent(swapchainExtent),
 	imageView(imageView),
-	imageSampler(imageSampler)
+	imageSampler(imageSampler),
+	width(width),
+	height(height)
 {
 	this->initDescriptorSetLayout();
 	this->initUniformBuffer();
@@ -35,7 +36,7 @@ std::vector<VkDescriptorSet> &VulkanUniform::GetDescriptorSetCollection()
 
 void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 {
-	if (this->swapchainExtent.height <= 0) { 
+	if (this->height <= 0) { 
 		return; 
 	}
 
@@ -47,7 +48,7 @@ void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 	UniformBufferObject ubo = {};
 	ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	ubo.view  = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-	ubo.proj  = glm::perspective(glm::radians(45.0f), static_cast<float>(this->swapchainExtent.width / this->swapchainExtent.height), 0.1f, 10.0f);
+	ubo.proj  = glm::perspective(glm::radians(45.0f), static_cast<float>(this->width / this->height), 0.1f, 10.0f);
 
 	ubo.proj[1][1] *= -1;
 
@@ -58,6 +59,12 @@ void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
 		&ubo, 
 		uboSize
 	);
+}
+
+void VulkanUniform::UpdateViewportDimension(std::uint32_t newWidth, std::uint32_t newHeight)
+{
+	this->width = newWidth;
+	this->height = newHeight;
 }
 
 void VulkanUniform::initUniformBuffer() {
@@ -72,13 +79,11 @@ void VulkanUniform::initUniformBuffer() {
 
 void VulkanUniform::destroyUniformBuffer()
 {
-
 	// the VulkanBuffer objects are reference counted and destroy them self
 	//for (size_t i = 0; i < this->swapChainImageCollectionSize; i++) {
 		//this->uniformBufferCollection[i]->freeMemory();
 		//delete this->uniformBufferCollection[i];
 	//}
-
 }
 
 void VulkanUniform::initDescriptorPool() 

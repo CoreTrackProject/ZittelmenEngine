@@ -1,26 +1,27 @@
 #include "VulkanGraphicsPipeline.h"
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection, VkDescriptorSetLayout &descriptorSetLayout, VkImageView &depthImageView) :
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, VkDescriptorSetLayout &descriptorSetLayout) :
 	physicalDevice(physicalDevice),
 	logicalDevice(logicalDevice),
 	vertexShaderModule(vertexShaderModule),
 	fragmentShaderModule(fragmentShaderModule),
 	swapchainExtent2D(swapchainExtent), 
 	swapchainImageFormat(swapchainImageFormat), 
-	swapchainImageCollection(swapchainImageCollection),
-	descriptorSetLayout(descriptorSetLayout),
-	depthImageView(depthImageView)
+	//swapchainImageCollection(swapchainImageCollection),
+	descriptorSetLayout(descriptorSetLayout)
+	//depthImageView(depthImageView)
 {
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
-	this->init_framebuffer();
+	//this->init_framebuffer();
 }
 
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline() 
 {
-	for (auto framebuffer : this->swapchainFramebufferCollection) {
+
+	/*for (auto framebuffer : this->swapchainFramebufferCollection) {
 		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
-	}
+	}*/
 
 	vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);
@@ -28,10 +29,10 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 
 }
 
-std::vector<VkFramebuffer> &VulkanGraphicsPipeline::GetFramebufferCollection()
-{
-	return this->swapchainFramebufferCollection;
-}
+//std::vector<VkFramebuffer> &VulkanGraphicsPipeline::GetFramebufferCollection()
+//{
+//	return this->swapchainFramebufferCollection;
+//}
 
 VkRenderPass &VulkanGraphicsPipeline::GetRenderPass()
 {
@@ -47,6 +48,25 @@ VkPipelineLayout &VulkanGraphicsPipeline::GetGraphicsPipelineLayout()
 {
 	return this->pipelineLayout;
 }
+
+//void VulkanGraphicsPipeline::ResizeFrameBuffer(std::uint32_t width, std::uint32_t height, std::vector<Image> swapchainImgCollection, VkImageView depthImageView)
+//{
+//	this->depthImageView           = depthImageView;
+//	this->swapchainImageCollection = swapchainImgCollection;
+//
+//
+//	// Important: Make shure when this function is called no other vulkan object relies on the framebuffer
+//	for (auto framebuffer : this->swapchainFramebufferCollection) {
+//		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
+//	}
+//	this->swapchainFramebufferCollection.clear();
+//
+//
+//	this->swapchainExtent2D.width  = width;
+//	this->swapchainExtent2D.height = height;
+//
+//	this->init_framebuffer();
+//}
 
 void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 {
@@ -139,6 +159,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
 	multisampling.alphaToOneEnable      = VK_FALSE; // Optional
 
+
 	//Depth and stencil testing
 	//---------------------
 
@@ -183,6 +204,17 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 	//Dynamic state
 	//-------------
+	std::vector<VkDynamicState> dynStateCollection;
+	dynStateCollection.push_back(VkDynamicState::VK_DYNAMIC_STATE_VIEWPORT);
+	dynStateCollection.push_back(VkDynamicState::VK_DYNAMIC_STATE_SCISSOR);
+
+	VkPipelineDynamicStateCreateInfo pipelineDynamicStateCreateInfo = {};
+	pipelineDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	pipelineDynamicStateCreateInfo.pNext = nullptr;
+	pipelineDynamicStateCreateInfo.flags = 0;
+	pipelineDynamicStateCreateInfo.dynamicStateCount = static_cast<std::uint32_t>(dynStateCollection.size());
+	pipelineDynamicStateCreateInfo.pDynamicStates = dynStateCollection.data();
+
 
 
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
@@ -199,7 +231,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 
 
 	// ====================================
-	//Create Pipeline
+	// Create Pipeline
 	// ====================================
 
 
@@ -215,7 +247,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.pMultisampleState = &multisampling;
 	pipelineInfo.pDepthStencilState = &depthStencil;
 	pipelineInfo.pColorBlendState = &colorBlending;
-	pipelineInfo.pDynamicState = nullptr; // Optional
+	pipelineInfo.pDynamicState = &pipelineDynamicStateCreateInfo; // Optional
 	pipelineInfo.layout = this->pipelineLayout;
 	pipelineInfo.renderPass = this->renderPass;
 	pipelineInfo.subpass = 0;
@@ -226,6 +258,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create the graphics pipeline");
 	}
+
 }
 
 void VulkanGraphicsPipeline::init_renderpass()
@@ -304,33 +337,33 @@ void VulkanGraphicsPipeline::init_renderpass()
 	
 }
 
-void VulkanGraphicsPipeline::init_framebuffer()
-{
-	uint32_t swapchainImageCount = static_cast<uint32_t>(this->swapchainImageCollection.size());
-
-	this->swapchainFramebufferCollection.resize(swapchainImageCount);
-
-	for (size_t i = 0; i < swapchainImageCount; i++) {
-		
-		std::array<VkImageView, 2> attachments = {
-			this->swapchainImageCollection.at(i).imageView,
-			this->depthImageView
-		};
-
-		VkFramebufferCreateInfo framebufferInfo = {};
-		framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass				= this->renderPass;
-		framebufferInfo.attachmentCount			= static_cast<uint32_t>(attachments.size());
-		framebufferInfo.pAttachments		    = attachments.data();
-		framebufferInfo.width					= this->swapchainExtent2D.width;
-		framebufferInfo.height					= this->swapchainExtent2D.height;
-		framebufferInfo.layers					= 1;
-		
-		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
-		if (res != VK_SUCCESS) {
-			qDebug() << "Failed to create the framebuffer";
-		}
-	}
-
-}
+//void VulkanGraphicsPipeline::init_framebuffer()
+//{
+//	uint32_t swapchainImageCount = static_cast<uint32_t>(this->swapchainImageCollection.size());
+//
+//	this->swapchainFramebufferCollection.resize(swapchainImageCount);
+//
+//	for (size_t i = 0; i < swapchainImageCount; i++) {
+//		
+//		std::array<VkImageView, 2> attachments = {
+//			this->swapchainImageCollection.at(i).imageView,
+//			this->depthImageView
+//		};
+//
+//		VkFramebufferCreateInfo framebufferInfo = {};
+//		framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+//		framebufferInfo.renderPass				= this->renderPass;
+//		framebufferInfo.attachmentCount			= static_cast<uint32_t>(attachments.size());
+//		framebufferInfo.pAttachments		    = attachments.data();
+//		framebufferInfo.width					= this->swapchainExtent2D.width;
+//		framebufferInfo.height					= this->swapchainExtent2D.height;
+//		framebufferInfo.layers					= 1;
+//		
+//		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
+//		if (res != VK_SUCCESS) {
+//			qDebug() << "Failed to create the framebuffer";
+//		}
+//	}
+//
+//}
 

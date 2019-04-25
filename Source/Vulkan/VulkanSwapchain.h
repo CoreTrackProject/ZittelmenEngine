@@ -2,9 +2,13 @@
 
 #include <vector>
 #include <algorithm>
+#include <array>
 #include <Vulkan/vulkan.h>
 
+#include <QDebug>
+
 #include "VulkanDevice.h"
+#include "VulkanTexture.h"
 
 struct Image {
 	VkImage image;
@@ -32,11 +36,19 @@ public:
 	uint32_t &getQueueFamilyPresentIdx();
 	VkQueue &GetPresentQueue();
 
+	std::vector<VkFramebuffer> GetFramebufferCollection();
+
+
+	void InitFramebuffer(VkRenderPass &renderpass);
+
+	std::shared_ptr<VulkanTexture> GetDepthTexture();
 
 private:
 	void init_Swapchain();
 	void querySwapChainRelatedInfo();
 	void init_Imageviews();
+	
+	void init_DepthTexture();
 
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR   chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
@@ -48,6 +60,9 @@ private:
 	VkPhysicalDevice &device;
 	VkDevice &logicalDevice;
 	DeviceInfo &deviceInfo;
+
+
+	std::shared_ptr<VulkanTexture> depthTexture = nullptr;
 
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
 	VkQueue presentQueue = VK_NULL_HANDLE;
@@ -62,7 +77,10 @@ private:
 	Image image;
 	std::vector<Image> imageCollection;
 
+	std::vector<VkFramebuffer> swapchainFramebufferCollection;
+
 	uint32_t targetwidth  = 800;
 	uint32_t targetheight = 600;
+
 	
 };

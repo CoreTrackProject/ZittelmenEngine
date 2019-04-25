@@ -15,18 +15,20 @@ class VulkanGraphicsPipeline
 {
 
 public:
-	VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, std::vector<Image> &swapchainImageCollection, VkDescriptorSetLayout &descriptorSetLayout, VkImageView &depthImageView);
+	VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, VkDescriptorSetLayout &descriptorSetLayout);
 	~VulkanGraphicsPipeline();
 
-	std::vector<VkFramebuffer> &GetFramebufferCollection();
+	//std::vector<VkFramebuffer> &GetFramebufferCollection();
 	VkRenderPass &GetRenderPass();
 	VkPipeline &GetGraphicsPipeline();
 	VkPipelineLayout &GetGraphicsPipelineLayout();
 
+	//void ResizeFrameBuffer(std::uint32_t width, std::uint32_t height, std::vector<Image> swapchainImgCollection, VkImageView depthImageView);
+
 private:
 	void init_graphicsPipelineLayout();
 	void init_renderpass();
-	void init_framebuffer();
+	//void init_framebuffer();
 
 private:
 	VkShaderModule &vertexShaderModule;
@@ -35,16 +37,16 @@ private:
 	VkSurfaceFormatKHR &swapchainImageFormat;
 	VkDevice &logicalDevice;
 	VkDescriptorSetLayout &descriptorSetLayout;
-	VkImageView &depthImageView;
+	//VkImageView &depthImageView;
 	VkPhysicalDevice &physicalDevice;
 
 
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-	VkRenderPass renderPass = VK_NULL_HANDLE;
+	VkRenderPass renderPass  = VK_NULL_HANDLE;
 	VkPipeline graphicsPipeline = VK_NULL_HANDLE;
 	
-	std::vector<Image> &swapchainImageCollection;
-	std::vector<VkFramebuffer> swapchainFramebufferCollection;
+	//std::vector<Image> &swapchainImageCollection;
+	//std::vector<VkFramebuffer> swapchainFramebufferCollection;
 
 
 };

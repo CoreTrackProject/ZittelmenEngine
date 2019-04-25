@@ -36,7 +36,6 @@ private:
 	std::vector<VkFence> inFlightFences;
 
 	size_t currentFrameIdx = 0;
-	bool isRenderActive;
-	bool renderRunning = false;
+	bool renderingFailed = false;
 
 };

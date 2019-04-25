@@ -26,13 +26,15 @@ struct UniformBufferObject {
 class VulkanUniform {
 
 public:
-	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkExtent2D &swapchainExtent, VkImageView &imageView, VkSampler &imageSampler);
+	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkImageView &imageView, VkSampler &imageSampler, std::uint32_t width, std::uint32_t height);
 	~VulkanUniform();
 
 	VkDescriptorSetLayout &GetDescriptorSetLayout();
 	std::vector<VkDescriptorSet> &GetDescriptorSetCollection();
 
 	void updateUniformData(uint32_t currFrameIdx);
+
+	void UpdateViewportDimension(std::uint32_t newWidth, std::uint32_t newHeight);
 
 private:
 	void initUniformBuffer();
@@ -45,9 +47,11 @@ private:
 private:
 	VkDevice &logicalDevice;
 	VkPhysicalDevice &physicalDevice;
-	VkExtent2D &swapchainExtent;
 	VkImageView &imageView;
 	VkSampler &imageSampler;
+	
+	std::uint32_t width;
+	std::uint32_t height;
 
 	VkDescriptorSetLayout descriptorSetLayout; 
 	uint32_t swapChainImageCollectionSize;
