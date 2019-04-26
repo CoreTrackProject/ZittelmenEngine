@@ -9,10 +9,25 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
+/*
+
+*/
+struct VulkanRuntimeCreateInfo {
+	VkDevice					   logicalDevice;
+	VkSwapchainKHR				   swapchain;
+	std::vector<VkCommandBuffer>   commandBufferCollection;
+	VkQueue						   graphicsQueue;
+	VkQueue						   presentQueue;
+	std::shared_ptr<VulkanUniform> uniform;
+};
+
+/*
+
+*/
 class VulkanRuntime {
 
 public:
-	VulkanRuntime(VkDevice &logicalDevice, VkSwapchainKHR &swapchain, std::vector<VkCommandBuffer> &commandBufferCollection, VkQueue &graphicsQueue, VkQueue &presentQueue, std::shared_ptr<VulkanUniform> &uniform);
+	VulkanRuntime(VulkanRuntimeCreateInfo createInfo);
 	~VulkanRuntime();
 
 	void RenderFrame();
@@ -23,13 +38,7 @@ private:
 	void init_syncobjects();
 	
 private:
-	VkDevice &logicalDevice;
-	VkQueue &graphicsQueue;
-	VkQueue &presentQueue;
-	std::shared_ptr<VulkanUniform> &uniform;
-
-	VkSwapchainKHR &swapchain;
-	std::vector<VkCommandBuffer> &commandBufferCollection;
+	VulkanRuntimeCreateInfo createInfo = {};
 
 	std::vector<VkSemaphore> imageAvailableSemaphoreCollection;
 	std::vector<VkSemaphore> renderFinishedSemaphoreCollection;

@@ -1,15 +1,6 @@
 #include "VulkanGraphicsPipeline.h"
 
-VulkanGraphicsPipeline::VulkanGraphicsPipeline(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, VkShaderModule &vertexShaderModule, VkShaderModule  &fragmentShaderModule, VkExtent2D &swapchainExtent, VkSurfaceFormatKHR  &swapchainImageFormat, VkDescriptorSetLayout &descriptorSetLayout) :
-	physicalDevice(physicalDevice),
-	logicalDevice(logicalDevice),
-	vertexShaderModule(vertexShaderModule),
-	fragmentShaderModule(fragmentShaderModule),
-	swapchainExtent2D(swapchainExtent), 
-	swapchainImageFormat(swapchainImageFormat), 
-	//swapchainImageCollection(swapchainImageCollection),
-	descriptorSetLayout(descriptorSetLayout)
-	//depthImageView(depthImageView)
+VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanGraphicsPipelineCreateInfo createInfo) : createInfo(createInfo)
 {
 	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
@@ -23,9 +14,9 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
 	}*/
 
-	vkDestroyPipeline(this->logicalDevice, this->graphicsPipeline, nullptr);
-	vkDestroyPipelineLayout(this->logicalDevice, this->pipelineLayout, nullptr);
-	vkDestroyRenderPass(this->logicalDevice, this->renderPass, nullptr);
+	vkDestroyPipeline(this->createInfo.logicalDevice, this->graphicsPipeline, nullptr);
+	vkDestroyPipelineLayout(this->createInfo.logicalDevice, this->pipelineLayout, nullptr);
+	vkDestroyRenderPass(this->createInfo.logicalDevice, this->renderPass, nullptr);
 
 }
 
@@ -76,13 +67,13 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	VkPipelineShaderStageCreateInfo vertexShaderStageInfo = {};
 	vertexShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	vertexShaderStageInfo.stage  = VK_SHADER_STAGE_VERTEX_BIT;
-	vertexShaderStageInfo.module = this->vertexShaderModule;
+	vertexShaderStageInfo.module = this->createInfo.vertexShaderModule;
 	vertexShaderStageInfo.pName  = "main";
 
 	VkPipelineShaderStageCreateInfo fragShaderStageInfo = {};
 	fragShaderStageInfo.sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 	fragShaderStageInfo.stage  = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderStageInfo.module = this->fragmentShaderModule;
+	fragShaderStageInfo.module = this->createInfo.fragmentShaderModule;
 	fragShaderStageInfo.pName  = "main";
 
 	VkPipelineShaderStageCreateInfo shaderStages[] = { vertexShaderStageInfo, fragShaderStageInfo };
@@ -116,14 +107,14 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	VkViewport viewport = {};
 	viewport.x		  = 0.0f;
 	viewport.y		  = 0.0f;
-	viewport.width    = (float)this->swapchainExtent2D.width;
-	viewport.height   = (float)this->swapchainExtent2D.height;
+	viewport.width    = (float)this->createInfo.swapchainExtent.width;
+	viewport.height   = (float)this->createInfo.swapchainExtent.height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 
 	VkRect2D scissor  = {};
 	scissor.offset    = {0, 0};
-	scissor.extent    = this->swapchainExtent2D;
+	scissor.extent    = this->createInfo.swapchainExtent;
 
 	VkPipelineViewportStateCreateInfo viewportState = {};
 	viewportState.sType			= VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -220,11 +211,11 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1; // Used for Uniform Buffers
-	pipelineLayoutInfo.pSetLayouts = &this->descriptorSetLayout; // Used for Uniform Buffers
+	pipelineLayoutInfo.pSetLayouts = &this->createInfo.descriptorSetLayout; // Used for Uniform Buffers
 	pipelineLayoutInfo.pushConstantRangeCount = 0; // Optional
 	pipelineLayoutInfo.pPushConstantRanges = nullptr; // Optional
 	
-	VkResult res = vkCreatePipelineLayout(this->logicalDevice, &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
+	VkResult res = vkCreatePipelineLayout(this->createInfo.logicalDevice, &pipelineLayoutInfo, nullptr, &this->pipelineLayout);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create the pipeline layout!");
 	}
@@ -254,7 +245,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
 
-	res = vkCreateGraphicsPipelines(this->logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
+	res = vkCreateGraphicsPipelines(this->createInfo.logicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &this->graphicsPipeline);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create the graphics pipeline");
 	}
@@ -265,7 +256,7 @@ void VulkanGraphicsPipeline::init_renderpass()
 {
 	// Attachment description
 	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format		   = this->swapchainImageFormat.format;
+	colorAttachment.format		   = this->createInfo.swapchainImageFormat.format;
 	colorAttachment.samples		   = VK_SAMPLE_COUNT_1_BIT;
 	colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
@@ -285,7 +276,7 @@ void VulkanGraphicsPipeline::init_renderpass()
 
 	// Depth attachement for depth buffering
 	VkAttachmentDescription depthAttachment = {};
-	depthAttachment.format = VulkanUtils::FindDepthFormat(this->physicalDevice);
+	depthAttachment.format = VulkanUtils::FindDepthFormat(this->createInfo.physicalDevice);
 	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -328,42 +319,9 @@ void VulkanGraphicsPipeline::init_renderpass()
 	renderPassInfo.dependencyCount = 1;
 	renderPassInfo.pDependencies = &dependency;
 
-
-
-	VkResult res = vkCreateRenderPass(this->logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
+	VkResult res = vkCreateRenderPass(this->createInfo.logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create renderpass");
 	}
 	
 }
-
-//void VulkanGraphicsPipeline::init_framebuffer()
-//{
-//	uint32_t swapchainImageCount = static_cast<uint32_t>(this->swapchainImageCollection.size());
-//
-//	this->swapchainFramebufferCollection.resize(swapchainImageCount);
-//
-//	for (size_t i = 0; i < swapchainImageCount; i++) {
-//		
-//		std::array<VkImageView, 2> attachments = {
-//			this->swapchainImageCollection.at(i).imageView,
-//			this->depthImageView
-//		};
-//
-//		VkFramebufferCreateInfo framebufferInfo = {};
-//		framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-//		framebufferInfo.renderPass				= this->renderPass;
-//		framebufferInfo.attachmentCount			= static_cast<uint32_t>(attachments.size());
-//		framebufferInfo.pAttachments		    = attachments.data();
-//		framebufferInfo.width					= this->swapchainExtent2D.width;
-//		framebufferInfo.height					= this->swapchainExtent2D.height;
-//		framebufferInfo.layers					= 1;
-//		
-//		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
-//		if (res != VK_SUCCESS) {
-//			qDebug() << "Failed to create the framebuffer";
-//		}
-//	}
-//
-//}
-

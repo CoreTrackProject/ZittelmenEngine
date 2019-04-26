@@ -7,11 +7,22 @@
 
 #include "VulkanDebug.h"
 
+/*
+
+*/
+struct VulkanInstanceCreateInfo {
+	bool enableValidation;
+};
+
+
+/*
+
+*/
 class VulkanInstance
 {
 
 public:
-	VulkanInstance(bool enableValidation);
+	VulkanInstance(VulkanInstanceCreateInfo createInfo);
 	~VulkanInstance();
 
 	VkInstance &GetInstance();
@@ -21,6 +32,8 @@ private:
 	void destroy_vkInstance();
 	
 private:
+	VulkanInstanceCreateInfo createInfo = {};
+
 	VkInstance m_vkInstance = VK_NULL_HANDLE;
 
 };

@@ -1,19 +1,19 @@
 #include "VulkanShader.h"
 
-VulkanShader::VulkanShader(VkDevice &logicalDevice) : logicalDevice(logicalDevice){
+VulkanShader::VulkanShader(VulkanShaderCreateInfo createInfo) : createInfo(createInfo) {
 	Q_INIT_RESOURCE(CompiledShaders);
 	
-
 	this->loadShaders();
 }
 
 VulkanShader::~VulkanShader() {
 	Q_CLEANUP_RESOURCE(CompiledShaders);
 
-	vkDestroyShaderModule(this->logicalDevice, this->fragmentShaderModule,  nullptr);
-	vkDestroyShaderModule(this->logicalDevice, this->vertexShaderModule,    nullptr);
+	vkDestroyShaderModule(this->createInfo.logicalDevice, this->fragmentShaderModule,  nullptr);
+	vkDestroyShaderModule(this->createInfo.logicalDevice, this->vertexShaderModule,    nullptr);
 
 }
+
 
 VkShaderModule &VulkanShader::GetVertexShaderModule()
 {
@@ -24,6 +24,7 @@ VkShaderModule &VulkanShader::GetFragmentShaderModule()
 {
 	return this->fragmentShaderModule;
 }
+
 
 void VulkanShader::loadShaders()
 {
@@ -37,7 +38,7 @@ void VulkanShader::loadShaders()
 	vertexShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	vertexShaderInfo.codeSize = vertexShader.size();
 	vertexShaderInfo.pCode = reinterpret_cast<const uint32_t *>(vertexShader.constData());
-	VkResult res = vkCreateShaderModule(this->logicalDevice, &vertexShaderInfo, nullptr, &this->vertexShaderModule);
+	VkResult res = vkCreateShaderModule(this->createInfo.logicalDevice, &vertexShaderInfo, nullptr, &this->vertexShaderModule);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create vertex shader module.");
 	}
@@ -46,7 +47,7 @@ void VulkanShader::loadShaders()
 	fragmentShaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
 	fragmentShaderInfo.codeSize = fragmentShader.size();
 	fragmentShaderInfo.pCode = reinterpret_cast<const uint32_t *>(fragmentShader.constData());
-	res = vkCreateShaderModule(this->logicalDevice, &fragmentShaderInfo, nullptr, &this->fragmentShaderModule);
+	res = vkCreateShaderModule(this->createInfo.logicalDevice, &fragmentShaderInfo, nullptr, &this->fragmentShaderModule);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to create fragment shader module.");
 	}

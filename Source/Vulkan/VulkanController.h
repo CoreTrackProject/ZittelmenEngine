@@ -4,7 +4,10 @@
 #include <algorithm>
 #include <memory>
 
+
 #include <QTimer>
+#include <QImage>
+
 
 #include "VulkanInstance.h"
 #include "VulkanDebug.h"

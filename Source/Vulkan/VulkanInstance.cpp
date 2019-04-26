@@ -1,16 +1,16 @@
 #include "VulkanInstance.h"
 
-// This code is used from the qt vulkan examples
-
-VulkanInstance::VulkanInstance(bool enableValidation)
+VulkanInstance::VulkanInstance(VulkanInstanceCreateInfo createInfo) : createInfo(createInfo)
 {
-	this->init_vkInstance(enableValidation);
+	this->init_vkInstance(createInfo.enableValidation);
 }
 
 VulkanInstance::~VulkanInstance()
 {
 	this->destroy_vkInstance();
 }
+
+
 
 VkInstance &VulkanInstance::GetInstance()
 {

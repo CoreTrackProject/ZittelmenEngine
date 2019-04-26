@@ -7,6 +7,17 @@
 #include <vector>
 #include <algorithm>
 
+/*
+
+*/
+struct VulkanDebugCreateInfo {
+	VkInstance instance;
+};
+
+
+/*
+
+*/
 class VulkanDebug
 {
 
@@ -49,10 +60,8 @@ public:
 		nullptr
 	};
 
-
-
 public:
-	VulkanDebug(VkInstance &instance);
+	VulkanDebug(VulkanDebugCreateInfo createInfo);
 	~VulkanDebug();
 
 	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> &extensionCollection);
@@ -62,19 +71,15 @@ private:
 	void init_vulkanDebug();
 	void destroy_vulkanDebug();
 
-
 private:
-	VkInstance &instance;
-
 	PFN_vkCreateDebugUtilsMessengerEXT  CreateDebugUtilsMessengerEXT = nullptr;
 	PFN_vkDestroyDebugUtilsMessengerEXT DestroyDebugUtilsMessengerEXT = nullptr;
 
 	PFN_vkCreateDebugReportCallbackEXT  CreateDebugReportCallbackEXT = nullptr;
 	PFN_vkDestroyDebugReportCallbackEXT DestroyDebugReportCallbackEXT = nullptr;
 
-	
+private:
+	VulkanDebugCreateInfo createInfo;
 	VkDebugUtilsMessengerEXT debugMessenger;
-
-
 
 };

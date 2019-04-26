@@ -7,6 +7,25 @@
 #include "VulkanVertex.hpp"
 #include "VulkanUtils.hpp"
 
+/*
+
+*/
+struct VulkanTextureCreateInfo {
+	VkPhysicalDevice        phyDevice;
+	VkDevice                logicalDevice;
+	std::shared_ptr<QImage> imageData;
+	VkDeviceSize            sizeBytes;
+	VkImageType             imageType;
+	VkFormat                imageFormat;
+	VkImageTiling           tiling;
+	VkImageUsageFlags       usage;
+	VkMemoryPropertyFlags   properties;
+	std::uint32_t           width;
+	std::uint32_t           height;
+	VkImageAspectFlags      aspectFlags;
+};
+
+
 /* 
 *	Represents a texture in vulkan
 *
@@ -17,26 +36,14 @@
 *	TODO: Need parameters for this class
 *		  - width and height
 *		  - Image format
-*		  
+*
 */
 class VulkanTexture {
 
 public:
-    VulkanTexture(
-		VkPhysicalDevice &phyDevice, 
-		VkDevice &logicalDevice,
-		std::shared_ptr<QImage> &imageData, 
-		VkDeviceSize sizeBytes, 
-		VkImageType imageType,
-		VkFormat imageFormat, 
-		VkImageTiling tiling, 
-		VkImageUsageFlags usage, 
-		VkMemoryPropertyFlags properties,
-		uint32_t width,
-		uint32_t height, 
-		VkImageAspectFlags aspectFlags);
-
+    VulkanTexture(VulkanTextureCreateInfo createInfo);
 	~VulkanTexture();
+
 
 public: // Public Methods
 	VkDeviceMemory &getDeviceMemory();
@@ -50,10 +57,11 @@ public: // Public Methods
 
 public: // Static methods
 	static std::shared_ptr<VulkanTexture> NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &image);
-	static std::shared_ptr<VulkanTexture> NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, uint32_t width, uint32_t height);
+	static std::shared_ptr<VulkanTexture> NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::uint32_t width, std::uint32_t height);
+
 
 private: // Private Methods
-	void createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, uint32_t width, uint32_t height);
+	void createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::uint32_t width, std::uint32_t height);
 	void destroyImage();
 
 	void createImageView(VkFormat format, VkImageAspectFlags aspectFlags);
@@ -62,15 +70,13 @@ private: // Private Methods
 	void createImageSampler();
 	void destroyImageSampler();
 
+
 private:
-	VkDevice &logicalDevice;
-	VkPhysicalDevice &phyDevice;
-    std::shared_ptr<QImage> &imageData;
+	VulkanTextureCreateInfo createInfo = {};
 
 	VkImage image			 = VK_NULL_HANDLE;
 	VkImageView imageView    = VK_NULL_HANDLE;
 	VkSampler imageSampler   = VK_NULL_HANDLE;
 	VkDeviceMemory devMemory = VK_NULL_HANDLE;
-	VkDeviceSize devSize     = VK_NULL_HANDLE;
 
 };

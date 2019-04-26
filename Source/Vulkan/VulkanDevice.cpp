@@ -1,7 +1,7 @@
 #include "VulkanDevice.h"
 
 
-VulkanDevice::VulkanDevice(VkInstance &instance) : instance(instance)
+VulkanDevice::VulkanDevice(VulkanDeviceCreateInfo createInfo) : createInfo(createInfo)
 {
 	this->physicalDevCollection = std::make_unique<std::map<VkPhysicalDevice, DeviceInfo>>();
 
@@ -19,6 +19,8 @@ VulkanDevice::~VulkanDevice()
 	this->destroy_vulkanDevice();
 }
 
+
+
 VkDevice &VulkanDevice::GetLogicalDevice()
 {
 	return this->logicalDevice;
@@ -30,15 +32,25 @@ VkPhysicalDevice &VulkanDevice::GetPhysicalDevice()
 	return const_cast<VkPhysicalDevice>(this->physicalDevCollection->begin()->first);
 }
 
+VkQueue &VulkanDevice::GetGraphicsQueue()
+{
+	return this->graphicsQueue;
+}
+
+DeviceInfo &VulkanDevice::GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
+{
+	return this->physicalDevCollection->find(physicalDevice)->second;
+}
+
 void VulkanDevice::init_vulkanDevice()
 {
 	// Get num physical devices
-	vkEnumeratePhysicalDevices(this->instance, &this->physicalDevCount, nullptr);
+	vkEnumeratePhysicalDevices(this->createInfo.instance, &this->physicalDevCount, nullptr);
 
 	std::vector<VkPhysicalDevice> tmpPhysicalDevCollection(this->physicalDevCount);
 	
 	// store all available physical devices in a collection
-	VkResult res = vkEnumeratePhysicalDevices(this->instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
+	VkResult res = vkEnumeratePhysicalDevices(this->createInfo.instance, &this->physicalDevCount, tmpPhysicalDevCollection.data());
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to enumerate physical devices.");
 	}
@@ -146,7 +158,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 
 	VkDeviceCreateInfo devCreateInfo = {};
 	devCreateInfo.sType = VkStructureType::VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	devCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfoCollection.size());;
+	devCreateInfo.queueCreateInfoCount = static_cast<std::uint32_t>(queueCreateInfoCollection.size());;
 	devCreateInfo.pQueueCreateInfos = queueCreateInfoCollection.data();
 	devCreateInfo.pEnabledFeatures = &enabledFeatures;
 	
@@ -162,7 +174,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	}
 
 	if (deviceExtensions.size() > 0) {
-		devCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
+		devCreateInfo.enabledExtensionCount = (std::uint32_t)deviceExtensions.size();
 		devCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 	}
 
@@ -180,11 +192,11 @@ void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
 }
 
-uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag)
+std::uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag)
 {
 	DeviceInfo &info = this->physicalDevCollection->find(physicalDev)->second;
 
-	for (uint32_t i = 0; i < info.queueFamilyCount; i++) {
+	for (std::uint32_t i = 0; i < info.queueFamilyCount; i++) {
 		if ((info.queueFamilyPropertyCollection[i].queueCount > 0) && (info.queueFamilyPropertyCollection[i].queueFlags & flag)) {
 			return i;
 		}
@@ -210,17 +222,7 @@ bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice &logicalDevice)
 	return this->isDevExtensionSupported(logicalDevice, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
-DeviceInfo &VulkanDevice::GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
-{
-	return this->physicalDevCollection->find(physicalDevice)->second;
-}
-
-VkQueue &VulkanDevice::GetGraphicsQueue()
-{
-	return this->graphicsQueue;
-}
-
-VkQueue &VulkanDevice::getTransferQueue()
+VkQueue &VulkanDevice::GetTransferQueue()
 {
 	return this->transferQueue;
 }

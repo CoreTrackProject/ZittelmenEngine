@@ -6,10 +6,20 @@
 
 #include <vulkan/vulkan.h>
 
+/*
+
+*/
+struct VulkanShaderCreateInfo {
+	VkDevice logicalDevice;
+};
+
+/*
+
+*/
 class VulkanShader {
 
 public:
-	VulkanShader(VkDevice &logicalDevice);
+	VulkanShader(VulkanShaderCreateInfo createInfo);
 	~VulkanShader();
 
 	VkShaderModule &GetVertexShaderModule();
@@ -21,7 +31,8 @@ private:
 	QByteArray loadFile(QString filePath);
 
 private:
-	VkDevice &logicalDevice;
+	VulkanShaderCreateInfo createInfo = {};
+
 	VkShaderModule vertexShaderModule = VK_NULL_HANDLE;
 	VkShaderModule fragmentShaderModule = VK_NULL_HANDLE;
 

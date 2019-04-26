@@ -5,30 +5,45 @@
 #include <map>
 #include <string>
 
+/*
+
+*/
+struct VulkanDeviceCreateInfo {
+	VkInstance instance;
+};
+
+
+/*
+
+*/
 struct DeviceInfo {
 	VkPhysicalDeviceProperties deviceProperties;
 	VkPhysicalDeviceFeatures deviceFeatures;
 	VkPhysicalDeviceMemoryProperties deviceMemoryProperties;
 
-	uint32_t queueFamilyCount;
+	std::uint32_t queueFamilyCount;
 	std::vector<VkQueueFamilyProperties> queueFamilyPropertyCollection;
 
 	struct QueueFamilyIndexes {
-		uint32_t graphics;
-		uint32_t compute;
-		uint32_t transfer;
+		std::uint32_t graphics;
+		std::uint32_t compute;
+		std::uint32_t transfer;
 	};
 	QueueFamilyIndexes queueFamilyIndexes;
 
-	uint32_t deviceExtensionCount;
+	std::uint32_t deviceExtensionCount;
 	std::vector<VkExtensionProperties> deviceExtensionCollection;
 
 };
 
+
+/*
+
+*/
 class VulkanDevice
 {
 public:
-	VulkanDevice(VkInstance &instance);
+	VulkanDevice(VulkanDeviceCreateInfo createInfo);
 	~VulkanDevice();
 
 
@@ -36,9 +51,9 @@ public:
 	VkDevice &GetLogicalDevice();
 	VkPhysicalDevice &GetPhysicalDevice();
 	DeviceInfo &GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice);
-	
+
 	VkQueue &GetGraphicsQueue();
-	VkQueue &getTransferQueue();
+	VkQueue &GetTransferQueue();
 
 
 private:
@@ -47,19 +62,18 @@ private:
 	void init_logicalDevice(VkPhysicalDevice &logicalDevice);
 	void init_deviceQueue(VkPhysicalDevice &logicalDevice);
 
-
-	uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag);
+	std::uint32_t getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag);
 	bool isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName);
 	bool isSwapchainSupported(VkPhysicalDevice &logicalDevice);
 
 
 private:
-	uint32_t physicalDevCount = 0;
-	std::unique_ptr<std::map<VkPhysicalDevice, DeviceInfo>> physicalDevCollection = nullptr;
-	VkInstance &instance;
-	
-	VkDevice logicalDevice = VK_NULL_HANDLE;
+	VulkanDeviceCreateInfo createInfo = {};
+	std::uint32_t physicalDevCount = 0;
 
+	std::unique_ptr<std::map<VkPhysicalDevice, DeviceInfo>> physicalDevCollection = nullptr;
+
+	VkDevice logicalDevice = VK_NULL_HANDLE;
 	VkQueue graphicsQueue = VK_NULL_HANDLE;
 	VkQueue transferQueue = VK_NULL_HANDLE;
 };

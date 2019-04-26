@@ -1,12 +1,6 @@
 #include "VulkanSwapchain.h"
 
-VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height) :
-	targetwidth(width),
-	targetheight(height),
-	surface(surface),
-	device(device),
-	logicalDevice(logicalDevice),
-	deviceInfo(deviceInfo)
+VulkanSwapchain::VulkanSwapchain(VulkanSwapchainCreateInfo createInfo) : createInfo(createInfo)
 {
 	this->init_Swapchain();
 	this->init_Imageviews();
@@ -16,15 +10,15 @@ VulkanSwapchain::VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevi
 VulkanSwapchain::~VulkanSwapchain()
 {
 	for (auto framebuffer : this->swapchainFramebufferCollection) {
-		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
+		vkDestroyFramebuffer(this->createInfo.logicalDevice, framebuffer, nullptr);
 	}
 
 	for (Image image : this->imageCollection) {
-		vkDestroyImageView(this->logicalDevice, image.imageView, nullptr);
+		vkDestroyImageView(this->createInfo.logicalDevice, image.imageView, nullptr);
 		//vkDestroyImage(*this->logicalDevice, image.image, nullptr);
 	}
 
-	vkDestroySwapchainKHR(this->logicalDevice, this->swapChain, nullptr);
+	vkDestroySwapchainKHR(this->createInfo.logicalDevice, this->swapChain, nullptr);
 }
 
 
@@ -62,7 +56,7 @@ void VulkanSwapchain::InitFramebuffer(VkRenderPass &renderpass)
 		framebufferInfo.height = this->selectedExtent.height;
 		framebufferInfo.layers = 1;
 
-		VkResult res = vkCreateFramebuffer(this->logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
+		VkResult res = vkCreateFramebuffer(this->createInfo.logicalDevice, &framebufferInfo, nullptr, &this->swapchainFramebufferCollection[i]);
 		if (res != VK_SUCCESS) {
 			qDebug() << "Failed to create the framebuffer";
 		}
@@ -112,7 +106,7 @@ void VulkanSwapchain::init_Swapchain()
 
 	VkSwapchainCreateInfoKHR createInfo = {};
 	createInfo.sType   = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-	createInfo.surface = this->surface;
+	createInfo.surface = this->createInfo.surface;
 
 	createInfo.minImageCount = imageCount;
 	createInfo.imageFormat = this->selectedSurfaceFormat.format;
@@ -130,8 +124,8 @@ void VulkanSwapchain::init_Swapchain()
 
 		{
 			VkBool32 supprtPresent = VK_FALSE;
-			for (uint32_t i = 0; i < this->deviceInfo.queueFamilyCount; i++) {
-				VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(this->device, i, this->surface, &supprtPresent);
+			for (uint32_t i = 0; i < this->createInfo.deviceInfo.queueFamilyCount; i++) {
+				VkResult res = vkGetPhysicalDeviceSurfaceSupportKHR(this->createInfo.device, i, this->createInfo.surface, &supprtPresent);
 				if (res != VkResult::VK_SUCCESS) {
 					throw std::runtime_error("Failed to get physical device surface support information.");
 				}
@@ -140,16 +134,17 @@ void VulkanSwapchain::init_Swapchain()
 					break;
 				}
 			}
-			vkGetDeviceQueue(this->logicalDevice, this->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
+			vkGetDeviceQueue(this->createInfo.logicalDevice, this->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
 		}
 
-		uint32_t queueFamilyIndices[] = { this->deviceInfo.queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
+		uint32_t queueFamilyIndices[] = { this->createInfo.deviceInfo.queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
 
-		if (this->deviceInfo.queueFamilyIndexes.graphics != this->queueFamilyPresentIdx) {
+		if (this->createInfo.deviceInfo.queueFamilyIndexes.graphics != this->queueFamilyPresentIdx) {
 			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
 			createInfo.queueFamilyIndexCount = 2;
 			createInfo.pQueueFamilyIndices = queueFamilyIndices;
 		} else {
+
 			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 			createInfo.queueFamilyIndexCount = 0; // Optional
 			createInfo.pQueueFamilyIndices = nullptr; // Optional
@@ -162,7 +157,7 @@ void VulkanSwapchain::init_Swapchain()
 	createInfo.clipped = VK_TRUE;
 	createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-	VkResult res = vkCreateSwapchainKHR(this->logicalDevice, &createInfo, nullptr, &this->swapChain);
+	VkResult res = vkCreateSwapchainKHR(this->createInfo.logicalDevice, &createInfo, nullptr, &this->swapChain);
 	if (res != VK_SUCCESS) {
 		throw std::runtime_error("failed to create swap chain!");
 	}
@@ -172,7 +167,7 @@ void VulkanSwapchain::init_Swapchain()
 void VulkanSwapchain::querySwapChainRelatedInfo()
 {
 
-	VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->device, this->surface, &details.capabilities);
+	VkResult res = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(this->createInfo.device, this->createInfo.surface, &details.capabilities);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to get physical device surface capabilities.");
 	}
@@ -180,14 +175,14 @@ void VulkanSwapchain::querySwapChainRelatedInfo()
 	// Get surface formats
 	{
 		uint32_t formatCount;
-		VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, nullptr);
+		VkResult res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->createInfo.device, this->createInfo.surface, &formatCount, nullptr);
 		if (res != VkResult::VK_SUCCESS) {
 			throw std::runtime_error("Failed to get physical device surface formats information.");
 		}
 
 		if (formatCount != 0) {
 			details.formats.resize(formatCount);
-			res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->device, this->surface, &formatCount, details.formats.data());
+			res = vkGetPhysicalDeviceSurfaceFormatsKHR(this->createInfo.device, this->createInfo.surface, &formatCount, details.formats.data());
 			if (res != VkResult::VK_SUCCESS) {
 				throw std::runtime_error("Failed to get physical device surface formats information.");
 			}
@@ -197,13 +192,13 @@ void VulkanSwapchain::querySwapChainRelatedInfo()
 	// Get Presentmodes
 	{
 		uint32_t presentModeCount;
-		VkResult res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, nullptr);
+		VkResult res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->createInfo.device, this->createInfo.surface, &presentModeCount, nullptr);
 		if (res != VkResult::VK_SUCCESS) {
 			throw std::runtime_error("Failed to get physical device surface present modes information.");
 		}
 		if (presentModeCount != 0) {
 			details.presentModes.resize(presentModeCount);
-			res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->device, this->surface, &presentModeCount, details.presentModes.data());
+			res = vkGetPhysicalDeviceSurfacePresentModesKHR(this->createInfo.device, this->createInfo.surface, &presentModeCount, details.presentModes.data());
 			if (res != VkResult::VK_SUCCESS) {
 				throw std::runtime_error("Failed to get physical device surface present modes information.");
 			}
@@ -216,14 +211,14 @@ void VulkanSwapchain::init_Imageviews()
 {
 
 	uint32_t swapchainImageCount = 0;
-	VkResult res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
+	VkResult res = vkGetSwapchainImagesKHR(this->createInfo.logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to get swapchain images.");
 	}
 	//this->imageCollection.resize(swapchainImageCount);
 
 	std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
-	res = vkGetSwapchainImagesKHR(this->logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
+	res = vkGetSwapchainImagesKHR(this->createInfo.logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to get swapchain images.");
 	}
@@ -251,7 +246,7 @@ void VulkanSwapchain::init_Imageviews()
 		imageViewCreateInfo.subresourceRange.layerCount     = 1;
 
 		VkImageView view;
-		res = vkCreateImageView(this->logicalDevice, &imageViewCreateInfo, NULL, &view);
+		res = vkCreateImageView(this->createInfo.logicalDevice, &imageViewCreateInfo, NULL, &view);
 		if (res != VkResult::VK_SUCCESS) {
 			throw std::runtime_error("Failed to create image view.");
 		}
@@ -263,7 +258,7 @@ void VulkanSwapchain::init_Imageviews()
 
 void VulkanSwapchain::init_DepthTexture()
 {
-	this->depthTexture = VulkanTexture::NewDepthTexture(this->device, this->logicalDevice, this->targetwidth, this->targetheight);
+	this->depthTexture = VulkanTexture::NewDepthTexture(this->createInfo.device, this->createInfo.logicalDevice, this->selectedExtent.width, this->selectedExtent.height);
 }
 
 VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
@@ -302,9 +297,9 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &cap
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
 		return capabilities.currentExtent;
 	} else {
-		VkExtent2D actualExtent = { this->targetwidth, this->targetheight };
+		VkExtent2D actualExtent = { this->createInfo.width, this->createInfo.height };
 
-		actualExtent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
+		actualExtent.width  = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, actualExtent.width));
 		actualExtent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, actualExtent.height));
 
 		return actualExtent;

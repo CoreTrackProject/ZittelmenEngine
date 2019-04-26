@@ -6,13 +6,24 @@
 #include "Vulkan/VulkanVertex.hpp"
 #include "VulkanUtils.hpp"
 
+/*
+	
+*/
+struct VulkanBufferCreateInfo {
+	VkPhysicalDevice      phyDevice;
+	VkDevice              logicalDevice; 
+	VkDeviceSize          sizeBytes;
+	VkBufferUsageFlags	  bufferusage;
+	VkMemoryPropertyFlags memoryproperties;
+};
+
 /* 
 *	Vulkan Buffer which holds VkBuffer and VkDeviceMemory 
 */
 class VulkanBuffer {
 	
 public:
-	VulkanBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes, VkBufferUsageFlags bufferusage, VkMemoryPropertyFlags memoryproperties);
+	VulkanBuffer(VulkanBufferCreateInfo createInfo);
 	~VulkanBuffer();
 
 public: // Public Methods
@@ -32,11 +43,9 @@ private: // Private Methods
 	void deallocateBuffer();
 
 private:
-	VkDevice &logicalDevice;
-	VkPhysicalDevice &phyDevice;
+	VulkanBufferCreateInfo createInfo = {};
 
 	VkBuffer buffer          = VK_NULL_HANDLE;
 	VkDeviceMemory devMemory = VK_NULL_HANDLE;
-	VkDeviceSize devSize     = VK_NULL_HANDLE;
 
 };

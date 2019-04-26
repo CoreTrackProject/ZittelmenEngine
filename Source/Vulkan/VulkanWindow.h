@@ -5,18 +5,24 @@
 
 #include <QWidget>
 
+struct VulkanWindowCreateInfo {
+	VkInstance instance;
+	WId targetRenderSurface;
+};
+
 class VulkanWindow
 {
 
 public:
-	VulkanWindow(VkInstance &instance, WId &targetRenderSurface);
+	VulkanWindow(VulkanWindowCreateInfo createInfo);
 	~VulkanWindow();
 
 	void init_Surface();
 	VkSurfaceKHR &GetSurface();
 
 private:
+	VulkanWindowCreateInfo createInfo = {};
+
 	VkSurfaceKHR surface = VK_NULL_HANDLE;
-	WId &targetRenderSurface;
-	VkInstance &instance;
+
 };

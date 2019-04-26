@@ -10,11 +10,30 @@
 #include "VulkanDevice.h"
 #include "VulkanTexture.h"
 
+/*
+
+*/
+struct VulkanSwapchainCreateInfo {
+	VkPhysicalDevice device;
+	VkDevice         logicalDevice; 
+	DeviceInfo       deviceInfo; 
+	VkSurfaceKHR     surface; 
+	std::uint32_t    width; 
+	std::uint32_t    height;
+};
+
+
+/*
+
+*/
 struct Image {
 	VkImage image;
 	VkImageView imageView;
 };
 
+/*
+
+*/
 class VulkanSwapchain
 {
 	struct SwapChainSupportDetails {
@@ -25,7 +44,7 @@ class VulkanSwapchain
 	
 
 public:
-	VulkanSwapchain(VkPhysicalDevice &device, VkDevice &logicalDevice, DeviceInfo &deviceInfo, VkSurfaceKHR &surface, uint32_t width, uint32_t height);
+	VulkanSwapchain(VulkanSwapchainCreateInfo createInfo);
 	~VulkanSwapchain();
 
 	VkExtent2D &GetSwapchainExtent2D();
@@ -56,11 +75,12 @@ private:
 	
 
 private:
-	VkSurfaceKHR &surface;
+	/*VkSurfaceKHR &surface;
 	VkPhysicalDevice &device;
 	VkDevice &logicalDevice;
-	DeviceInfo &deviceInfo;
+	DeviceInfo &deviceInfo;*/
 
+	VulkanSwapchainCreateInfo createInfo = {};
 
 	std::shared_ptr<VulkanTexture> depthTexture = nullptr;
 
@@ -79,8 +99,4 @@ private:
 
 	std::vector<VkFramebuffer> swapchainFramebufferCollection;
 
-	uint32_t targetwidth  = 800;
-	uint32_t targetheight = 600;
-
-	
 };

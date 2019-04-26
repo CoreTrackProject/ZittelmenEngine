@@ -1,7 +1,5 @@
 #include "VulkanController.h"
 
-#include <QImage>
-
 VulkanController::VulkanController()
 {
 	this->currStatus = VulkanControllerStatus::VC_Created;
@@ -11,6 +9,8 @@ VulkanController::~VulkanController()
 {
 	this->Destroy();
 }
+
+
 
 void VulkanController::SetTargetRenderSurface(WId target, std::uint32_t width, std::uint32_t height)
 {
@@ -228,7 +228,10 @@ void VulkanController::Destroy()
 
 void VulkanController::initVulkanInstance()
 {
-	this->instance = std::make_unique<VulkanInstance>(this->enableValidation);
+	VulkanInstanceCreateInfo createInfo = {};
+	createInfo.enableValidation = this->enableValidation;
+
+	this->instance = std::make_unique<VulkanInstance>(createInfo);
 }
 
 void VulkanController::destroyVulkanInstance()
@@ -238,8 +241,11 @@ void VulkanController::destroyVulkanInstance()
 
 void VulkanController::initVulkanDebug()
 {
+	VulkanDebugCreateInfo createInfo = {};
+	createInfo.instance = this->instance->GetInstance();
+
 	if (this->enableValidation) {
-		this->vulkanDebug = std::make_unique<VulkanDebug>(this->instance->GetInstance());
+		this->vulkanDebug = std::make_unique<VulkanDebug>(createInfo);
 	}
 }
 
@@ -252,7 +258,10 @@ void VulkanController::destroyVulkanDebug()
 
 void VulkanController::initVulkanDevice()
 {
-	this->vulkanDevice = std::make_unique<VulkanDevice>(this->instance->GetInstance());
+	VulkanDeviceCreateInfo createInfo = {};
+	createInfo.instance = this->instance->GetInstance();
+
+	this->vulkanDevice = std::make_unique<VulkanDevice>(createInfo);
 }
 
 void VulkanController::destroyVulkanDevice()
@@ -262,7 +271,11 @@ void VulkanController::destroyVulkanDevice()
 
 void VulkanController::initVulkanWindow()
 {
-	this->window = std::make_unique<VulkanWindow>(this->instance->GetInstance(), this->target);
+	VulkanWindowCreateInfo createInfo = {};
+	createInfo.instance            = this->instance->GetInstance();
+	createInfo.targetRenderSurface = this->target;
+
+	this->window = std::make_unique<VulkanWindow>(createInfo);
 }
 
 void VulkanController::destroyVulkanWindow()
@@ -272,16 +285,18 @@ void VulkanController::destroyVulkanWindow()
 
 void VulkanController::initVulkanSwapchain()
 {
-	this->swapchain = std::make_unique<VulkanSwapchain>(
-		this->vulkanDevice->GetPhysicalDevice(),
-		this->vulkanDevice->GetLogicalDevice(),
+	VulkanSwapchainCreateInfo createInfo = {};
+	createInfo.device        = this->vulkanDevice->GetPhysicalDevice();
+	createInfo.logicalDevice = this->vulkanDevice->GetLogicalDevice();
+	createInfo.deviceInfo    = 
 		this->vulkanDevice->GetPhysicalDeviceInfo(
 			this->vulkanDevice->GetPhysicalDevice()
-		),
-		this->window->GetSurface(),
-		this->width,
-		this->height
 		);
+	createInfo.surface       = this->window->GetSurface();
+	createInfo.width         = this->width;
+	createInfo.height        = this->height;
+
+	this->swapchain = std::make_unique<VulkanSwapchain>(createInfo);
 }
 
 void VulkanController::destroyVulkanSwapchain()
@@ -291,7 +306,10 @@ void VulkanController::destroyVulkanSwapchain()
 
 void VulkanController::initVulkanShader()
 {
-	this->shader = std::make_unique<VulkanShader>(this->vulkanDevice->GetLogicalDevice());
+	VulkanShaderCreateInfo createInfo = {};
+	createInfo.logicalDevice = this->vulkanDevice->GetLogicalDevice();
+
+	this->shader = std::make_unique<VulkanShader>(createInfo);
 }
 
 void VulkanController::destroyVulkanShader()
@@ -301,15 +319,16 @@ void VulkanController::destroyVulkanShader()
 
 void VulkanController::initVulkanGraphicsPipeline()
 {
-	this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(
-			this->vulkanDevice->GetPhysicalDevice(),
-			this->vulkanDevice->GetLogicalDevice(),
-			this->shader->GetVertexShaderModule(),
-			this->shader->GetFragmentShaderModule(),
-			this->swapchain->GetSwapchainExtent2D(),
-			this->swapchain->GetSwapchainImageFormat(),
-			this->uniform->GetDescriptorSetLayout()
-		);
+	VulkanGraphicsPipelineCreateInfo createInfo = {};
+	createInfo.physicalDevice       = this->vulkanDevice->GetPhysicalDevice();
+	createInfo.logicalDevice        = this->vulkanDevice->GetLogicalDevice();
+	createInfo.vertexShaderModule   = this->shader->GetVertexShaderModule();
+	createInfo.fragmentShaderModule = this->shader->GetFragmentShaderModule();
+	createInfo.swapchainExtent      = this->swapchain->GetSwapchainExtent2D();
+	createInfo.swapchainImageFormat = this->swapchain->GetSwapchainImageFormat();
+	createInfo.descriptorSetLayout  = this->uniform->GetDescriptorSetLayout();
+	
+	this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(createInfo);
 }
 
 void VulkanController::destroyVulkanGraphicsPipeline()
@@ -353,14 +372,15 @@ void VulkanController::uploadContent()
 
 void VulkanController::initVulkanRuntime()
 {
-	this->runtime = std::make_unique<VulkanRuntime>(
-		this->vulkanDevice->GetLogicalDevice(),
-		this->swapchain->GetSwapchain(),
-		this->command->GetDrawCommandBufferCollection(),
-		this->vulkanDevice->GetGraphicsQueue(),
-		this->swapchain->GetPresentQueue(),
-		this->uniform // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
-		);
+	VulkanRuntimeCreateInfo createInfo = {};
+	createInfo.logicalDevice           = this->vulkanDevice->GetLogicalDevice();
+	createInfo.swapchain               = this->swapchain->GetSwapchain();
+	createInfo.commandBufferCollection = this->command->GetDrawCommandBufferCollection();
+	createInfo.graphicsQueue           = this->vulkanDevice->GetGraphicsQueue();
+	createInfo.presentQueue            = this->swapchain->GetPresentQueue();
+	createInfo.uniform                 = this->uniform; // Temp. so that during runtime the updateUniformData() can be called (should be by a callback solution)
+
+	this->runtime = std::make_unique<VulkanRuntime>(createInfo);
 }
 
 void VulkanController::destroyVulkanRuntime()
@@ -370,17 +390,18 @@ void VulkanController::destroyVulkanRuntime()
 
 void VulkanController::initVulkanUniform()
 {
+	VulkanUniformCreateInfo createInfo = {};
+	createInfo.physicalDevice = this->vulkanDevice->GetPhysicalDevice();
+	createInfo.logicalDevice = this->vulkanDevice->GetLogicalDevice();
+	createInfo.swapChainImageCollectionSize = static_cast<uint32_t>(this->swapchain->GetImageCollection().size());
+	createInfo.imageView = this->imageTexture->GetImageView();
+	createInfo.imageSampler = this->imageTexture->GetImageSampler();
+	createInfo.width = this->swapchain->GetSwapchainExtent2D().width;
+	createInfo.height = this->swapchain->GetSwapchainExtent2D().height;
+
 	// TODO remove GetSwapchainExtent2D() because it is only used for projection calculation
-	this->uniform = 
-		std::make_shared<VulkanUniform>(
-			this->vulkanDevice->GetPhysicalDevice(),
-			this->vulkanDevice->GetLogicalDevice(),
-			static_cast<uint32_t>(this->swapchain->GetImageCollection().size()),
-			this->imageTexture->GetImageView(),
-			this->imageTexture->GetImageSampler(),
-			this->swapchain->GetSwapchainExtent2D().width,
-			this->swapchain->GetSwapchainExtent2D().height
-		);
+	this->uniform = std::make_shared<VulkanUniform>(createInfo);
+
 }
 
 void VulkanController::destroyVulkanUniform()

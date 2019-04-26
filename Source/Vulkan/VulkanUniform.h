@@ -15,25 +15,42 @@
 #include "VulkanBuffer.h"
 #include "VulkanUtils.hpp"
 
-//https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer
+// https://vulkan-tutorial.com/Uniform_buffers/Descriptor_layout_and_buffer
 
+/*
+
+*/
+struct VulkanUniformCreateInfo {
+	VkPhysicalDevice physicalDevice;
+	VkDevice logicalDevice;
+	uint32_t swapChainImageCollectionSize;
+	VkImageView imageView;
+	VkSampler imageSampler;
+	std::uint32_t width;
+	std::uint32_t height;
+};
+
+/*
+
+*/
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
 	alignas(16) glm::mat4 view;
 	alignas(16) glm::mat4 proj;
 };
 
+/*
+
+*/
 class VulkanUniform {
 
 public:
-	VulkanUniform(VkPhysicalDevice &physicalDevice, VkDevice &logicalDevice, uint32_t swapChainImageCollectionSize, VkImageView &imageView, VkSampler &imageSampler, std::uint32_t width, std::uint32_t height);
+	VulkanUniform(VulkanUniformCreateInfo createInfo);
 	~VulkanUniform();
 
 	VkDescriptorSetLayout &GetDescriptorSetLayout();
 	std::vector<VkDescriptorSet> &GetDescriptorSetCollection();
-
 	void updateUniformData(uint32_t currFrameIdx);
-
 	void UpdateViewportDimension(std::uint32_t newWidth, std::uint32_t newHeight);
 
 private:
@@ -45,16 +62,9 @@ private:
 	void initDescriptorSet();
 
 private:
-	VkDevice &logicalDevice;
-	VkPhysicalDevice &physicalDevice;
-	VkImageView &imageView;
-	VkSampler &imageSampler;
-	
-	std::uint32_t width;
-	std::uint32_t height;
+	VulkanUniformCreateInfo createInfo = {};
 
 	VkDescriptorSetLayout descriptorSetLayout; 
-	uint32_t swapChainImageCollectionSize;
 	std::vector<std::shared_ptr<VulkanBuffer>> uniformBufferCollection;
 
 	VkDescriptorPool descriptorPool;

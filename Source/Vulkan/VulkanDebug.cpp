@@ -1,7 +1,7 @@
 #include "VulkanDebug.h"
 
 
-VulkanDebug::VulkanDebug(VkInstance &instance) : instance(instance)
+VulkanDebug::VulkanDebug(VulkanDebugCreateInfo createInfo) : createInfo(createInfo)
 {
 	this->init_vulkanDebug();
 }
@@ -32,10 +32,10 @@ std::vector<const char*> VulkanDebug::addInstanceDebugLayerCollection(std::vecto
 
 void VulkanDebug::init_vulkanDebug()
 {
-	this->CreateDebugUtilsMessengerEXT  = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->instance, "vkCreateDebugUtilsMessengerEXT"));
-	this->DestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->instance, "vkDestroyDebugUtilsMessengerEXT"));
+	this->CreateDebugUtilsMessengerEXT  = reinterpret_cast<PFN_vkCreateDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->createInfo.instance, "vkCreateDebugUtilsMessengerEXT"));
+	this->DestroyDebugUtilsMessengerEXT = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(vkGetInstanceProcAddr(this->createInfo.instance, "vkDestroyDebugUtilsMessengerEXT"));
 
-	if (CreateDebugUtilsMessengerEXT(this->instance, &VulkanDebug::DebugUtilsMessengerCreateInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
+	if (CreateDebugUtilsMessengerEXT(this->createInfo.instance, &VulkanDebug::DebugUtilsMessengerCreateInfo, nullptr, &this->debugMessenger) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to set up debug messenger.");
 	}
 
@@ -43,5 +43,5 @@ void VulkanDebug::init_vulkanDebug()
 
 void VulkanDebug::destroy_vulkanDebug()
 {
-	this->DestroyDebugUtilsMessengerEXT(this->instance, this->debugMessenger, nullptr);
+	this->DestroyDebugUtilsMessengerEXT(this->createInfo.instance, this->debugMessenger, nullptr);
 }
