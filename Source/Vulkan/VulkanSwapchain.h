@@ -55,11 +55,9 @@ public:
 	uint32_t &getQueueFamilyPresentIdx();
 	VkQueue &GetPresentQueue();
 
+	VkRenderPass &GetRenderpass();
+
 	std::vector<VkFramebuffer> GetFramebufferCollection();
-
-
-	void InitFramebuffer(VkRenderPass &renderpass);
-
 	std::shared_ptr<VulkanTexture> GetDepthTexture();
 
 private:
@@ -69,24 +67,27 @@ private:
 	
 	void init_DepthTexture();
 
+	void init_Renderpass();
+
+	void init_Framebuffer();
+
+
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 	VkPresentModeKHR   chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
 	VkExtent2D         chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
 	
 
 private:
-	/*VkSurfaceKHR &surface;
-	VkPhysicalDevice &device;
-	VkDevice &logicalDevice;
-	DeviceInfo &deviceInfo;*/
-
 	VulkanSwapchainCreateInfo createInfo = {};
 
 	std::shared_ptr<VulkanTexture> depthTexture = nullptr;
 
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-	VkQueue presentQueue = VK_NULL_HANDLE;
-	
+	VkQueue presentQueue     = VK_NULL_HANDLE; 
+
+	VkRenderPass renderPass  = VK_NULL_HANDLE;
+
+
 	// Queuefamily index which supports presenting
 	uint32_t queueFamilyPresentIdx = 0;
 

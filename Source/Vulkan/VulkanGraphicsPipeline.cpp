@@ -2,7 +2,6 @@
 
 VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanGraphicsPipelineCreateInfo createInfo) : createInfo(createInfo)
 {
-	this->init_renderpass();
 	this->init_graphicsPipelineLayout();
 	//this->init_framebuffer();
 }
@@ -16,19 +15,9 @@ VulkanGraphicsPipeline::~VulkanGraphicsPipeline()
 
 	vkDestroyPipeline(this->createInfo.logicalDevice, this->graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(this->createInfo.logicalDevice, this->pipelineLayout, nullptr);
-	vkDestroyRenderPass(this->createInfo.logicalDevice, this->renderPass, nullptr);
 
 }
 
-//std::vector<VkFramebuffer> &VulkanGraphicsPipeline::GetFramebufferCollection()
-//{
-//	return this->swapchainFramebufferCollection;
-//}
-
-VkRenderPass &VulkanGraphicsPipeline::GetRenderPass()
-{
-	return this->renderPass;
-}
 
 VkPipeline &VulkanGraphicsPipeline::GetGraphicsPipeline()
 {
@@ -39,25 +28,6 @@ VkPipelineLayout &VulkanGraphicsPipeline::GetGraphicsPipelineLayout()
 {
 	return this->pipelineLayout;
 }
-
-//void VulkanGraphicsPipeline::ResizeFrameBuffer(std::uint32_t width, std::uint32_t height, std::vector<Image> swapchainImgCollection, VkImageView depthImageView)
-//{
-//	this->depthImageView           = depthImageView;
-//	this->swapchainImageCollection = swapchainImgCollection;
-//
-//
-//	// Important: Make shure when this function is called no other vulkan object relies on the framebuffer
-//	for (auto framebuffer : this->swapchainFramebufferCollection) {
-//		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
-//	}
-//	this->swapchainFramebufferCollection.clear();
-//
-//
-//	this->swapchainExtent2D.width  = width;
-//	this->swapchainExtent2D.height = height;
-//
-//	this->init_framebuffer();
-//}
 
 void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 {
@@ -240,7 +210,7 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 	pipelineInfo.pColorBlendState = &colorBlending;
 	pipelineInfo.pDynamicState = &pipelineDynamicStateCreateInfo; // Optional
 	pipelineInfo.layout = this->pipelineLayout;
-	pipelineInfo.renderPass = this->renderPass;
+	pipelineInfo.renderPass = this->createInfo.renderpass;
 	pipelineInfo.subpass = 0;
 	pipelineInfo.basePipelineHandle = VK_NULL_HANDLE; // Optional
 	pipelineInfo.basePipelineIndex = -1; // Optional
@@ -250,78 +220,4 @@ void VulkanGraphicsPipeline::init_graphicsPipelineLayout()
 		throw std::runtime_error("Failed to create the graphics pipeline");
 	}
 
-}
-
-void VulkanGraphicsPipeline::init_renderpass()
-{
-	// Attachment description
-	VkAttachmentDescription colorAttachment = {};
-	colorAttachment.format		   = this->createInfo.swapchainImageFormat.format;
-	colorAttachment.samples		   = VK_SAMPLE_COUNT_1_BIT;
-	colorAttachment.loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttachment.storeOp        = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttachment.stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttachment.initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttachment.finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-
-	//Subpasses and attachment references
-	VkAttachmentReference colorAttachmentRef = {};
-	colorAttachmentRef.attachment = 0;
-	colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-
-	// -------------------------------------------
-
-	// Depth attachement for depth buffering
-	VkAttachmentDescription depthAttachment = {};
-	depthAttachment.format = VulkanUtils::FindDepthFormat(this->createInfo.physicalDevice);
-	depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkAttachmentReference depthAttachmentRef = {};
-	depthAttachmentRef.attachment = 1;
-	depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-	VkSubpassDescription subpass = {};
-	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	subpass.colorAttachmentCount = 1;
-	subpass.pColorAttachments = &colorAttachmentRef;
-	subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-
-	// -------------------------------------------
-
-
-	VkSubpassDependency dependency = {};
-	dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	dependency.dstSubpass = 0;
-	dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.srcAccessMask = 0;
-	dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-
-
-	std::array<VkAttachmentDescription, 2> attachments = { colorAttachment, depthAttachment };
-
-	VkRenderPassCreateInfo renderPassInfo = {};
-	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-	renderPassInfo.pAttachments = attachments.data();
-	renderPassInfo.subpassCount = 1;
-	renderPassInfo.pSubpasses = &subpass;
-	renderPassInfo.dependencyCount = 1;
-	renderPassInfo.pDependencies = &dependency;
-
-	VkResult res = vkCreateRenderPass(this->createInfo.logicalDevice, &renderPassInfo, nullptr, &this->renderPass);
-	if (res != VkResult::VK_SUCCESS) {
-		throw std::runtime_error("Failed to create renderpass");
-	}
-	
 }

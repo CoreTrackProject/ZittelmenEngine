@@ -13,15 +13,15 @@
 
 
 struct VulkanCommandCreateInfo {
-	VkPhysicalDevice physicalDev;
-	VkDevice logicalDevice;
-	DeviceInfo deviceInfo;
-	std::vector<VkFramebuffer> frameBufferCollection;
-	VkRenderPass renderpass;
-	VkExtent2D swapchainExtent;
-	VkPipeline graphicsPipeline;
-	VkPipelineLayout pipelineLayout;
-	VkQueue graphicsQueue;
+	VkPhysicalDevice             physicalDev;
+	VkDevice                     logicalDevice;
+	DeviceInfo                   deviceInfo;
+	std::vector<VkFramebuffer>   frameBufferCollection;
+	VkRenderPass                 renderpass;
+	VkExtent2D                   swapchainExtent;
+	VkPipeline                   graphicsPipeline;
+	VkPipelineLayout             pipelineLayout;
+	VkQueue                      graphicsQueue;
 	std::vector<VkDescriptorSet> descriptorSetCollection;
 };
 
@@ -34,30 +34,27 @@ public:
 	VulkanCommand(VulkanCommandCreateInfo createInfo);
 	~VulkanCommand();
 
-	std::vector<VkCommandBuffer> &GetDrawCommandBufferCollection();
-	void UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<uint32_t> &indexCollection);
+	std::vector<VkCommandBuffer> GetDrawCommandBufferCollection();
+	void UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<std::uint32_t> &indexCollection);
     void UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture);
 	VkCommandBuffer BeginSingleTimeCommands();
 	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
 	void UpdateFramebufferCollection(std::vector<VkFramebuffer> frameBufferCollection, VkExtent2D newSwapchainExtent);
-
-
+	void UpdateRenderpass(VkRenderPass renderpass);
 private:
 	void init_commandPool();
-	void init_drawCommand();
 
 	// TODO: Move those functions to other location (VulkanTexture)
-	void copyBufferToImage(VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+	void copyBufferToImage(VkBuffer buffer, VkImage image, std::uint32_t width, std::uint32_t height);
 
 private:
 	VulkanCommandCreateInfo createInfo;
 	std::shared_ptr<VulkanBuffer> vertexBuffer;
 	std::shared_ptr<VulkanBuffer> indexBuffer;
 	std::shared_ptr<VulkanTexture> imageTexture;
-	uint32_t vertexCount;
-	uint32_t indexCount;
+	std::uint32_t vertexCount;
+	std::uint32_t indexCount;
 	VkCommandPool commandPool = VK_NULL_HANDLE;
-	std::vector<VkCommandBuffer> drawCommandBufferCollection;
 
 };

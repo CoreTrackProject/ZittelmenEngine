@@ -1,9 +1,12 @@
 #pragma once
 
-class ZiCamera {
+#include "ZiEntity.h"
+
+class ZiCamera : ZiEntity {
 
 public:
 	ZiCamera();
 	~ZiCamera();
 
+	EntityType GetEntityType();
 };

@@ -2,14 +2,14 @@
 
 ZiScene::ZiScene() {}
 
-ZiScene::ZiScene(std::vector<std::shared_ptr<ZiMesh>> meshCollection)
+ZiScene::ZiScene(std::vector<std::shared_ptr<ZiEntity>> entityCollection)
 {
-	this->meshCollection = meshCollection;
+	this->entityCollection = entityCollection;
 }
 
-ZiScene::ZiScene(ZiMesh singleMesh)
+ZiScene::ZiScene(ZiEntity singleEntity)
 {
-	this->meshCollection.push_back(std::make_shared<ZiMesh>(singleMesh));
+	this->entityCollection.push_back(std::make_shared<ZiEntity>(singleEntity));
 }
 
 ZiScene::~ZiScene()
@@ -17,11 +17,19 @@ ZiScene::~ZiScene()
 
 }
 
-void ZiScene::AddMesh(std::shared_ptr<ZiMesh> mesh) {
-	this->meshCollection.push_back(mesh);
+
+
+void ZiScene::AddEntity(std::shared_ptr<ZiEntity> entity) {
+	this->entityCollection.push_back(entity);
 }
 
-std::vector<std::shared_ptr<ZiMesh>> ZiScene::GetMeshCollection()
-{
-	return this->meshCollection;
+void ZiScene::AddEntity(std::shared_ptr<ZiMesh> entity) {
+	// Convert ZiMesh to base class (ZiEntity) and then add it to the collection
+	this->entityCollection.push_back(
+		std::reinterpret_pointer_cast<ZiEntity, ZiMesh>(entity)
+	);
+}
+
+std::vector<std::shared_ptr<ZiEntity>> ZiScene::GetEntityCollection() {
+	return this->entityCollection;
 }

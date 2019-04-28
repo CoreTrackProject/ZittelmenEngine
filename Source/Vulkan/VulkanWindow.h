@@ -5,11 +5,17 @@
 
 #include <QWidget>
 
+/*
+
+*/
 struct VulkanWindowCreateInfo {
 	VkInstance instance;
 	WId targetRenderSurface;
 };
 
+/*
+
+*/
 class VulkanWindow
 {
 

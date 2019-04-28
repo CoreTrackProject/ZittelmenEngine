@@ -1,10 +1,11 @@
 #pragma once
 
 #include <vulkan/vulkan.h>
+
 #include <vector>
+#include <stdexcept>
 
 #include <QDebug>
-#include <stdexcept>
 
 #include "VulkanSwapchain.h"
 #include "VulkanVertex.hpp"
@@ -22,11 +23,12 @@ struct VulkanGraphicsPipelineCreateInfo {
 	VkExtent2D            swapchainExtent;
 	VkSurfaceFormatKHR    swapchainImageFormat;
 	VkDescriptorSetLayout descriptorSetLayout;
+	VkRenderPass		  renderpass;
 };
 
 
 /*
-
+	
 */
 class VulkanGraphicsPipeline
 {
@@ -35,19 +37,16 @@ public:
 	VulkanGraphicsPipeline(VulkanGraphicsPipelineCreateInfo createInfo);
 	~VulkanGraphicsPipeline();
 
-	VkRenderPass &GetRenderPass();
 	VkPipeline &GetGraphicsPipeline();
 	VkPipelineLayout &GetGraphicsPipelineLayout();
 
 private:
 	void init_graphicsPipelineLayout();
-	void init_renderpass();
 
 private:
 	VulkanGraphicsPipelineCreateInfo createInfo = {};
 
 	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
-	VkRenderPass renderPass         = VK_NULL_HANDLE;
 	VkPipeline graphicsPipeline     = VK_NULL_HANDLE;
 	
 };

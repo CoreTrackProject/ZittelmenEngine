@@ -51,9 +51,10 @@ void VulkanController::ResizeTargetRenderSurface(uint32_t newWidth, uint32_t new
 
 		// Use swapchain extent instead of newWidth/newHeight
 		this->uniform->UpdateViewportDimension(this->swapchain->GetSwapchainExtent2D().width, this->swapchain->GetSwapchainExtent2D().height);
-		this->swapchain->InitFramebuffer(this->graphicsPipeline->GetRenderPass());
+
+		// Update vulkancommand because swapchain vulkan objects had changed
 		this->command->UpdateFramebufferCollection(this->swapchain->GetFramebufferCollection(), this->swapchain->GetSwapchainExtent2D());
-		
+		this->command->UpdateRenderpass(this->swapchain->GetRenderpass());
 
 		this->command->TransitionImageLayout(
 			this->swapchain->GetDepthTexture()->GetImage(),
@@ -74,8 +75,7 @@ void VulkanController::RenderFrame()
 	// VulkanController needs to be ready for rendering
 	if (this->currStatus != VulkanControllerStatus::VC_Ready) {
 		return;
-	}
-	else if (this->width <= 0 || this->height <= 0) {
+	} else if (this->width <= 0 || this->height <= 0) {
 		// Device will be lost if the viewport has zero width or legth
 		// something by the renderpass failed
 		return;
@@ -98,70 +98,37 @@ void VulkanController::ImportData(std::vector<VulkanVertex>& vertexCollection, s
 void VulkanController::Initialize() 
 {
 	this->currStatus = VulkanControllerStatus::VC_Initializing;
-
 	this->enableValidation = true;
 
 	if (this->target == 0) {
 		throw std::exception("No target render Window specified");
 		return;
 	}
-
-	/*if (this->width <= 0 || this->height <= 0) {
-		return;
-	}*/
-
-	// Vulkan Instance
 	this->initVulkanInstance();
-
-	// Vulkan Debug
 	if (this->enableValidation) {
 		this->initVulkanDebug();
 	}
-
-	// Vulkan Device
 	this->initVulkanDevice();
 
-	// Vulkan Window
 	this->initVulkanWindow();
-
-	
 
 	// Setup depth buffering (To be relocated)
 	{
-
 		// Convert from QImage to Vulkan Texture
 		this->imageTexture = VulkanTexture::NewTexture(
 			this->vulkanDevice->GetPhysicalDevice(),
 			this->vulkanDevice->GetLogicalDevice(),
 			this->imageData
 		);
-
-		// Needs to be created before the graphics pipeline
-		/*this->depthTexture = VulkanTexture::NewDepthTexture(
-			this->vulkanDevice->GetPhysicalDevice(),
-			this->vulkanDevice->GetLogicalDevice(),
-			this->width, this->height);*/
 	}
-
-
-	// Vulkan Swapchain
 	this->initVulkanSwapchain();
-
-	// Vulkan Shader
 	this->initVulkanShader();
 
 	// Create image texture
 	
-	// Vulkan Uniform Buffer
 	this->initVulkanUniform();
-
-	// Vulkan Graphicspipeline
 	this->initVulkanGraphicsPipeline();
 
-	// Init framebuffer here because we need the renderpass object from VulkanGraphicsPipeline
-	this->swapchain->InitFramebuffer(this->graphicsPipeline->GetRenderPass());
-
-	// Vulkan Command
 	this->initVulkanCommand();
 
 	// Setup depth buffering (To be relocated)
@@ -178,13 +145,9 @@ void VulkanController::Initialize()
 	{
 		// TODO: create function for uploading vertex data (with buffers or directly)
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
-		//auto vertexData = VulkanVertexData::GetQuadVertexCollection();
-		//auto indexData  = VulkanVertexData::GetQuadVertexIndexCollection();
-
 		this->uploadContent();
 	}
 
-	// Vulkan Runtime
 	this->initVulkanRuntime();
 
 	// Infos about lambdas:
@@ -205,9 +168,6 @@ void VulkanController::Destroy()
 	this->destroyVulkanRuntime();
 	this->destroyVulkanCommand();
 	this->destroyVulkanGraphicsPipeline();
-
-	//this->depthTexture.reset();
-
 	this->destroyVulkanUniform();
 
 	this->imageTexture.reset();
@@ -216,11 +176,9 @@ void VulkanController::Destroy()
 	this->destroyVulkanSwapchain();
 	this->destroyVulkanWindow();
 	this->destroyVulkanDevice();
-
 	if (this->enableValidation) {
 		this->destroyVulkanDebug();
 	}
-
 	this->destroyVulkanInstance();
 }
 
@@ -327,7 +285,8 @@ void VulkanController::initVulkanGraphicsPipeline()
 	createInfo.swapchainExtent      = this->swapchain->GetSwapchainExtent2D();
 	createInfo.swapchainImageFormat = this->swapchain->GetSwapchainImageFormat();
 	createInfo.descriptorSetLayout  = this->uniform->GetDescriptorSetLayout();
-	
+	createInfo.renderpass           = this->swapchain->GetRenderpass();
+
 	this->graphicsPipeline = std::make_unique<VulkanGraphicsPipeline>(createInfo);
 }
 
@@ -347,7 +306,7 @@ void VulkanController::initVulkanCommand()
 			this->vulkanDevice->GetPhysicalDevice()
 	);
 	createInfo.frameBufferCollection = this->swapchain->GetFramebufferCollection();
-	createInfo.renderpass = this->graphicsPipeline->GetRenderPass();
+	createInfo.renderpass = this->swapchain->GetRenderpass();
 	createInfo.swapchainExtent = this->swapchain->GetSwapchainExtent2D();
 	createInfo.graphicsPipeline = this->graphicsPipeline->GetGraphicsPipeline();
 	createInfo.pipelineLayout =	this->graphicsPipeline->GetGraphicsPipelineLayout();
@@ -362,12 +321,6 @@ void VulkanController::initVulkanCommand()
 void VulkanController::destroyVulkanCommand()
 {
 	this->command.reset();
-}
-
-void VulkanController::uploadContent()
-{
-	this->command->UploadVertexData(this->vertexCollection, this->indexCollection);
-	this->command->UploadImage(this->imageTexture);
 }
 
 void VulkanController::initVulkanRuntime()
@@ -407,4 +360,10 @@ void VulkanController::initVulkanUniform()
 void VulkanController::destroyVulkanUniform()
 {
 	this->uniform.reset();
+}
+
+void VulkanController::uploadContent()
+{
+	this->command->UploadVertexData(this->vertexCollection, this->indexCollection);
+	this->command->UploadImage(this->imageTexture);
 }

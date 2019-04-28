@@ -15,8 +15,9 @@
 #include "Vulkan/VulkanVertex.hpp"
 
 #include "ZiTexture.h"
+#include "ZiEntity.h"
 
-class ZiMesh {
+class ZiMesh : ZiEntity {
 
 public:
 	ZiMesh();
@@ -31,10 +32,11 @@ public:
 	void AddVertex(VulkanVertex vertex);
 	void AddIndex(std::uint32_t index);
 
+	EntityType GetEntityType();
+
 public:
 	static std::vector<VulkanVertex> GetQuadVertexCollection();
 	static std::vector<uint32_t> GetQuadVertexIndexCollection();
-
 	static std::shared_ptr<ZiMesh> LoadOBJ(std::string meshFile, std::string textureFile);
 	
 

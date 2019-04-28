@@ -31,7 +31,7 @@ public:
 	~VulkanRuntime();
 
 	void RenderFrame();
-	size_t getCurrentFrameIdx();
+	std::size_t getCurrentFrameIdx();
 
 private:
 	void destroy();
@@ -44,7 +44,7 @@ private:
 	std::vector<VkSemaphore> renderFinishedSemaphoreCollection;
 	std::vector<VkFence> inFlightFences;
 
-	size_t currentFrameIdx = 0;
+	std::size_t currentFrameIdx = 0;
 	bool renderingFailed = false;
 
 };

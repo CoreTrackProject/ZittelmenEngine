@@ -12,22 +12,26 @@ ZiEngine::~ZiEngine() {
 void ZiEngine::Initialize() {
 	this->currStatus = ZiEngineStatus::Initializing;
 	
-	if (this->currScene->GetMeshCollection().size() <= 0) {
+	if (this->currScene->GetEntityCollection().size() <= 0) {
 		throw new std::exception("No meshdata available");
 	}
 
+	{
+		// TMP (ATM only support for one model with one texture)
+		// It always takes the first model mesh from the mesh collection
+		std::shared_ptr<ZiMesh> mesh = std::reinterpret_pointer_cast<ZiMesh, ZiEntity>(this->currScene->GetEntityCollection().at(0));
 
-	// TMP (ATM only support for one model with one texture)
-	// It always takes the first model mesh from the mesh collection
-	this->vulkanController->ImportData(
-		this->currScene->GetMeshCollection().at(0)->GetVertexCollection(),
-		this->currScene->GetMeshCollection().at(0)->GetIndexCollection(),
-		this->currScene->GetMeshCollection().at(0)->GetTexture()->GetImage()
-	);
+		this->vulkanController->ImportData(
+			mesh->GetVertexCollection(),
+			mesh->GetIndexCollection(),
+			mesh->GetTexture()->GetImage()
+		);
 
-
+	}
 
 	this->vulkanController->Initialize();
+
+
 	this->currStatus = ZiEngineStatus::Ready;
 }
 

@@ -64,7 +64,7 @@ VulkanTexture::~VulkanTexture() {
 	this->destroyImage();
 }
 
-VkDeviceMemory &VulkanTexture::getDeviceMemory() {
+VkDeviceMemory &VulkanTexture::GetDeviceMemory() {
 	if (this->devMemory != VK_NULL_HANDLE) {
 		return this->devMemory;
 	
@@ -88,7 +88,7 @@ VkSampler &VulkanTexture::GetImageSampler()
 	return this->imageSampler;
 }
 
-VkDeviceSize &VulkanTexture::getSize() {
+VkDeviceSize &VulkanTexture::GetSize() {
 	if (this->createInfo.sizeBytes != VK_NULL_HANDLE) {
 		return this->createInfo.sizeBytes;
 	} else {
@@ -96,7 +96,7 @@ VkDeviceSize &VulkanTexture::getSize() {
 	}
 }
 
-std::shared_ptr<QImage> &VulkanTexture::getQImage() {
+std::shared_ptr<QImage> &VulkanTexture::GetQImage() {
     return this->createInfo.imageData;
 }
 

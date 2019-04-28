@@ -46,12 +46,13 @@ public:
 
 
 public: // Public Methods
-	VkDeviceMemory &getDeviceMemory();
+	VkDeviceMemory &GetDeviceMemory();
 	VkImage &GetImage();
 	VkImageView &GetImageView();
 	VkSampler &GetImageSampler();
-	VkDeviceSize &getSize();
-    std::shared_ptr<QImage> &getQImage();
+	VkDeviceSize &GetSize();
+    std::shared_ptr<QImage> &GetQImage();
+
 	void freeMemory();
 
 

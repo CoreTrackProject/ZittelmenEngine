@@ -143,3 +143,9 @@ void ZiMesh::AddIndex(std::uint32_t index)
 {
 	this->indexCollection.push_back(index);
 }
+
+EntityType ZiMesh::GetEntityType()
+{
+	return EntityType::ET_Mesh;
+}
+

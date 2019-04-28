@@ -34,7 +34,7 @@ void VulkanRuntime::RenderFrame()
 		//throw std::runtime_error("Failed to reset fences.");
 	}
 
-	uint32_t imageIndex = 0;
+	std::uint32_t imageIndex = 0;
 	res = vkAcquireNextImageKHR(
 		this->createInfo.logicalDevice,
 		this->createInfo.swapchain,
@@ -90,7 +90,6 @@ void VulkanRuntime::RenderFrame()
 
 	this->currentFrameIdx = (this->currentFrameIdx + 1) % MAX_FRAMES_IN_FLIGHT;
 }
-
 
 size_t VulkanRuntime::getCurrentFrameIdx()
 {
