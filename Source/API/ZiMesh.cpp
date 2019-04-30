@@ -41,7 +41,6 @@ std::shared_ptr<ZiMesh> ZiMesh::LoadOBJ(std::string meshFile, std::string textur
 {
 	Assimp::Importer fileImporter;
 
-	//int aiFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
 	int aiFlags = 0;
 	const aiScene *scene = fileImporter.ReadFile(meshFile, aiFlags);
 
@@ -52,7 +51,6 @@ std::shared_ptr<ZiMesh> ZiMesh::LoadOBJ(std::string meshFile, std::string textur
 
 	// TODO: Paralellize (Intel TBB? OpenMP?)
 	
-
 	// Get vertices 
 	std::vector<VulkanVertex> vertexCollection;
 	std::vector<std::uint32_t> indices;
