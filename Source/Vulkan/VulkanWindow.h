@@ -18,13 +18,14 @@ struct VulkanWindowCreateInfo {
 */
 class VulkanWindow
 {
-
 public:
 	VulkanWindow(VulkanWindowCreateInfo createInfo);
 	~VulkanWindow();
 
+	VkSurfaceKHR GetSurface();
+
+private:
 	void init_Surface();
-	VkSurfaceKHR &GetSurface();
 
 private:
 	VulkanWindowCreateInfo createInfo = {};

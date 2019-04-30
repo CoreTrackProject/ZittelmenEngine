@@ -37,8 +37,8 @@ public:
 	VulkanGraphicsPipeline(VulkanGraphicsPipelineCreateInfo createInfo);
 	~VulkanGraphicsPipeline();
 
-	VkPipeline &GetGraphicsPipeline();
-	VkPipelineLayout &GetGraphicsPipelineLayout();
+	VkPipeline GetGraphicsPipeline();
+	VkPipelineLayout GetGraphicsPipelineLayout();
 
 private:
 	void init_graphicsPipelineLayout();

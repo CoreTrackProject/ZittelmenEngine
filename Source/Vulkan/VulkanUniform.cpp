@@ -17,17 +17,18 @@ VulkanUniform::~VulkanUniform() {
 	this->destroyDescriptorSetLayout();
 }
 
-VkDescriptorSetLayout &VulkanUniform::GetDescriptorSetLayout()
+
+VkDescriptorSetLayout VulkanUniform::GetDescriptorSetLayout()
 {
 	return this->descriptorSetLayout;
 }
 
-std::vector<VkDescriptorSet> &VulkanUniform::GetDescriptorSetCollection()
+std::vector<VkDescriptorSet> VulkanUniform::GetDescriptorSetCollection()
 {
 	return this->descriptorSetCollection;
 }
 
-void VulkanUniform::updateUniformData(uint32_t currFrameIdx)
+void VulkanUniform::UpdateUniformData(std::uint32_t currFrameIdx)
 {
 
 	if (this->createInfo.height <= 0) {
@@ -60,6 +61,7 @@ void VulkanUniform::UpdateViewportDimension(std::uint32_t newWidth, std::uint32_
 	this->createInfo.width = newWidth;
 	this->createInfo.height = newHeight;
 }
+
 
 void VulkanUniform::initUniformBuffer() {
 	VkDeviceSize bufferSize = sizeof(UniformBufferObject);

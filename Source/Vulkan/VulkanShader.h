@@ -22,8 +22,8 @@ public:
 	VulkanShader(VulkanShaderCreateInfo createInfo);
 	~VulkanShader();
 
-	VkShaderModule &GetVertexShaderModule();
-	VkShaderModule &GetFragmentShaderModule();
+	VkShaderModule GetVertexShaderModule();
+	VkShaderModule GetFragmentShaderModule();
 
 
 private:

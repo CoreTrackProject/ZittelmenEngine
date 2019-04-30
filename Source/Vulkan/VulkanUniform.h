@@ -23,7 +23,7 @@
 struct VulkanUniformCreateInfo {
 	VkPhysicalDevice physicalDevice;
 	VkDevice logicalDevice;
-	uint32_t swapChainImageCollectionSize;
+	std::uint32_t swapChainImageCollectionSize;
 	VkImageView imageView;
 	VkSampler imageSampler;
 	std::uint32_t width;
@@ -48,9 +48,9 @@ public:
 	VulkanUniform(VulkanUniformCreateInfo createInfo);
 	~VulkanUniform();
 
-	VkDescriptorSetLayout &GetDescriptorSetLayout();
-	std::vector<VkDescriptorSet> &GetDescriptorSetCollection();
-	void updateUniformData(uint32_t currFrameIdx);
+	VkDescriptorSetLayout GetDescriptorSetLayout();
+	std::vector<VkDescriptorSet> GetDescriptorSetCollection();
+	void UpdateUniformData(std::uint32_t currFrameIdx);
 	void UpdateViewportDimension(std::uint32_t newWidth, std::uint32_t newHeight);
 
 private:

@@ -113,7 +113,7 @@ std::vector<VkCommandBuffer> VulkanCommand::GetDrawCommandBufferCollection()
 }
 
 // source buffer is always staging buffer
-void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<std::uint32_t> &indexCollection)
+void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> vertexData, std::vector<std::uint32_t> indexCollection)
 {
 
 	// ----------------------------------------------------------
@@ -171,7 +171,7 @@ void VulkanCommand::UploadVertexData(std::vector<VulkanVertex> &vertexData, std:
 	
 }
 
-void VulkanCommand::UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture)
+void VulkanCommand::UploadImage(std::shared_ptr<VulkanTexture> vulkanTexture)
 {
     this->imageTexture = vulkanTexture;
 

@@ -21,26 +21,32 @@ VulkanDevice::~VulkanDevice()
 
 
 
-VkDevice &VulkanDevice::GetLogicalDevice()
+VkDevice VulkanDevice::GetLogicalDevice()
 {
 	return this->logicalDevice;
 }
 
-VkPhysicalDevice &VulkanDevice::GetPhysicalDevice()
+VkPhysicalDevice VulkanDevice::GetPhysicalDevice()
 {
 	// It compiles but it may EXPLODES
 	return const_cast<VkPhysicalDevice>(this->physicalDevCollection->begin()->first);
 }
 
-VkQueue &VulkanDevice::GetGraphicsQueue()
+VkQueue VulkanDevice::GetGraphicsQueue()
 {
 	return this->graphicsQueue;
 }
 
-DeviceInfo &VulkanDevice::GetPhysicalDeviceInfo(VkPhysicalDevice &physicalDevice)
+DeviceInfo VulkanDevice::GetPhysicalDeviceInfo(VkPhysicalDevice physicalDevice)
 {
 	return this->physicalDevCollection->find(physicalDevice)->second;
 }
+
+VkQueue VulkanDevice::GetTransferQueue()
+{
+	return this->transferQueue;
+}
+
 
 void VulkanDevice::init_vulkanDevice()
 {
@@ -111,7 +117,7 @@ void VulkanDevice::destroy_vulkanDevice()
 	vkDestroyDevice(this->logicalDevice, nullptr);
 }
 
-void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
+void VulkanDevice::init_logicalDevice(VkPhysicalDevice physicalDevice)
 {
 	// Goal: create logical device from the first physical device
 
@@ -121,7 +127,7 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	//	- Compute queue
 	//	- Transfer queue
 
-	DeviceInfo &devInfo = this->GetPhysicalDeviceInfo(physicalDevice);
+	DeviceInfo devInfo = this->GetPhysicalDeviceInfo(physicalDevice);
 	
 	const float queuePriority = 0.0f;
 	std::vector<VkDeviceQueueCreateInfo> queueCreateInfoCollection;
@@ -184,15 +190,15 @@ void VulkanDevice::init_logicalDevice(VkPhysicalDevice &physicalDevice)
 	}
 }
 
-void VulkanDevice::init_deviceQueue(VkPhysicalDevice &logicalDevice)
+void VulkanDevice::init_deviceQueue(VkPhysicalDevice logicalDevice)
 {
 	// Get queues from index
-	DeviceInfo &devInfo = this->GetPhysicalDeviceInfo(logicalDevice);
+	DeviceInfo devInfo = this->GetPhysicalDeviceInfo(logicalDevice);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.graphics, 0, &this->graphicsQueue);
 	vkGetDeviceQueue(this->logicalDevice, devInfo.queueFamilyIndexes.transfer, 0, &this->transferQueue);
 }
 
-std::uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDev, VkQueueFlags flag)
+std::uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice physicalDev, VkQueueFlags flag)
 {
 	DeviceInfo &info = this->physicalDevCollection->find(physicalDev)->second;
 
@@ -205,10 +211,10 @@ std::uint32_t VulkanDevice::getQueueFamilyIdxByFlag(VkPhysicalDevice &physicalDe
 	return -1;
 }
 
-bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std::string extensionName)
+bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice logicalDevice, std::string extensionName)
 {
 	// check if the device extension is supported by the selected physical device
-	DeviceInfo &tmpCollection = this->GetPhysicalDeviceInfo(logicalDevice);
+	DeviceInfo tmpCollection = this->GetPhysicalDeviceInfo(logicalDevice);
 	for (VkExtensionProperties props : tmpCollection.deviceExtensionCollection) {
 		if (extensionName == props.extensionName) {
 			return true;
@@ -217,12 +223,8 @@ bool VulkanDevice::isDevExtensionSupported(VkPhysicalDevice &logicalDevice, std:
 	return false;
 }
 
-bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice &logicalDevice)
+bool VulkanDevice::isSwapchainSupported(VkPhysicalDevice logicalDevice)
 {
 	return this->isDevExtensionSupported(logicalDevice, VK_KHR_SWAPCHAIN_EXTENSION_NAME);
 }
 
-VkQueue &VulkanDevice::GetTransferQueue()
-{
-	return this->transferQueue;
-}

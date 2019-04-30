@@ -1,6 +1,6 @@
 #include "VulkanBuffer.h"
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::NewStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewStagingBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes)
 {
 	VulkanBufferCreateInfo createInfo = {};
 	createInfo.phyDevice        = phyDevice;
@@ -20,7 +20,7 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::NewStagingBuffer(VkPhysicalDevice &p
 	return std::make_shared<VulkanBuffer>(createInfo);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::NewVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewVertexBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes)
 {
 	VulkanBufferCreateInfo createInfo = {};
 	createInfo.phyDevice = phyDevice;
@@ -29,18 +29,10 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::NewVertexBuffer(VkPhysicalDevice &ph
 	createInfo.bufferusage = (VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	createInfo.memoryproperties = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-	/*return std::make_shared<VulkanBuffer>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_VERTEX_BUFFER_BIT),
-		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);*/
-
 	return std::make_shared<VulkanBuffer>(createInfo);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::NewIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewIndexBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes)
 {
 	VulkanBufferCreateInfo createInfo = {};
 	createInfo.phyDevice        = phyDevice;
@@ -49,18 +41,10 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::NewIndexBuffer(VkPhysicalDevice &phy
 	createInfo.bufferusage      = (VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 	createInfo.memoryproperties = VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-	/*return std::make_shared<VulkanBuffer>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		(VkBufferUsageFlagBits::VK_BUFFER_USAGE_TRANSFER_DST_BIT | VkBufferUsageFlagBits::VK_BUFFER_USAGE_INDEX_BUFFER_BIT),
-		VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);*/
-
 	return std::make_shared<VulkanBuffer>(createInfo);
 }
 
-std::shared_ptr<VulkanBuffer> VulkanBuffer::NewUniformBuffer(VkPhysicalDevice & phyDevice, VkDevice & logicalDevice, VkDeviceSize sizeBytes)
+std::shared_ptr<VulkanBuffer> VulkanBuffer::NewUniformBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes)
 {
 	VulkanBufferCreateInfo createInfo = {};
 	createInfo.phyDevice        = phyDevice;
@@ -68,14 +52,6 @@ std::shared_ptr<VulkanBuffer> VulkanBuffer::NewUniformBuffer(VkPhysicalDevice & 
 	createInfo.sizeBytes        = sizeBytes;
 	createInfo.bufferusage      = VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
 	createInfo.memoryproperties = (VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-
-	/*return std::make_shared<VulkanBuffer>(
-		phyDevice,
-		logicalDevice,
-		sizeBytes,
-		VkBufferUsageFlagBits::VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-		(VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VkMemoryPropertyFlagBits::VK_MEMORY_PROPERTY_HOST_COHERENT_BIT)
-	);*/
 
 	return std::make_shared<VulkanBuffer>(createInfo);
 }
@@ -93,7 +69,7 @@ VulkanBuffer::~VulkanBuffer() {
 	this->deallocateBuffer();
 }
 
-VkDeviceMemory &VulkanBuffer::getDeviceMemory() {
+VkDeviceMemory VulkanBuffer::getDeviceMemory() {
 	if (this->devMemory != VK_NULL_HANDLE) {
 		return this->devMemory;
 	
@@ -102,7 +78,7 @@ VkDeviceMemory &VulkanBuffer::getDeviceMemory() {
 	}
 }
 
-VkBuffer &VulkanBuffer::getBuffer() {
+VkBuffer VulkanBuffer::getBuffer() {
 	if (this->buffer != VK_NULL_HANDLE) {
 		return this->buffer;
 	
@@ -111,7 +87,7 @@ VkBuffer &VulkanBuffer::getBuffer() {
 	}
 }
 
-VkDeviceSize &VulkanBuffer::getSize() {
+VkDeviceSize VulkanBuffer::getSize() {
 	if (this->createInfo.sizeBytes != VK_NULL_HANDLE) {
 		return this->createInfo.sizeBytes;
 

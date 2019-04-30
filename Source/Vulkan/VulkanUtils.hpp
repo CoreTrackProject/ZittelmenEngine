@@ -14,7 +14,7 @@ public:
 	/*
 	
 	*/
-	static void MapMemory(VkDevice &logicalDevice, VkDeviceMemory &devMemory, void *srcData, VkDeviceSize &dataSize) {
+	static void MapMemory(VkDevice logicalDevice, VkDeviceMemory devMemory, void *srcData, VkDeviceSize dataSize) {
 		
 		// Map data so it can be used with vulkan
 		void* data;
@@ -27,7 +27,7 @@ public:
 	/*
 	
 	*/
-	static uint32_t FindMemoryType(VkPhysicalDevice physicalDev, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	static uint32_t FindMemoryType(VkPhysicalDevice physicalDev, std::uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(physicalDev, &memProperties);
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
@@ -41,7 +41,7 @@ public:
 	/*
 	
 	*/
-	static VkFormat FindSupportedFormat(VkPhysicalDevice &physicalDevice, const std::vector<VkFormat>& candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
+	static VkFormat FindSupportedFormat(VkPhysicalDevice physicalDevice, const std::vector<VkFormat> candidates, VkImageTiling tiling, VkFormatFeatureFlags features) {
 		for (VkFormat format : candidates) {
 			VkFormatProperties props;
 			vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &props);
@@ -61,7 +61,7 @@ public:
 	/*
 
 	*/
-	static VkFormat FindDepthFormat(VkPhysicalDevice &physicalDevice) {
+	static VkFormat FindDepthFormat(VkPhysicalDevice physicalDevice) {
 		return VulkanUtils::FindSupportedFormat(
 			physicalDevice,
 			{ VkFormat::VK_FORMAT_D32_SFLOAT, VkFormat::VK_FORMAT_D32_SFLOAT_S8_UINT, VkFormat::VK_FORMAT_D24_UNORM_S8_UINT },

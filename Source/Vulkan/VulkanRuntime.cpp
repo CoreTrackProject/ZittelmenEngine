@@ -48,7 +48,7 @@ void VulkanRuntime::RenderFrame()
 		//throw std::runtime_error("Failed acquire next image.");
 	}
 
-	this->createInfo.uniform->updateUniformData(imageIndex);
+	this->createInfo.uniform->UpdateUniformData(imageIndex);
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

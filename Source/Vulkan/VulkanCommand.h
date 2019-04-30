@@ -35,8 +35,8 @@ public:
 	~VulkanCommand();
 
 	std::vector<VkCommandBuffer> GetDrawCommandBufferCollection();
-	void UploadVertexData(std::vector<VulkanVertex> &vertexData, std::vector<std::uint32_t> &indexCollection);
-    void UploadImage(std::shared_ptr<VulkanTexture> &vulkanTexture);
+	void UploadVertexData(std::vector<VulkanVertex> vertexData, std::vector<std::uint32_t> indexCollection);
+    void UploadImage(std::shared_ptr<VulkanTexture> vulkanTexture);
 	VkCommandBuffer BeginSingleTimeCommands();
 	void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 	void TransitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);

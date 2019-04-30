@@ -12,7 +12,7 @@ VulkanInstance::~VulkanInstance()
 
 
 
-VkInstance &VulkanInstance::GetInstance()
+VkInstance VulkanInstance::GetInstance()
 {
 	return this->m_vkInstance;
 }
@@ -35,7 +35,7 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	instanceCreateInfo.pApplicationInfo = &appInfo;
 	
 	if (enableValidation) {
-		instanceCreateInfo.pNext = &VulkanDebug::DebugUtilsMessengerCreateInfo;
+		instanceCreateInfo.pNext = &VulkanDebugGlobal::DebugUtilsMessengerCreateInfo;
 	} else {
 		instanceCreateInfo.pNext = nullptr;
 	}
@@ -48,14 +48,14 @@ void VulkanInstance::init_vkInstance(bool enableValidation)
 	{
 		if (enableValidation)
 		{
-			VulkanDebug::addInstanceDebugExtensionCollection(instanceExtensions);
+			VulkanDebug::AddInstanceDebugExtensionCollection(&instanceExtensions);
 		}
 		instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(instanceExtensions.size());
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 	}
 
-	std::vector<char const *> validationLayers =
-		VulkanDebug::addInstanceDebugLayerCollection(std::vector<char const *>());
+	std::vector<char const *> validationLayers;
+	VulkanDebug::AddInstanceDebugLayerCollection(&validationLayers);
 
 	if (enableValidation)
 	{

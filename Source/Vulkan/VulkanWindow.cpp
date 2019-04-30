@@ -10,6 +10,11 @@ VulkanWindow::~VulkanWindow()
 	vkDestroySurfaceKHR(this->createInfo.instance, this->surface, nullptr);
 }
 
+VkSurfaceKHR VulkanWindow::GetSurface()
+{
+	return this->surface;
+}
+
 void VulkanWindow::init_Surface()
 {
 	VkWin32SurfaceCreateInfoKHR createInfo = {};
@@ -23,7 +28,3 @@ void VulkanWindow::init_Surface()
 	}
 }
 
-VkSurfaceKHR &VulkanWindow::GetSurface()
-{
-	return this->surface;
-}

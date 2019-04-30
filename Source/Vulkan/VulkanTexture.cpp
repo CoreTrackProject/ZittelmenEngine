@@ -1,6 +1,6 @@
 #include "VulkanTexture.h"
 
-std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &image)
+std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice phyDevice, VkDevice logicalDevice, std::shared_ptr<QImage> image)
 {
 	VulkanTextureCreateInfo createInfo = {};
 	createInfo.phyDevice     = phyDevice;
@@ -20,7 +20,7 @@ std::shared_ptr<VulkanTexture> VulkanTexture::NewTexture(VkPhysicalDevice &phyDe
 	return std::make_shared<VulkanTexture>(createInfo);
 }
 
-std::shared_ptr<VulkanTexture> VulkanTexture::NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::uint32_t width, std::uint32_t height)
+std::shared_ptr<VulkanTexture> VulkanTexture::NewDepthTexture(VkPhysicalDevice phyDevice, VkDevice logicalDevice, std::uint32_t width, std::uint32_t height)
 {
 
 	// Find supported depth format which is supported by the gpu
@@ -64,7 +64,7 @@ VulkanTexture::~VulkanTexture() {
 	this->destroyImage();
 }
 
-VkDeviceMemory &VulkanTexture::GetDeviceMemory() {
+VkDeviceMemory VulkanTexture::GetDeviceMemory() {
 	if (this->devMemory != VK_NULL_HANDLE) {
 		return this->devMemory;
 	
@@ -73,22 +73,22 @@ VkDeviceMemory &VulkanTexture::GetDeviceMemory() {
 	}
 }
 
-VkImage &VulkanTexture::GetImage()
+VkImage VulkanTexture::GetImage()
 {
 	return this->image;
 }
 
-VkImageView &VulkanTexture::GetImageView()
+VkImageView VulkanTexture::GetImageView()
 {
 	return this->imageView;
 }
 
-VkSampler &VulkanTexture::GetImageSampler()
+VkSampler VulkanTexture::GetImageSampler()
 {
 	return this->imageSampler;
 }
 
-VkDeviceSize &VulkanTexture::GetSize() {
+VkDeviceSize VulkanTexture::GetSize() {
 	if (this->createInfo.sizeBytes != VK_NULL_HANDLE) {
 		return this->createInfo.sizeBytes;
 	} else {
@@ -96,14 +96,10 @@ VkDeviceSize &VulkanTexture::GetSize() {
 	}
 }
 
-std::shared_ptr<QImage> &VulkanTexture::GetQImage() {
+std::shared_ptr<QImage> VulkanTexture::GetQImage() {
     return this->createInfo.imageData;
 }
 
-void VulkanTexture::freeMemory()
-{
-	this->destroyImage();
-}
 
 void VulkanTexture::createImage(VkDeviceSize sizeBytes, VkImageType imageType, VkFormat imageFormat, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, std::uint32_t width, std::uint32_t height)
 {

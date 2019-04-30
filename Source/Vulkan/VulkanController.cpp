@@ -19,7 +19,7 @@ void VulkanController::SetTargetRenderSurface(WId target, std::uint32_t width, s
 	this->height = height;
 }
 
-void VulkanController::ResizeTargetRenderSurface(uint32_t newWidth, uint32_t newHeight)
+void VulkanController::ResizeTargetRenderSurface(std::uint32_t newWidth, std::uint32_t newHeight)
 {
 
 	if (this->currStatus != VulkanControllerStatus::VC_Ready) {
@@ -88,7 +88,7 @@ void VulkanController::RenderFrame()
 
 }
 
-void VulkanController::ImportData(std::vector<VulkanVertex>& vertexCollection, std::vector<std::uint32_t>& indexCollection, std::shared_ptr<QImage>& imageData)
+void VulkanController::ImportData(std::vector<VulkanVertex> vertexCollection, std::vector<std::uint32_t> indexCollection, std::shared_ptr<QImage> imageData)
 {
 	this->vertexCollection = vertexCollection;
 	this->indexCollection = indexCollection;
@@ -108,8 +108,8 @@ void VulkanController::Initialize()
 	if (this->enableValidation) {
 		this->initVulkanDebug();
 	}
-	this->initVulkanDevice();
 
+	this->initVulkanDevice();
 	this->initVulkanWindow();
 
 	// Setup depth buffering (To be relocated)
@@ -121,14 +121,13 @@ void VulkanController::Initialize()
 			this->imageData
 		);
 	}
+
 	this->initVulkanSwapchain();
 	this->initVulkanShader();
 
 	// Create image texture
-	
 	this->initVulkanUniform();
 	this->initVulkanGraphicsPipeline();
-
 	this->initVulkanCommand();
 
 	// Setup depth buffering (To be relocated)
@@ -147,7 +146,6 @@ void VulkanController::Initialize()
 		// Only after calling this function "this->command->getDrawCommandBufferCollection()" can be used
 		this->uploadContent();
 	}
-
 	this->initVulkanRuntime();
 
 	// Infos about lambdas:

@@ -8,23 +8,17 @@ VulkanGraphicsPipeline::VulkanGraphicsPipeline(VulkanGraphicsPipelineCreateInfo 
 
 VulkanGraphicsPipeline::~VulkanGraphicsPipeline() 
 {
-
-	/*for (auto framebuffer : this->swapchainFramebufferCollection) {
-		vkDestroyFramebuffer(this->logicalDevice, framebuffer, nullptr);
-	}*/
-
 	vkDestroyPipeline(this->createInfo.logicalDevice, this->graphicsPipeline, nullptr);
 	vkDestroyPipelineLayout(this->createInfo.logicalDevice, this->pipelineLayout, nullptr);
-
 }
 
 
-VkPipeline &VulkanGraphicsPipeline::GetGraphicsPipeline()
+VkPipeline VulkanGraphicsPipeline::GetGraphicsPipeline()
 {
 	return this->graphicsPipeline;
 }
 
-VkPipelineLayout &VulkanGraphicsPipeline::GetGraphicsPipelineLayout()
+VkPipelineLayout VulkanGraphicsPipeline::GetGraphicsPipelineLayout()
 {
 	return this->pipelineLayout;
 }

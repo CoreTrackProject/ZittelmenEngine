@@ -15,12 +15,12 @@ VulkanShader::~VulkanShader() {
 }
 
 
-VkShaderModule &VulkanShader::GetVertexShaderModule()
+VkShaderModule VulkanShader::GetVertexShaderModule()
 {
 	return this->vertexShaderModule;
 }
 
-VkShaderModule &VulkanShader::GetFragmentShaderModule()
+VkShaderModule VulkanShader::GetFragmentShaderModule()
 {
 	return this->fragmentShaderModule;
 }

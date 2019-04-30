@@ -25,7 +25,7 @@ public:
 	VulkanInstance(VulkanInstanceCreateInfo createInfo);
 	~VulkanInstance();
 
-	VkInstance &GetInstance();
+	VkInstance GetInstance();
 
 private:
 	void init_vkInstance(bool enableValidation);

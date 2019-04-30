@@ -28,12 +28,12 @@ VulkanSwapchain::~VulkanSwapchain()
 
 
 
-VkExtent2D &VulkanSwapchain::GetSwapchainExtent2D()
+VkExtent2D VulkanSwapchain::GetSwapchainExtent2D()
 {
 	return this->selectedExtent;
 }
 
-VkSurfaceFormatKHR &VulkanSwapchain::GetSwapchainImageFormat()
+VkSurfaceFormatKHR VulkanSwapchain::GetSwapchainImageFormat()
 {
 	return this->selectedSurfaceFormat;
 }
@@ -43,22 +43,22 @@ std::shared_ptr<VulkanTexture> VulkanSwapchain::GetDepthTexture()
 	return this->depthTexture;
 }
 
-std::vector<Image> &VulkanSwapchain::GetImageCollection()
+std::vector<Image> VulkanSwapchain::GetImageCollection()
 {
 	return this->imageCollection;
 }
 
-VkSwapchainKHR &VulkanSwapchain::GetSwapchain()
+VkSwapchainKHR VulkanSwapchain::GetSwapchain()
 {
 	return this->swapChain;
 }
 
-VkQueue &VulkanSwapchain::GetPresentQueue()
+VkQueue VulkanSwapchain::GetPresentQueue()
 {
 	return this->presentQueue;
 }
 
-VkRenderPass & VulkanSwapchain::GetRenderpass()
+VkRenderPass VulkanSwapchain::GetRenderpass()
 {
 	return this->renderPass;
 }
@@ -68,6 +68,10 @@ std::vector<VkFramebuffer> VulkanSwapchain::GetFramebufferCollection()
 	return this->swapchainFramebufferCollection;
 }
 
+std::uint32_t VulkanSwapchain::GetQueueFamilyPresentIdx()
+{
+	return this->queueFamilyPresentIdx;
+}
 
 
 
@@ -114,7 +118,7 @@ void VulkanSwapchain::init_Swapchain()
 					break;
 				}
 			}
-			vkGetDeviceQueue(this->createInfo.logicalDevice, this->getQueueFamilyPresentIdx(), 0, &this->presentQueue);
+			vkGetDeviceQueue(this->createInfo.logicalDevice, this->GetQueueFamilyPresentIdx(), 0, &this->presentQueue);
 		}
 
 		uint32_t queueFamilyIndices[] = { this->createInfo.deviceInfo.queueFamilyIndexes.graphics, this->queueFamilyPresentIdx };
@@ -190,12 +194,11 @@ void VulkanSwapchain::querySwapChainRelatedInfo()
 void VulkanSwapchain::init_Imageviews()
 {
 
-	uint32_t swapchainImageCount = 0;
+	std::uint32_t swapchainImageCount = 0;
 	VkResult res = vkGetSwapchainImagesKHR(this->createInfo.logicalDevice, this->swapChain, &swapchainImageCount, nullptr);
 	if (res != VkResult::VK_SUCCESS) {
 		throw std::runtime_error("Failed to get swapchain images.");
 	}
-	//this->imageCollection.resize(swapchainImageCount);
 
 	std::vector<VkImage> tmpImageBuffer(swapchainImageCount);
 	res = vkGetSwapchainImagesKHR(this->createInfo.logicalDevice, this->swapChain, &swapchainImageCount, tmpImageBuffer.data());
@@ -205,7 +208,7 @@ void VulkanSwapchain::init_Imageviews()
 
 	for (VkImage tmpImage : tmpImageBuffer) {
 
-		Image image;
+		Image image = {};
 		image.image = tmpImage;
 
 		VkImageViewCreateInfo imageViewCreateInfo			= {};
@@ -317,7 +320,7 @@ void VulkanSwapchain::init_Renderpass()
 void VulkanSwapchain::init_Framebuffer()
 {
 
-	uint32_t swapchainImageCount = static_cast<uint32_t>(this->imageCollection.size());
+	std::uint32_t swapchainImageCount = static_cast<std::uint32_t>(this->imageCollection.size());
 	this->swapchainFramebufferCollection.resize(swapchainImageCount);
 
 	for (size_t i = 0; i < swapchainImageCount; i++) {
@@ -343,7 +346,7 @@ void VulkanSwapchain::init_Framebuffer()
 	}
 }
 
-VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
+VkSurfaceFormatKHR VulkanSwapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats)
 {
 	if (availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
 		return { VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR };
@@ -374,9 +377,9 @@ VkPresentModeKHR VulkanSwapchain::chooseSwapPresentMode(const std::vector<VkPres
 	return bestMode;
 }
 
-VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities)
+VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR capabilities)
 {
-	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
+	if (capabilities.currentExtent.width != std::numeric_limits<std::uint32_t>::max()) {
 		return capabilities.currentExtent;
 	} else {
 		VkExtent2D actualExtent = { this->createInfo.width, this->createInfo.height };
@@ -387,10 +390,4 @@ VkExtent2D VulkanSwapchain::chooseSwapExtent(const VkSurfaceCapabilitiesKHR &cap
 		return actualExtent;
 	}
 }
-
-uint32_t &VulkanSwapchain::getQueueFamilyPresentIdx()
-{
-	return this->queueFamilyPresentIdx;
-}
-
 

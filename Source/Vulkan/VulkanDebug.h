@@ -14,15 +14,12 @@ struct VulkanDebugCreateInfo {
 	VkInstance instance;
 };
 
+namespace VulkanDebugGlobal {
 
-/*
-
-*/
-class VulkanDebug
-{
-
-public:
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+	/*
+	
+	*/
+	inline VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 		VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
 		VkDebugUtilsMessageTypeFlagsEXT messageType,
 		const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -50,22 +47,32 @@ public:
 		return VK_FALSE;
 	}
 
-	static constexpr VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo = {
+	/*
+	
+	*/
+	static const VkDebugUtilsMessengerCreateInfoEXT DebugUtilsMessengerCreateInfo = {
 		VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
 		VK_NULL_HANDLE,
 		0,
 		VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
 		VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-		VulkanDebug::debugCallback,
+		DebugCallback,
 		nullptr
 	};
 
+}
+
+/*
+
+*/
+class VulkanDebug
+{
 public:
 	VulkanDebug(VulkanDebugCreateInfo createInfo);
 	~VulkanDebug();
 
-	static std::vector<const char*> addInstanceDebugExtensionCollection(std::vector<const char*> &extensionCollection);
-	static std::vector<const char*> addInstanceDebugLayerCollection(std::vector<const char*> &extensionCollection);
+	static void AddInstanceDebugExtensionCollection(std::vector<const char*> *extensionCollection);
+	static void AddInstanceDebugLayerCollection(std::vector<const char*>     *extensionCollection);
 
 private:
 	void init_vulkanDebug();
@@ -80,6 +87,6 @@ private:
 
 private:
 	VulkanDebugCreateInfo createInfo;
-	VkDebugUtilsMessengerEXT debugMessenger;
+	VkDebugUtilsMessengerEXT debugMessenger = VK_NULL_HANDLE;
 
 };

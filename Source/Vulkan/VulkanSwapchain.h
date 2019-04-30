@@ -47,15 +47,15 @@ public:
 	VulkanSwapchain(VulkanSwapchainCreateInfo createInfo);
 	~VulkanSwapchain();
 
-	VkExtent2D &GetSwapchainExtent2D();
-	VkSurfaceFormatKHR &GetSwapchainImageFormat();
-	VkSwapchainKHR &GetSwapchain();
+	VkExtent2D GetSwapchainExtent2D();
+	VkSurfaceFormatKHR GetSwapchainImageFormat();
+	VkSwapchainKHR GetSwapchain();
 
-	std::vector<Image> &GetImageCollection();
-	uint32_t &getQueueFamilyPresentIdx();
-	VkQueue &GetPresentQueue();
+	std::vector<Image> GetImageCollection();
+	std::uint32_t GetQueueFamilyPresentIdx();
 
-	VkRenderPass &GetRenderpass();
+	VkQueue GetPresentQueue();
+	VkRenderPass GetRenderpass();
 
 	std::vector<VkFramebuffer> GetFramebufferCollection();
 	std::shared_ptr<VulkanTexture> GetDepthTexture();
@@ -64,40 +64,30 @@ private:
 	void init_Swapchain();
 	void querySwapChainRelatedInfo();
 	void init_Imageviews();
-	
 	void init_DepthTexture();
-
 	void init_Renderpass();
-
 	void init_Framebuffer();
 
-
-	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-	VkPresentModeKHR   chooseSwapPresentMode(const std::vector<VkPresentModeKHR> availablePresentModes);
-	VkExtent2D         chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+	VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> availableFormats);
+	VkPresentModeKHR   chooseSwapPresentMode(  const std::vector<VkPresentModeKHR> availablePresentModes);
+	VkExtent2D         chooseSwapExtent(       const VkSurfaceCapabilitiesKHR capabilities);
 	
-
 private:
 	VulkanSwapchainCreateInfo createInfo = {};
-
 	std::shared_ptr<VulkanTexture> depthTexture = nullptr;
 
 	VkSwapchainKHR swapChain = VK_NULL_HANDLE;
-	VkQueue presentQueue     = VK_NULL_HANDLE; 
-
+	VkQueue presentQueue     = VK_NULL_HANDLE;
 	VkRenderPass renderPass  = VK_NULL_HANDLE;
 
-
 	// Queuefamily index which supports presenting
-	uint32_t queueFamilyPresentIdx = 0;
+	std::uint32_t queueFamilyPresentIdx = 0;
 
 	VkSurfaceFormatKHR selectedSurfaceFormat;
 	VkPresentModeKHR selectedPresentMode;
 	VkExtent2D selectedExtent;
 
-	Image image;
 	std::vector<Image> imageCollection;
-
 	std::vector<VkFramebuffer> swapchainFramebufferCollection;
 
 };

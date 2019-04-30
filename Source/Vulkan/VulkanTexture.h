@@ -46,19 +46,17 @@ public:
 
 
 public: // Public Methods
-	VkDeviceMemory &GetDeviceMemory();
-	VkImage &GetImage();
-	VkImageView &GetImageView();
-	VkSampler &GetImageSampler();
-	VkDeviceSize &GetSize();
-    std::shared_ptr<QImage> &GetQImage();
-
-	void freeMemory();
+	VkDeviceMemory GetDeviceMemory();
+	VkImage GetImage();
+	VkImageView GetImageView();
+	VkSampler GetImageSampler();
+	VkDeviceSize GetSize();
+    std::shared_ptr<QImage> GetQImage();
 
 
 public: // Static methods
-	static std::shared_ptr<VulkanTexture> NewTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::shared_ptr<QImage> &image);
-	static std::shared_ptr<VulkanTexture> NewDepthTexture(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, std::uint32_t width, std::uint32_t height);
+	static std::shared_ptr<VulkanTexture> NewTexture(VkPhysicalDevice phyDevice, VkDevice logicalDevice, std::shared_ptr<QImage> image);
+	static std::shared_ptr<VulkanTexture> NewDepthTexture(VkPhysicalDevice phyDevice, VkDevice logicalDevice, std::uint32_t width, std::uint32_t height);
 
 
 private: // Private Methods

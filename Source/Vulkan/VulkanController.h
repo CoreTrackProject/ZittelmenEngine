@@ -47,7 +47,7 @@ public:
 	void Destroy();
 
 	void RenderFrame();
-	void ImportData(std::vector<VulkanVertex> &vertexCollection, std::vector<std::uint32_t> &indexCollection, std::shared_ptr<QImage> &meshTexture);
+	void ImportData(std::vector<VulkanVertex> vertexCollection, std::vector<std::uint32_t> indexCollection, std::shared_ptr<QImage> meshTexture);
 
 private:
 	void initVulkanInstance();
@@ -86,7 +86,7 @@ private:
 private:
 	bool enableValidation  = false;
 	WId target;
-	uint32_t width = 0, height = 0;
+	std::uint32_t width = 0, height = 0;
 
 	std::unique_ptr<VulkanInstance> instance				 = nullptr;
 	std::unique_ptr<VulkanDebug> vulkanDebug				 = nullptr;

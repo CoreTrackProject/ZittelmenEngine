@@ -27,16 +27,16 @@ public:
 	~VulkanBuffer();
 
 public: // Public Methods
-	VkDeviceMemory &getDeviceMemory();
-	VkBuffer &getBuffer();
-	VkDeviceSize &getSize();
+	VkDeviceMemory getDeviceMemory();
+	VkBuffer getBuffer();
+	VkDeviceSize getSize();
 	void freeMemory();
 
 public: // Static methods
-	static std::shared_ptr<VulkanBuffer> NewStagingBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> NewVertexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> NewIndexBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
-	static std::shared_ptr<VulkanBuffer> NewUniformBuffer(VkPhysicalDevice &phyDevice, VkDevice &logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewStagingBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewVertexBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewIndexBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes);
+	static std::shared_ptr<VulkanBuffer> NewUniformBuffer(VkPhysicalDevice phyDevice, VkDevice logicalDevice, VkDeviceSize sizeBytes);
 
 private: // Private Methods
 	void allocateBuffer(VkDeviceSize sizeBytes, VkBufferUsageFlags bufferUsage, VkMemoryPropertyFlags memoryproperties);
