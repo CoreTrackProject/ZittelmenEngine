@@ -14,9 +14,9 @@
 /*
 
 */
-class SimpleTriangle : public QMainWindow {
+class SimpleMesh : public QMainWindow {
 public:
-	SimpleTriangle() {
+	SimpleMesh() {
 
 
 		// Create the ZiEngine object
@@ -46,12 +46,12 @@ public:
 		this->zi->Initialize();
 
 
-		QObject::connect(&this->renderTimer, &QTimer::timeout, this, &SimpleTriangle::timer_tick);
+		QObject::connect(&this->renderTimer, &QTimer::timeout, this, &SimpleMesh::timer_tick);
 		this->renderTimer.start(0);
 
 	}
 
-	~SimpleTriangle() {
+	~SimpleMesh() {
 		this->renderTimer.stop();
 	}
 
@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
 {
 	QApplication a(argc, argv);
 
-	SimpleTriangle st;
-	st.show();
+	SimpleMesh tm;
+	tm.show();
 
 	return a.exec();
 }

@@ -1,1 +1,1 @@
-add_subdirectory(SimpleTriangle)
+add_subdirectory(SimpleMesh)
