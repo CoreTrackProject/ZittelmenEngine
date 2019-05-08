@@ -4,18 +4,30 @@ set (CMAKE_CXX_STANDARD 11)
 
 project(ZittelmenEngine VERSION 1.0.1 DESCRIPTION "Vulkan graphics engine")
 
+
+
+
+
+# Options for Build
+option( ZI_BUILD_EXAMPLES "Build examples" ON )
+
+
+
+
+
+# Locate all sources for the Zi Engine
 file(GLOB_RECURSE zittelmenengine_SRCS
     "Source/*.h"
     "Source/*.cpp"
     "Source/*.hpp"
 )
 
-
-
 # Find Qt ressource files
 file(GLOB_RECURSE zittelmenengine_Resources
 	"Source/*.qrc"
 )
+
+# Add Qt Resource files
 qt5_add_resources(RCC_SOURCES ${zittelmenengine_Resources})
 
 # Find Vulkan  SDK
@@ -39,8 +51,18 @@ target_link_libraries(assimp INTERFACE
 )
 
 
+# If set then include the example projects
+if( ZI_BUILD_EXAMPLES )
+  add_subdirectory( Examples )
+endif()
+
+
+# Include directory for the cpp files
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/Source")
-add_library(ZittelmenEngine STATIC ${zittelmenengine_SRCS} ${RCC_SOURCES})
+
+# Define project as library -> atm it is only possible to add the project as static library
+# because it contains no logic like __declspec(dllexport/dllimport) for dynamic libraries
+add_library(ZittelmenEngine ${zittelmenengine_SRCS} ${RCC_SOURCES})
 
 # Use the Widgets module from Qt 5
 target_link_libraries(
